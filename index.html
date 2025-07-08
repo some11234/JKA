@@ -66,7 +66,6 @@
       font-weight: 700;
       margin-bottom: 0.5rem;
     }
-    /* Fixed-width outline sized for the longest role (17ch for 'Marketing Student') */
     .hero .tag {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.9rem;
@@ -174,19 +173,18 @@
   <div class="container">
     <section class="hero">
       <img src="headshot.jpg" alt="Joe's Photo">
-      <div>
-        <div class="title">Hey,<br> I’m Joe!</div>
-        <div class="tag">Radio Announcer</div>
+      <div id="role-container" class="tag">
+        <span id="role-tag">Radio Announcer</span>
       </div>
     </section>
 
-    <section class="about">
+    <section id="about" class="about">
       <p>I’m a sophomore at the University of Vermont’s Grossman School of Business. I’m planning to concentrate in marketing, with an interdisciplinary theme in entrepreneurship.</p>
       <p>I’m incredibly interested in healthcare and how we can apply emerging AI technologies to enhance our overall quality of life.</p>
       <a href="#about" class="more-link">More About Me</a>
     </section>
 
-    <section>
+    <section id="projects">
       <div class="section-title">What I’m Doing</div>
       <div class="grid">
         <div class="item">
@@ -201,7 +199,7 @@
       <a href="#projects" class="projects-link">My Projects</a>
     </section>
 
-    <section class="gallery">
+    <section id="gallery" class="gallery">
       <div class="section-title">Gallery</div>
       <div class="images">
         <img src="img1.jpg" alt="Image 1">

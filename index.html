@@ -74,6 +74,14 @@
       border-radius: 8px;
       padding: 0.2rem 0.5rem;
       margin-bottom: 2rem;
+      width: 17ch;
+      text-align: center;
+      display: inline-block;
+    }
+    #role-tag {
+      display: inline-block;
+      transition: opacity 0.5s ease-in-out;
+      opacity: 1;
     }
     .about p {
       text-align: justify;
@@ -197,6 +205,39 @@
     </section>
   </div>
 
+  <script>
+    const roles = [
+      "Radio Announcer",
+      "Resident Advisor",
+      "Case Competitor",
+      "Scooper",
+      "Marketing Student"
+    ];
+    let current = 1;
+    const tagEl = document.getElementById('role-tag');
+    const container = document.getElementById('role-container');
+    function rotateRole() {
+      tagEl.style.opacity = 0;
+      setTimeout(() => {
+        tagEl.textContent = roles[current];
+        tagEl.style.opacity = 1;
+        current = (current + 1) % roles.length;
+      }, 500);
+    }
+    let rotateInterval = setInterval(rotateRole, 3000);
+    container.addEventListener('mouseenter', () => {
+      clearInterval(rotateInterval);
+      tagEl.textContent = 'My Résumé';
+      container.style.background = '#00ff9c';
+      container.style.color = 'black';
+    });
+    container.addEventListener('mouseleave', () => {
+      container.style.background = 'transparent';
+      container.style.color = '#00ff9c';
+      rotateInterval = setInterval(rotateRole, 3000);
+    });
+  </script>
+  
   <footer>
     Joseph Kerby Anderson | Happy That Thorn Bushes Have Roses | Last Updated 06/23/2025
   </footer>

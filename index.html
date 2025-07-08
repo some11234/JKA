@@ -10,11 +10,11 @@
     body {
       margin: 0;
       font-family: 'Satoshi', sans-serif;
-      background-color: #0f0f0f;
+      background-color: #080808;
       color: #ffffff;
     }
     a {
-      color: #b99bff;
+      color: #9F7BFF;
       text-decoration: none;
     }
     .container {
@@ -40,10 +40,10 @@
       transition: color 0.2s ease;
     }
     nav a:hover {
-      color: #B47EFF;
+      color: #9F7BFF;
     }
     .email-button {
-      background: #00ff9c;
+      background: #00ff8c;
       color: black;
       padding: 0.5rem 1rem;
       border-radius: 0.5rem;
@@ -69,8 +69,8 @@
     .hero .tag {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.9rem;
-      color: #00ff9c;
-      border: 1px solid #00ff9c;
+      color: #00ff8c;
+      border: 1px solid #00ff8c;
       border-radius: 8px;
       padding: 0.2rem 0.5rem;
       margin-bottom: 2rem;
@@ -233,12 +233,12 @@
     container.addEventListener('mouseenter', () => {
       clearInterval(rotateInterval);
       tagEl.textContent = 'My Résumé';
-      container.style.background = '#00ff9c';
+      container.style.background = '#00ff8c';
       container.style.color = 'black';
     });
     container.addEventListener('mouseleave', () => {
       container.style.background = 'transparent';
-      container.style.color = '#00ff9c';
+      container.style.color = '#00ff8c';
       rotateInterval = setInterval(rotateRole, 3000);
     });
   </script>

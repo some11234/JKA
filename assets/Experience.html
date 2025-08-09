@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Joseph Kerby — Experience</title>
+  <meta name="description" content="Joseph Kerby — résumé / experience." />
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1,2&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0b0b;
+      --surface: #1e1e1e;
+      --muted-surface: #121212;
+      --text: #ecede9;
+      --text-2: #9fa3a8;
+      --divider: #2a2a2a;
+      --accent: #6cfdb6;          /* mint */
+      --accent-2: #9e84df;        /* purple */
+      --chip-bg: #0c0c0b;
+      --chip-stroke: #313233;
+      --radius: 16px;
+      --radius-lg: 20px;
+      --shadow: 0 10px 30px rgba(0,0,0,.45);
+    }
+    *{box-sizing:border-box}
+    html, body { background: var(--bg); color: var(--text); font-family: 'Satoshi-Variable','Satoshi Variable','Satoshi', Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 24px; }
+
+    /* NAV */
+    .nav { position: sticky; top: 0; backdrop-filter: blur(10px); background: color-mix(in oklab, var(--bg) 80%, transparent); border-bottom: 1px solid var(--divider); z-index: 10; }
+    .nav .inner { display: flex; align-items: center; gap: 20px; padding: 14px 24px; max-width: 1100px; margin: 0 auto; }
+    .brand { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; letter-spacing: .04em; font-size: 20px; }
+    .spacer { flex: 1; }
+    .tabs a { display: inline-block; padding: 8px 10px; border-radius: 10px; color: var(--text-2); transition: color .15s ease; }
+    .tabs a:hover, .tabs a.active { color: var(--accent-2); }
+    .pill { background: var(--accent); color: #032014; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 13px; box-shadow: var(--shadow); }
+
+    /* PAGE TITLE */
+    header.page { padding: 28px 0 8px; }
+    h1 { font-size: 42px; margin: 0; letter-spacing: .01em; }
+    .rule { height:1px;background:var(--divider);margin:14px 0 6px; }
+    .sub { color: var(--text-2); }
+
+    /* COMPANY GROUP */
+    .company { background: var(--muted-surface); border:1px solid var(--divider); border-radius: var(--radius); padding: 18px; margin: 18px 0; }
+    .company-header { display:flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .company-header h2 { font-size: 22px; margin: 0; }
+    .company-header .meta { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; color: var(--text); }
+
+    /* STACKED ROLES */
+    .roles { margin-top: 8px; padding-left: 0; }
+    .roles::before { display: none; }
+    .role { padding: 12px 0 6px; }
+    .role::before { display: none; }
+    .role h3 { margin:0; font-size:18px; }
+    .title-row { display:flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .meta { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--accent); font-size: 13px; }
+    .muted { color: var(--text-2); }
+
+    /* Bullets with purple triangle markers */
+    ul.bullets { list-style: none; padding-left: 0; margin: 8px 0 0; }
+    ul.bullets li { position: relative; margin: 8px 0; color: var(--text-2); padding-left: 26px; }
+    ul.bullets li::before { content: ""; position: absolute; left: 0; top: 0.6em; transform: translateY(-50%); width: 14px; height: 14px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%239e84df" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l8 6-8 6z"/></svg>'); background-size: contain; background-repeat: no-repeat; opacity: .95; }
+
+    footer { margin: 44px 0 20px; color: var(--text-2); font-size: 13px; text-align:center; }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <div class="nav">
+    <div class="inner">
+      <a class="brand" href="index.html">Joseph&nbsp;Kerby</a>
+       <div class="spacer"></div>
+      <nav class="tabs" aria-label="Primary"><a href="projects.html">Projects</a>
+        <a href="gallery.html">Gallery</a>
+        <a class="active" href="experience.html">Experience</a>
+        <a href="tidbits.html">Tidbits</a>
+      </nav>
+      <div class="spacer"></div>
+      <a class="pill" href="mailto:hello@josephkerby.com">Email</a>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <header class="page">
+      <h1>Experience</h1>
+      <div class="rule"></div>
+    </header>
+
+    <!-- University of Vermont Grossman School of Business (Present) -->
+    <section class="company">
+      <div class="company-header">
+        <h2>University of Vermont Grossman School of Business</h2>
+        <div class="meta">Burlington, VT</div>
+      </div>
+      <div class="roles">
+        <div class="role">
+          <div class="title-row"><h3>Junior Lead Coordinator, Recruitment & Competition Logistics</h3><div class="meta">Apr 2025 – Present</div></div>
+          <ul class="bullets">
+            <li>Coordinate end‑to‑end logistics for the Grossman Dean’s Cup undergraduate case competition.</li>
+            <li>Lead recruitment and training for student volunteers across event ops roles.</li>
+            <li>Manage judge outreach, communications, and scheduling to ensure balanced panels.</li>
+          </ul>
+        </div>
+        <div class="role">
+          <div class="title-row"><h3>Member, Grossman Student Advisory Committee</h3><div class="meta">Nov 2024 – Present</div></div>
+          <ul class="bullets">
+            <li>Represent students to school leadership while collaborating with faculty and alumni.</li>
+            <li>Organize professional‑development programming and community events.</li>
+            <li>Support networking, case competitions, and student‑led initiatives.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ben & Jerry's (Present) with dual roles -->
+    <section class="company">
+      <div class="company-header">
+        <h2>Ben &amp; Jerry’s</h2>
+        <div class="meta">Burlington, VT</div>
+      </div>
+      <div class="roles">
+        <div class="role">
+          <div class="title-row"><h3>Team Member, Flagship Location</h3><div class="meta">Aug 2024 – Present</div></div>
+          <ul class="bullets">
+            <li>Deliver high‑volume guest service during peak periods while maintaining quality standards.</li>
+            <li>Operate POS and handle cash with accuracy; prep and portion products to spec.</li>
+            <li>Support onboarding by sharing best practices for service flow and food safety.</li>
+          </ul>
+        </div>
+        <div class="role">
+          <div class="title-row"><h3>Team Member, Franchise Location</h3><div class="meta">May 2023 – Aug 2024</div></div>
+          <ul class="bullets">
+            <li>Managed rush‑hour lines through efficient batching, scooping, and station resets.</li>
+            <li>Maintained daily checklists for sanitation, temperature logs, and closing procedures.</li>
+            <li>Promoted seasonal offerings and delivered consistently friendly service.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- University of Vermont (RA) -->
+    <section class="company">
+      <div class="company-header">
+        <h2>University of Vermont</h2>
+        <div class="meta">Burlington, VT</div>
+      </div>
+      <div class="roles">
+        <div class="role">
+          <div class="title-row"><h3>Resident Advisor (RA)</h3><div class="meta">Jan 2025 – May 2025</div></div>
+          <ul class="bullets">
+            <li>Applied active listening and mediation to resolve conflicts and support peers.</li>
+            <li>Enforced policies and documented incidents to uphold community standards.</li>
+            <li>Provided on‑call support for lockouts, noise complaints, and urgent incidents.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Student Grantmaker -->
+    <section class="company">
+      <div class="company-header">
+        <h2>Student Grantmaker — Schnitzer Cares</h2>
+        <div class="meta">Portland, OR</div>
+      </div>
+      <div class="roles">
+        <div class="role">
+          <div class="title-row"><h3>Student Grantmaker</h3><div class="meta">Sep 2021 – Jun 2024</div></div>
+          <ul class="bullets">
+            <li>Led fundraising and grant distribution, awarding $50K to Portland‑area nonprofits.</li>
+            <li>Evaluated applications and conducted organization interviews to guide decisions.</li>
+            <li>Advanced community giving through outreach and impact storytelling.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Portland Public Schools (two committees) -->
+    <section class="company">
+      <div class="company-header">
+        <h2>Portland Public Schools</h2>
+        <div class="meta">Portland, OR</div>
+      </div>
+      <div class="roles">
+        <div class="role">
+          <div class="title-row"><h3>Student Representative to Audit Committee</h3><div class="meta">Jun 2023 – Jun 2024</div></div>
+          <ul class="bullets">
+            <li>Reviewed external auditor reports for accuracy, risk, and compliance findings.</li>
+            <li>Assisted staff on internal audits and follow‑ups with departments.</li>
+            <li>Assessed compliance with contract‑management guidelines and controls.</li>
+          </ul>
+        </div>
+        <div class="role">
+          <div class="title-row"><h3>Student Representative to Community Budget Review Committee</h3><div class="meta">Sep 2022 – Aug 2023</div></div>
+          <ul class="bullets">
+            <li>Analyzed budget proposals and tradeoffs impacting schools and programs.</li>
+            <li>Gathered community input and synthesized themes for committee discussion.</li>
+            <li>Presented student‑centered recommendations to district leadership.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- AM 1450 KBPS (multi‑role progression) -->
+    <section class="company">
+      <div class="company-header">
+        <h2>AM 1450 KBPS</h2>
+        <div class="meta">Portland, OR</div>
+      </div>
+      <div class="roles">
+        <div class="role">
+          <div class="title-row"><h3>Senior Broadcast Announcer</h3><div class="meta">Sep 2023 – May 2024</div></div>
+          <ul class="bullets">
+            <li>DJ’d music sets and curated engaging playlists tailored to local audiences.</li>
+            <li>Anchored weather, news, and traffic segments with consistent on‑air cadence.</li>
+            <li>Interviewed community figures to spotlight neighborhood stories.</li>
+          </ul>
+        </div>
+        <div class="role">
+          <div class="title-row"><h3>Chief of Staff</h3><div class="meta">Sep 2022 – Nov 2023</div></div>
+          <ul class="bullets">
+            <li>Oversaw daily operations and coordinated centennial‑year station events.</li>
+            <li>Served as public liaison, strengthening community partnerships and engagement.</li>
+            <li>Led and mentored student staff to improve collaboration and output.</li>
+          </ul>
+        </div>
+        <div class="role">
+          <div class="title-row"><h3>Chief of Production</h3><div class="meta">Feb 2022 – Sep 2022</div></div>
+          <ul class="bullets">
+            <li>Hosted affiliate programming and served as election‑night anchor.</li>
+            <li>Curated and expanded music library to refresh station rotation.</li>
+            <li>Drove outreach and promotions to increase listener engagement.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Joseph Kerby Anderson • Last Updated 08/09/2025
+    </footer>
+  </main>
+</body>
+</html>

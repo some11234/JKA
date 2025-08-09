@@ -30,8 +30,29 @@
     a { color: inherit; text-decoration: none; }
     .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
     .nav { position: sticky; top: 0; backdrop-filter: blur(10px); background: color-mix(in oklab, var(--bg) 80%, transparent); border-bottom: 1px solid var(--divider); z-index: 10; }
-    .nav .inner { display: flex; align-items: center; gap: 20px; padding: 14px 24px; max-width: 1200px; margin: 0 auto; }
+    .nav .inner { display: flex; align-items: center; gap: 12px; padding: 10px 12px; max-width: 1200px; margin: 0 auto; }
     .brand { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; letter-spacing: .04em; font-size: 20px; }
+    /* Brand as colored text + outlined SVG */
+    .brand.brand-text { display: inline-flex; align-items: center; gap: 6px; line-height: 1; white-space: nowrap; }
+    .brand.brand-text .joseph span { font-size: 32px; }
+    .brand.brand-text .kerby {
+      font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+      font-weight: 800;
+      font-size: 32px;
+      line-height: 1;
+      color: var(--text);
+    }
+    .brand.brand-text .j { color: #A7E15F; }   /* green (brighter) */
+    .brand.brand-text .o { color: #FFD763; }   /* yellow (brighter) */
+    .brand.brand-text .s { color: #FF9953; }   /* orange (brighter) */
+    .brand.brand-text .e { color: #EF505A; }   /* red (brighter) */
+    .brand.brand-text .p { color: #C95CD1; }   /* purple (brighter) */
+    .brand.brand-text .h { color: #6ABEFF; }   /* blue (brighter) */
+
+
+    /* Brand as image logo */
+    .brand.brand-logo { line-height: 0; }
+    .brand.brand-logo img { height: 28px; width: auto; display: block; }
     .spacer { flex: 1; }
     .tabs a { display: inline-block; padding: 8px 10px; border-radius: 10px; color: var(--text-2); transition: color .15s ease; }
     .tabs a:hover { color: var(--accent-2); }
@@ -168,13 +189,32 @@
       .experience-item h3 { line-height: 1.05; }
       .cards { gap: 16px; }
       .thumb { aspect-ratio: 275 / 139; }
+      .brand.brand-logo img { height: 26px; }
+      .brand.brand-text .joseph span { font-size: 30px; }
+      .brand.brand-text .kerby { font-size: 30px; }
     }
   </style>
 </head>
 <body>
+  <script>
+    (function(){
+      try {
+        var p = location.pathname;
+        if (p.endsWith('/index.html')) {
+          var clean = p.slice(0, -('/index.html'.length)) || '/';
+          location.replace(clean + location.search + location.hash);
+        }
+      } catch(e){}
+    })();
+  </script>
   <div class="nav">
     <div class="inner">
-      <div class="brand">Joseph&nbsp;Kerby</div>
+      <a class="brand brand-text" href="./" aria-label="Home">
+        <span class="joseph">
+          <span class="j">J</span><span class="o">o</span><span class="s">s</span><span class="e">e</span><span class="p">p</span><span class="h">h</span>
+        </span>
+        <span class="kerby">Kerby</span>
+      </a>
        <div class="spacer"></div>
       <nav class="tabs" aria-label="Primary"><a href="projects.html">Projects</a>
         <a href="gallery.html">Gallery</a>

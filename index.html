@@ -38,13 +38,13 @@
     .tabs a.active { color: var(--accent-2); }
     .pill { background: var(--accent); color: #032014; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 13px; box-shadow: var(--shadow); }
     /* Hamburger + mobile menu */
-    .hamburger { display: none; align-items: center; justify-content: center; gap: 4px; padding: 10px; border-radius: 10px; border: 1px solid var(--divider); background: var(--muted-surface); }
-    .hamburger .bar { width: 18px; height: 2px; background: var(--text); display: block; }
+    .hamburger { display: none; align-items: center; justify-content: center; flex-direction: column; gap: 4px; padding: 10px; border-radius: 10px; border: 1px solid var(--divider); background: var(--muted-surface); }
+    .hamburger .bar { width: 20px; height: 2px; background: var(--text); display: block; border-radius: 2px; }
     .mobile-menu { display: none; position: fixed; top: 64px; right: 12px; background: var(--surface); border: 1px solid var(--divider); border-radius: 12px; padding: 10px; box-shadow: var(--shadow); z-index: 20; }
     .mobile-menu a { display: block; padding: 10px 12px; border-radius: 8px; color: var(--text-2); }
     .mobile-menu a:hover { background: var(--muted-surface); color: var(--accent-2); }
     .mobile-menu.open { display: block; }
-    .hero { margin-top: 28px; background: var(--surface); border: 1px solid var(--divider); border-radius: var(--radius-lg); padding: 28px; display: grid; grid-template-columns: 160px 1fr; gap: 18px; box-shadow: var(--shadow); }
+    .hero { margin-top: 28px; background: var(--muted-surface); border: 1px solid var(--divider); border-radius: var(--radius-lg); padding: 32px; display: grid; grid-template-columns: 160px 1fr; gap: 22px; box-shadow: var(--shadow); }
     .avatar { width: 160px; height: 160px; border-radius: 18px; border: 1px solid var(--divider); background: #0f1010; display: grid; place-items: center; color: var(--text-2); font-size: 12px; }
     .avatar img { 
       width: 100%; 
@@ -53,7 +53,7 @@
       border-radius: inherit; 
       display: block; 
     }
-    h1 { font-size: 44px; line-height: 1.05; margin: 0 0 8px; letter-spacing: .01em; }
+    h1 { font-size: 44px; line-height: 1.06; margin: 0 0 14px; letter-spacing: .01em; font-weight: 800; }
     .badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--chip-stroke); background: var(--chip-bg); font-size: 13px; color: var(--accent); font-weight: 600; }
     .badge.flip { position: relative; perspective: 700px; }
     .flip-inner { display: inline-block; transform-origin: center bottom; will-change: transform, opacity; }
@@ -80,14 +80,54 @@
     .section-line { height: 1px; background: var(--divider); flex: 1; margin-left: 10px; }
     .see-more-link { padding: 6px 12px; border-radius: 8px; background: var(--muted-surface); color: var(--accent-2); font-size: 14px; font-weight: 600; border: 1px solid var(--divider); transition: background .2s; }
     .see-more-link:hover { background: var(--surface); }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-    .card { background: var(--muted-surface); border: 1px solid var(--divider); border-radius: var(--radius); padding: 16px; min-height: 120px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+    .card { background: var(--muted-surface); border: 1px solid var(--divider); border-radius: var(--radius); padding: 16px; min-height: 120px; display: flex; flex-direction: column; gap: 12px; }
+    /* Projects: remove outer card container, keep inner thumbnail box */
+    .cards > .card { background: transparent; border: 0; padding: 0; border-radius: 0; box-shadow: none; gap: 10px; }
     .card h3 { margin: 6px 0 6px; font-size: 18px; }
+    .card .row { margin-bottom: 4px; text-align: center; }
+.card .row .muted { font-weight: 600; font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
     .muted { color: var(--text-2); font-size: 14px; }
     .meta { color: var(--accent); font-size: 14px; font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
     .experience-item h3 { margin: 0; }
     .experience-item .muted { margin-top: 4px; }
-    .thumb { width: 100%; height: 140px; border-radius: 12px; border: 1px solid var(--divider); background: #0e0f0f; display: grid; place-items: center; color: var(--text-2); }
+    .thumb { width: 100%; aspect-ratio: 275 / 139; border-radius: 12px; border: 1px solid var(--divider); background: #0e0f0f; display: grid; place-items: center; color: var(--text-2); overflow: hidden; position: relative; }
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: inherit;
+      display: block;
+    }
+    /* Frosted glass hover overlay inspired by iOS */
+    .thumb-cta {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      transition: opacity .25s ease, transform .25s ease;
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(12px) saturate(140%);
+      -webkit-backdrop-filter: blur(12px) saturate(140%);
+      border: 1px solid rgba(255,255,255,0.12);
+      text-decoration: none;
+    }
+    .thumb:hover .thumb-cta,
+    .thumb:focus-within .thumb-cta { opacity: 1; }
+    .glass-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: inset 0 1px rgba(255,255,255,0.16), 0 10px 20px rgba(0,0,0,.25);
+    }
     ul.bullets { list-style: none; padding-left: 0; margin: 8px 0 0; }
     ul.bullets li { position: relative; margin: 10px 0; color: var(--text-2); padding-left: 28px; }
     ul.bullets li::before { content: ""; position: absolute; left: 0; top: 0.6em; transform: translateY(-50%); width: 16px; height: 16px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%239e84df" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l8 6-8 6z"/></svg>'); background-size: contain; background-repeat: no-repeat; opacity: .95; }
@@ -117,7 +157,8 @@
 
       /* Stack hero vertically */
       .hero { grid-template-columns: 1fr; gap: 14px; }
-      .avatar { width: 128px; height: 128px; }
+      .avatar { width: clamp(150px, 42vw, 200px); height: clamp(150px, 42vw, 200px); }
+      .hero > .avatar { justify-self: center; }
 
       /* Dates: stack start/end, hide dash */
       .experience-item header { position: relative; padding-right: 96px; }
@@ -125,6 +166,8 @@
       .experience-item header .meta .date-sep { display: none; }
       .experience-item .muted { margin-top: 0.22em; }
       .experience-item h3 { line-height: 1.05; }
+      .cards { gap: 16px; }
+      .thumb { aspect-ratio: 275 / 139; }
     }
   </style>
 </head>
@@ -175,16 +218,22 @@
       </div>
       <div class="cards">
         <div class="card">
-          <div class="row"><span class="muted">This Site</span></div>
-          <div class="thumb">IMG</div>
+          <div class="row"><span class="muted">This Website</span></div>
+          <div class="thumb"><img src="assets/website.jpg" alt="This site preview" />
+          <a class="thumb-cta" href="projects.html" aria-label="Learn more about This Website"><span class="glass-pill">Learn More</span></a>
+        </div>
         </div>
         <div class="card">
-          <div class="row"><span class="muted">SG-FECC</span></div>
-          <div class="thumb">IMG</div>
+          <div class="row"><span class="muted">Case Competitions</span></div>
+          <div class="thumb"><img src="assets/FECC.jpg" alt="SG-FECC preview" />
+          <a class="thumb-cta" href="projects.html" aria-label="Learn more about Case Competitions"><span class="glass-pill">Learn More</span></a>
+        </div>
         </div>
         <div class="card">
-          <div class="row"><span class="muted">AM 1450 KBPS</span></div>
-          <div class="thumb">IMG</div>
+          <div class="row"><span class="muted">Radio Broadcasting</span></div>
+          <div class="thumb"><img src="assets/KBPS.jpg" alt="AM 1450 KBPS preview" />
+          <a class="thumb-cta" href="projects.html" aria-label="Learn more about Radio Broadcasting"><span class="glass-pill">Learn More</span></a>
+        </div>
         </div>
       </div>
     </section>

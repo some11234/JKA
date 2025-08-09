@@ -1,251 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Joseph Kerby</title>
-  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,700&f[]=jetbrains-mono@400&display=swap" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Joseph Kerby — Personal Site</title>
+  <meta name="description" content="Joseph Kerby — projects, experience, and tidy bits." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1,2&display=swap" rel="stylesheet">
   <style>
-    body {
-      margin: 0;
-      font-family: 'Satoshi', sans-serif;
-      background-color: #080808;
-      color: #ffffff;
+    :root {
+      --bg: #0b0b0b;
+      --surface: #1e1e1e;
+      --muted-surface: #121212;
+      --text: #ecede9;
+      --text-2: #9fa3a8;
+      --divider: #2a2a2a;
+      --accent: #6cfdb6;
+      --accent-2: #9e84df;
+      --chip-bg: #0c0c0b;
+      --chip-stroke: #313233;
+      --radius: 16px;
+      --radius-lg: 20px;
+      --shadow: 0 10px 30px rgba(0,0,0,.45);
     }
-    a {
-      color: #9F7BFF;
-      text-decoration: none;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      font-weight: bold;
-    }
-    header .logo {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.5rem;
-      font-weight: 900;
-    }
-    nav a {
-      margin: 0 1rem;
-      color: #ADADAD;
-      transition: color 0.2s ease;
-    }
-    nav a:hover {
-      color: #9F7BFF;
-    }
-    .email-button {
-      background: #00ff8c;
-      color: black;
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 500;
-    }
-    .hero {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-    .hero img {
-      width: 150px;
-      border-radius: 1rem;
-      margin-bottom: 1rem;
-    }
-    .hero .title {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-    .hero .tag {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      color: #00ff8c;
-      border: 1px solid #00ff8c;
-      border-radius: 8px;
-      padding: 0.2rem 0.5rem;
-      margin-bottom: 2rem;
-      width: 17ch;
-      text-align: center;
-      display: inline-block;
-    }
-    #role-tag {
-      display: inline-block;
-      transition: opacity 0.5s ease-in-out;
-      opacity: 1;
-    }
-    .about p {
-      text-align: justify;
-      margin-bottom: 1rem;
-    }
-    .about .more-link {
-      display: block;
-      margin: 1.5rem auto;
-      text-align: center;
-    }
-    .section-title {
-      font-size: 1.5rem;
-      font-weight: bold;
-      margin-top: 2rem;
-      text-align: center;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      justify-items: center;
-      margin: 1rem 0;
-    }
-    .grid .item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .item-icon {
-      width: 80px;
-      height: 80px;
-      border-radius: 0.5rem;
-      object-fit: cover;
-    }
-    .projects-link {
-      display: block;
-      margin: 1.5rem auto;
-      text-align: center;
-    }
-    .gallery {
-      text-align: center;
-      margin-top: 2rem;
-    }
-    .gallery .images {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-top: 1rem;
-      flex-wrap: wrap;
-    }
-    .gallery img {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 0.5rem;
-    }
-    footer {
-      text-align: center;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      color: #aaa;
-      padding: 2rem 0;
-    }
-    @media (min-width: 768px) {
-      .hero {
-        flex-direction: row;
-        align-items: center;
-        text-align: left;
-        justify-content: center;
-        gap: 2rem;
-      }
-    }
+    * { box-sizing: border-box; }
+    html, body { background: var(--bg); color: var(--text); font-family: 'Satoshi-Variable','Satoshi Variable','Satoshi', Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .nav { position: sticky; top: 0; backdrop-filter: blur(10px); background: color-mix(in oklab, var(--bg) 80%, transparent); border-bottom: 1px solid var(--divider); z-index: 10; }
+    .nav .inner { display: flex; align-items: center; gap: 20px; padding: 14px 24px; max-width: 1200px; margin: 0 auto; }
+    .brand { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; letter-spacing: .04em; font-size: 20px; }
+    .spacer { flex: 1; }
+    .tabs a { display: inline-block; padding: 8px 10px; border-radius: 10px; color: var(--text-2); transition: color .15s ease; }
+    .tabs a:hover { color: var(--accent-2); }
+    .tabs a.active { color: var(--accent-2); }
+    .pill { background: var(--accent); color: #032014; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 13px; box-shadow: var(--shadow); }
+    .hero { margin-top: 28px; background: var(--surface); border: 1px solid var(--divider); border-radius: var(--radius-lg); padding: 28px; display: grid; grid-template-columns: 120px 1fr; gap: 18px; box-shadow: var(--shadow); }
+    .avatar { width: 120px; height: 120px; border-radius: 18px; border: 1px solid var(--divider); background: #0f1010; display: grid; place-items: center; color: var(--text-2); font-size: 12px; }
+    h1 { font-size: 44px; line-height: 1.05; margin: 0 0 8px; letter-spacing: .01em; }
+    .badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--chip-stroke); background: var(--chip-bg); font-size: 13px; color: var(--accent); font-weight: 600; }
+    .lead { color: var(--text-2); max-width: 70ch; }
+    .cta { margin-top: 12px; display: inline-block; color: var(--accent-2); border-bottom: 1px dashed var(--accent-2); padding-bottom: 2px; }
+    section { padding: 40px 0 8px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .section-title { font-size: 28px; }
+    .section-line { height: 1px; background: var(--divider); flex: 1; margin-left: 10px; }
+    .see-more-link { padding: 6px 12px; border-radius: 8px; background: var(--muted-surface); color: var(--accent-2); font-size: 14px; font-weight: 600; border: 1px solid var(--divider); transition: background .2s; }
+    .see-more-link:hover { background: var(--surface); }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .card { background: var(--muted-surface); border: 1px solid var(--divider); border-radius: var(--radius); padding: 16px; min-height: 120px; }
+    .card h3 { margin: 6px 0 6px; font-size: 18px; }
+    .muted { color: var(--text-2); font-size: 14px; }
+    .meta { color: var(--accent); font-size: 14px; font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .thumb { width: 100%; height: 140px; border-radius: 12px; border: 1px solid var(--divider); background: #0e0f0f; display: grid; place-items: center; color: var(--text-2); }
+    ul.bullets { list-style: none; padding-left: 0; margin: 8px 0 0; }
+    ul.bullets li { position: relative; margin: 10px 0; color: var(--text-2); padding-left: 28px; }
+    ul.bullets li::before { content: ""; position: absolute; left: 0; top: 0.6em; transform: translateY(-50%); width: 16px; height: 16px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%239e84df" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l8 6-8 6z"/></svg>'); background-size: contain; background-repeat: no-repeat; opacity: .95; }
+    .frame { border-radius: 14px; border: 1px solid var(--divider); padding: 10px; }
+    .frame .img { width: 100%; height: 260px; border-radius: 10px; border: 1px solid var(--divider); background: #0f1010; display: grid; place-items: center; color: var(--text-2); }
+    .caption { color: var(--text-2); font-size: 13px; margin-top: 8px; }
+    
+    /* CAROUSEL */
+    .carousel { position: relative; }
+    .carousel .track { display: grid; grid-auto-flow: column; gap: 12px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+    .carousel .slide { scroll-snap-align: start; }
+    .carousel .img { width: 320px; height: 220px; border-radius: 10px; border: 1px solid var(--divider); background: #0f1010; display: grid; place-items: center; color: var(--text-2); }
+    footer { margin: 50px 0 20px; color: var(--text-2); font-size: 13px; text-align: center; }
+    footer .marquee { opacity: .85; }
   </style>
 </head>
-
 <body>
-  <header>
-    <div class="logo">Joseph Kerby</div>
-    <nav>
-      <a href="#about">About</a>
-      <a href="#projects">Projects</a>
-      <a href="#experience">Experience</a>
-      <a href="#tidbits">Tidbits</a>
-    </nav>
-    <a href="mailto:office@josephkerby.com" class="email-button">Email</a>
-  </header>
-
-  <div class="container">
-    <section class="hero">
-      <img src="headshot.jpg" alt="Joe's Photo">
-      <div id="role-container" class="tag">
-        <span id="role-tag">Radio Announcer</span>
-      </div>
-    </section>
-
-    <section id="about" class="about">
-      <p>I’m a sophomore at the University of Vermont’s Grossman School of Business. I’m planning to concentrate in marketing, with an interdisciplinary theme in entrepreneurship.</p>
-      <p>I’m incredibly interested in healthcare and how we can apply emerging AI technologies to enhance our overall quality of life.</p>
-      <a href="#about" class="more-link">More About Me</a>
-    </section>
-
-    <section id="projects">
-      <div class="section-title">What I’m Doing</div>
-      <div class="grid">
-        <div class="item">
-          <div>[Icon]</div>
-          <div>This site</div>
-        </div>
-        <div class="item">
-          <div>[Icon]</div>
-          <div>SG-FECC</div>
-        </div>
-      </div>
-      <a href="#projects" class="projects-link">My Projects</a>
-    </section>
-
-    <section id="gallery" class="gallery">
-      <div class="section-title">Gallery</div>
-      <div class="images">
-        <img src="img1.jpg" alt="Image 1">
-        <img src="img2.jpg" alt="Image 2">
-        <img src="img3.jpg" alt="Image 3">
-      </div>
-      <a href="#gallery" class="projects-link">Show Me More</a>
-    </section>
+  <div class="nav">
+    <div class="inner">
+      <div class="brand">Joseph&nbsp;Kerby</div>
+       <div class="spacer"></div>
+      <nav class="tabs" aria-label="Primary"><a href="projects.html">Projects</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="experience.html">Experience</a>
+        <a href="tidbits.html">Tidbits</a>
+      </nav>
+      <div class="spacer"></div>
+      <a class="pill" href="mailto:hello@josephkerby.com">Email</a>
+    </div>
   </div>
 
-  <script>
-    const roles = [
-      "Radio Announcer",
-      "Resident Advisor",
-      "Case Competitor",
-      "Scooper",
-      "Marketing Student"
-    ];
-    let current = 1;
-    const tagEl = document.getElementById('role-tag');
-    const container = document.getElementById('role-container');
-    function rotateRole() {
-      tagEl.style.opacity = 0;
-      setTimeout(() => {
-        tagEl.textContent = roles[current];
-        tagEl.style.opacity = 1;
-        current = (current + 1) % roles.length;
-      }, 500);
-    }
-    let rotateInterval = setInterval(rotateRole, 3000);
-    container.addEventListener('mouseenter', () => {
-      clearInterval(rotateInterval);
-      tagEl.textContent = 'My Résumé';
-      container.style.background = '#00ff8c';
-      container.style.color = 'black';
-    });
-    container.addEventListener('mouseleave', () => {
-      container.style.background = 'transparent';
-      container.style.color = '#00ff8c';
-      rotateInterval = setInterval(rotateRole, 3000);
-    });
-  </script>
-  
-  <footer>
-    Joseph Kerby Anderson | Happy That Thorn Bushes Have Roses | Last Updated 06/23/2025
-  </footer>
-</body>
+  <main class="wrap">
+    <section id="about" class="hero">
+      <div class="avatar">IMG</div>
+      <div>
+        <h1>Hey, I'm Joe!</h1>
+        <span class="badge">Radio Announcer</span>
+        <p class="lead">I'm a sophomore at the University of Vermont's Grossman School of Business. Concentrating in marketing with an interdisciplinary theme in entrepreneurship.</p>
+        <p class="lead">I'm interested in healthcare and how emerging AI can elevate quality of life.</p>
+        <a class="cta" href="#more">More About Me</a>
+      </div>
+    </section>
 
+    <section>
+      <div class="section-header">
+        <div class="section-title">What I'm Doing</div>
+        <div class="section-line"></div>
+        <a class="see-more-link" href="projects.html">My Projects</a>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="row"><span class="muted">This Site</span></div>
+          <div class="thumb">IMG</div>
+        </div>
+        <div class="card">
+          <div class="row"><span class="muted">SG-FECC</span></div>
+          <div class="thumb">IMG</div>
+        </div>
+        <div class="card">
+          <div class="row"><span class="muted">AM 1450 KBPS</span></div>
+          <div class="thumb">IMG</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="experience">
+      <div class="section-header">
+        <div class="section-title">Experience</div>
+        <div class="section-line"></div>
+        <a class="see-more-link" href="experience.html">My Resumé</a>
+      </div>
+      <article class="card experience-item">
+        <header style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">
+          <h3>University of Vermont</h3>
+          <div class="meta">Jan 2025 – May 2025</div>
+        </header>
+        <div class="muted">Resident Advisor (RA)</div>
+        <ul class="bullets">
+          <li>Active listening and mediation to resolve conflicts and support peers.</li>
+          <li>Enforced policies and documented violations to uphold community standards.</li>
+          <li>Provided on-call support for lockouts, noise complaints, and urgent incidents.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section id="gallery">
+      <div class="section-header">
+        <div class="section-title">Gallery</div>
+        <div class="section-line"></div>
+        <a class="see-more-link" href="gallery.html">My Photos</a>
+      </div>
+      <div class="carousel" role="region" aria-label="Gallery carousel">
+        <div class="track" tabindex="0">
+          <div class="slide"><div class="img">IMG 1</div></div>
+          <div class="slide"><div class="img">IMG 2</div></div>
+          <div class="slide"><div class="img">IMG 3</div></div>
+          <div class="slide"><div class="img">IMG 4</div></div>
+          <div class="slide"><div class="img">IMG 5</div></div>
+          <div class="slide"><div class="img">IMG 6</div></div>
+          <div class="slide"><div class="img">IMG 7</div></div>
+        </div>
+      </div>
+    </section>
+    <footer>
+      <div class="marquee">Joseph Kerby Anderson | Happy That Thorn Bushes Have Roses | Last Updated 08/09/2025</div>
+    </footer>
+  </main>
+</body>
 </html>

@@ -35,10 +35,35 @@
     .nav { position: sticky; top: 0; backdrop-filter: blur(10px); background: color-mix(in oklab, var(--bg) 80%, transparent); border-bottom: 1px solid var(--divider); z-index: 10; }
     .nav .inner { display: flex; align-items: center; gap: 20px; padding: 14px 24px; max-width: 1100px; margin: 0 auto; }
     .brand { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; letter-spacing: .04em; font-size: 20px; }
+    /* Brand as colored text + outside-only SVG outline */
+    .brand.brand-text { display: inline-flex; align-items: center; gap: 6px; line-height: 1; white-space: nowrap; }
+    .brand.brand-text .joseph span { font-size: 32px; }
+    .brand.brand-text .j { color: #A7E15F; }
+    .brand.brand-text .o { color: #FFD763; }
+    .brand.brand-text .s { color: #FF9953; }
+    .brand.brand-text .e { color: #EF505A; }
+    .brand.brand-text .p { color: #C95CD1; }
+    .brand.brand-text .h { color: #6ABEFF; }
+
+    .brand.brand-text .kerby {
+      font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+      font-weight: 800;
+      font-size: 32px;
+      line-height: 1;
+      color: var(--text);
+    }
+
     .spacer { flex: 1; }
     .tabs a { display: inline-block; padding: 8px 10px; border-radius: 10px; color: var(--text-2); transition: color .15s ease; }
     .tabs a:hover, .tabs a.active { color: var(--accent-2); }
     .pill { background: var(--accent); color: #032014; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 13px; box-shadow: var(--shadow); }
+
+    .hamburger { display: none; align-items: center; justify-content: center; flex-direction: column; gap: 4px; padding: 10px; border-radius: 10px; border: 1px solid var(--divider); background: var(--muted-surface); }
+    .hamburger .bar { width: 20px; height: 2px; background: var(--text); display: block; border-radius: 2px; }
+    .mobile-menu { display: none; position: fixed; top: 64px; right: 12px; background: var(--surface); border: 1px solid var(--divider); border-radius: 12px; padding: 10px; box-shadow: var(--shadow); z-index: 20; }
+    .mobile-menu a { display: block; padding: 10px 12px; border-radius: 8px; color: var(--text-2); }
+    .mobile-menu a:hover { background: var(--muted-surface); color: var(--accent-2); }
+    .mobile-menu.open { display: block; }
 
     /* PAGE TITLE */
     header.page { padding: 28px 0 8px; }
@@ -68,14 +93,28 @@
     ul.bullets li::before { content: ""; position: absolute; left: 0; top: 0.6em; transform: translateY(-50%); width: 14px; height: 14px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%239e84df" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l8 6-8 6z"/></svg>'); background-size: contain; background-repeat: no-repeat; opacity: .95; }
 
     footer { margin: 44px 0 20px; color: var(--text-2); font-size: 13px; text-align:center; }
+
+    @media (max-width: 720px) {
+      .brand.brand-text .joseph span { font-size: 30px; }
+      .brand.brand-text .kerby { font-size: 30px; }
+    }
+    @media (max-width: 720px) {
+      .tabs, .pill { display: none; }
+      .hamburger { display: inline-flex; }
+    }
   </style>
 </head>
 <body>
   <!-- NAV -->
   <div class="nav">
     <div class="inner">
-      <a class="brand" href="index.html">Joseph&nbsp;Kerby</a>
-       <div class="spacer"></div>
+      <a class="brand brand-text" href="./" aria-label="Home">
+        <span class="joseph">
+          <span class="j">J</span><span class="o">o</span><span class="s">s</span><span class="e">e</span><span class="p">p</span><span class="h">h</span>
+        </span>
+        <span class="kerby">Kerby</span>
+      </a>
+      <div class="spacer"></div>
       <nav class="tabs" aria-label="Primary"><a href="projects.html">Projects</a>
         <a href="gallery.html">Gallery</a>
         <a class="active" href="experience.html">Experience</a>
@@ -83,6 +122,18 @@
       </nav>
       <div class="spacer"></div>
       <a class="pill" href="mailto:hello@josephkerby.com">Email</a>
+      <button class="hamburger" aria-label="Open menu" aria-controls="mobile-menu" aria-expanded="false">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+      <div id="mobile-menu" class="mobile-menu" role="menu">
+        <a href="projects.html" role="menuitem">Projects</a>
+        <a href="gallery.html" role="menuitem">Gallery</a>
+        <a class="active" href="experience.html" role="menuitem">Experience</a>
+        <a href="tidbits.html" role="menuitem">Tidbits</a>
+        <a href="mailto:hello@josephkerby.com" role="menuitem">Email</a>
+      </div>
     </div>
   </div>
 
@@ -102,17 +153,15 @@
         <div class="role">
           <div class="title-row"><h3>Junior Lead Coordinator, Recruitment & Competition Logistics</h3><div class="meta">Apr 2025 – Present</div></div>
           <ul class="bullets">
-            <li>Coordinate end‑to‑end logistics for the Grossman Dean’s Cup undergraduate case competition.</li>
-            <li>Lead recruitment and training for student volunteers across event ops roles.</li>
-            <li>Manage judge outreach, communications, and scheduling to ensure balanced panels.</li>
+            <li>Coordinate logistics, recruitment, and planning for the Grossman Dean’s Cup, UVM’s premier undergraduate case competition.</li>
+            <li>Lead student volunteer training and manage judge outreach, scheduling, and event‑day operations in collaboration with faculty and advisory committees.</li>
           </ul>
         </div>
         <div class="role">
           <div class="title-row"><h3>Member, Grossman Student Advisory Committee</h3><div class="meta">Nov 2024 – Present</div></div>
           <ul class="bullets">
-            <li>Represent students to school leadership while collaborating with faculty and alumni.</li>
-            <li>Organize professional‑development programming and community events.</li>
-            <li>Support networking, case competitions, and student‑led initiatives.</li>
+            <li>Represent GSB students, collaborate with faculty and alumni, and organize professional‑development events.</li>
+            <li>Support networking, case competitions, and student initiatives while building leadership and communication skills.</li>
           </ul>
         </div>
       </div>
@@ -154,9 +203,8 @@
         <div class="role">
           <div class="title-row"><h3>Resident Advisor (RA)</h3><div class="meta">Jan 2025 – May 2025</div></div>
           <ul class="bullets">
-            <li>Applied active listening and mediation to resolve conflicts and support peers.</li>
-            <li>Enforced policies and documented incidents to uphold community standards.</li>
-            <li>Provided on‑call support for lockouts, noise complaints, and urgent incidents.</li>
+            <li>Support a safe, inclusive community by resolving conflicts, enforcing policies, and responding to resident needs.</li>
+            <li>Plan events to enhance student engagement and well‑being.</li>
           </ul>
         </div>
       </div>
@@ -172,9 +220,8 @@
         <div class="role">
           <div class="title-row"><h3>Student Grantmaker</h3><div class="meta">Sep 2021 – Jun 2024</div></div>
           <ul class="bullets">
-            <li>Led fundraising and grant distribution, awarding $50K to Portland‑area nonprofits.</li>
-            <li>Evaluated applications and conducted organization interviews to guide decisions.</li>
-            <li>Advanced community giving through outreach and impact storytelling.</li>
+            <li>Led fundraising and grant distribution, awarding $50K to Portland‑area nonprofits supporting mental health, homelessness, and immigrant services.</li>
+            <li>Evaluated applications, interviewed organizations, and promoted community giving.</li>
           </ul>
         </div>
       </div>
@@ -190,17 +237,9 @@
         <div class="role">
           <div class="title-row"><h3>Student Representative to Audit Committee</h3><div class="meta">Jun 2023 – Jun 2024</div></div>
           <ul class="bullets">
-            <li>Reviewed external auditor reports for accuracy, risk, and compliance findings.</li>
-            <li>Assisted staff on internal audits and follow‑ups with departments.</li>
-            <li>Assessed compliance with contract‑management guidelines and controls.</li>
-          </ul>
-        </div>
-        <div class="role">
-          <div class="title-row"><h3>Student Representative to Community Budget Review Committee</h3><div class="meta">Sep 2022 – Aug 2023</div></div>
-          <ul class="bullets">
-            <li>Analyzed budget proposals and tradeoffs impacting schools and programs.</li>
-            <li>Gathered community input and synthesized themes for committee discussion.</li>
-            <li>Presented student‑centered recommendations to district leadership.</li>
+            <li>Reviewed external auditor reports to ensure accuracy and compliance.</li>
+            <li>Assisted department staff with internal audits and follow‑ups with departments.</li>
+            <li>Assessed district staff compliance with contract‑management guidelines and controls.</li>
           </ul>
         </div>
       </div>
@@ -216,25 +255,26 @@
         <div class="role">
           <div class="title-row"><h3>Senior Broadcast Announcer</h3><div class="meta">Sep 2023 – May 2024</div></div>
           <ul class="bullets">
-            <li>DJ’d music sets and curated engaging playlists tailored to local audiences.</li>
-            <li>Anchored weather, news, and traffic segments with consistent on‑air cadence.</li>
-            <li>Interviewed community figures to spotlight neighborhood stories.</li>
+            <li>DJ’d music sets and curated engaging playlists.</li>
+            <li>Anchored weather, news, and traffic reports.</li>
+            <li>Conducted interviews with community figures to highlight local stories.</li>
           </ul>
         </div>
         <div class="role">
           <div class="title-row"><h3>Chief of Staff</h3><div class="meta">Sep 2022 – Nov 2023</div></div>
           <ul class="bullets">
-            <li>Oversaw daily operations and coordinated centennial‑year station events.</li>
-            <li>Served as public liaison, strengthening community partnerships and engagement.</li>
-            <li>Led and mentored student staff to improve collaboration and output.</li>
+            <li>Administered day‑to‑day operations and oversaw management of centennial events.</li>
+            <li>Served as the public liaison for the station, fostering community engagement.</li>
+            <li>Facilitated district‑wide partnerships to enhance collaboration.</li>
+            <li>Led and managed station student staff, providing guidance and support.</li>
           </ul>
         </div>
         <div class="role">
           <div class="title-row"><h3>Chief of Production</h3><div class="meta">Feb 2022 – Sep 2022</div></div>
           <ul class="bullets">
             <li>Hosted affiliate programming and served as election‑night anchor.</li>
-            <li>Curated and expanded music library to refresh station rotation.</li>
-            <li>Drove outreach and promotions to increase listener engagement.</li>
+            <li>Curated and added new music to the station library.</li>
+            <li>Managed outreach and promotion efforts to engage the community.</li>
           </ul>
         </div>
       </div>
@@ -244,5 +284,18 @@
       Joseph Kerby Anderson • Last Updated 08/09/2025
     </footer>
   </main>
+<script>
+  (function(){
+    var btn = document.querySelector('.hamburger');
+    var menu = document.getElementById('mobile-menu');
+    if(!btn || !menu) return;
+    btn.addEventListener('click', function(){
+      var open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    menu.addEventListener('click', function(e){ if(e.target.tagName === 'A'){ menu.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }});
+    document.addEventListener('click', function(e){ if(!menu.contains(e.target) && !btn.contains(e.target)){ menu.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }});
+  })();
+</script>
 </body>
 </html>

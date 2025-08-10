@@ -29,6 +29,7 @@
     html, body { background: var(--bg); color: var(--text); font-family: 'Satoshi-Variable','Satoshi Variable','Satoshi', Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
     a { color: inherit; text-decoration: none; }
     .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .wrap { overflow-x: hidden; }
     .nav { position: sticky; top: 0; backdrop-filter: blur(10px); background: color-mix(in oklab, var(--bg) 80%, transparent); border-bottom: 1px solid var(--divider); z-index: 10; }
     .nav .inner { display: flex; align-items: center; gap: 12px; padding: 10px 12px; max-width: 1200px; margin: 0 auto; }
     .brand { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; letter-spacing: .04em; font-size: 20px; }
@@ -168,6 +169,37 @@
       border-radius: inherit; 
       display: block; 
     }
+    /* MIXTAPE — iTunes-style cover flow */
+    #mixtape { padding-top: 40px; contain: layout paint; }
+    .coverflow { position: relative; perspective: 1400px; height: 360px; max-width: 100%; margin: 0 auto; overflow: hidden; /* Safari 16 fallback */ overflow: clip; isolation: isolate; }
+    .cf-stage { position: relative; height: 100%; transform-style: preserve-3d; }
+    .cover {
+      position: absolute; top: 50%; left: 50%; width: 220px; height: 220px;
+      transform-style: preserve-3d; border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--divider); background: #0f1010; box-shadow: var(--shadow);
+      will-change: transform, opacity; transition: transform .6s ease, opacity .6s ease;
+      -webkit-box-reflect: below 0 linear-gradient(transparent 55%, rgba(0,0,0,.06), rgba(0,0,0,.25));
+    }
+    .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cover::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+      background: linear-gradient(to top, rgba(0,0,0,.18), rgba(255,255,255,.0) 60%);
+      mix-blend-mode: multiply;
+    }
+    .coverflow { cursor: grab; }
+    .coverflow.dragging { cursor: grabbing; }
+    .cf-controls { margin-top: 14px; text-align: center; color: var(--text-2); font-size: 12px; }
+    .cf-meta { display: inline-block; text-align: center; }
+    .cf-title { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: .02em; }
+    .cf-sub { font-size: 13px; color: var(--text-2); margin-top: 2px; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; }
+    .cf-fade { opacity: 0; transition: opacity .25s ease; }
+    .cf-fade.show { opacity: 1; }
+
+    @media (max-width: 720px) {
+      .coverflow { height: 300px; }
+      .cover { width: 180px; height: 180px; }
+    }
+
     footer { margin: 50px 0 20px; color: var(--text-2); font-size: 13px; text-align: center; }
     footer .marquee { opacity: .85; }
     /* Mobile polish */
@@ -196,17 +228,6 @@
   </style>
 </head>
 <body>
-  <script>
-    (function(){
-      try {
-        var p = location.pathname;
-        if (p.endsWith('/index.html')) {
-          var clean = p.slice(0, -('/index.html'.length)) || '/';
-          location.replace(clean + location.search + location.hash);
-        }
-      } catch(e){}
-    })();
-  </script>
   <div class="nav">
     <div class="inner">
       <a class="brand brand-text" href="./" aria-label="Home">
@@ -316,6 +337,17 @@
         </div>
       </div>
     </section>
+    <section id="mixtape">
+      <div class="section-header">
+        <div class="section-title">Joe's Mixtape</div>
+        <div class="section-line"></div>
+        <a class="see-more-link" href="tidbits.html">More Tidbits</a>
+      </div>
+      <div class="coverflow" role="region" aria-label="Cover flow carousel">
+        <div class="cf-stage" id="cf-stage" aria-live="polite"></div>
+      </div>
+      <div class="cf-controls" id="cf-controls" aria-live="polite"></div>
+    </section>
     <footer>
       <div class="marquee">Joseph Kerby Anderson • Last Updated 08/09/2025</div>
     </footer>
@@ -336,6 +368,125 @@
           menu.classList.remove('open'); btn.setAttribute('aria-expanded','false');
         }
       });
+      // --- Mixtape Cover Flow ---
+      (function(){
+        var stage = document.getElementById('cf-stage');
+        var controls = document.getElementById('cf-controls');
+        var flow = stage && stage.parentElement; // .coverflow
+        var autoTimer = null, resumeTimer = null;
+        if(!stage) return;
+        var AUTO_MS = 2800;      // how long each cover stays focused
+        var RESUME_DELAY = 3200; // how long to wait after user interaction before resuming
+        // Real album art + metadata (assets/album art/*.jpg|png)
+        var mixtape = [
+          { src: 'assets/album art/Hold The Girl.jpg',                   track: 'This Hell',                artist: 'Rina Sawayama',            album: 'Hold The Girl' },
+          { src: 'assets/album art/Love Songs.png',                      track: "Let’s Stay Together",     artist: 'Tina Turner',              album: 'Love Songs' },
+          { src: 'assets/album art/Taking the Long Way.jpg',             track: 'Not Ready to Make Nice',   artist: 'The Chicks',               album: 'Taking the Long Way' },
+          { src: 'assets/album art/Version 2.0 (20th Anniversary Deluxe Edition).jpg', track: "I Think I’m Paranoid", artist: 'Garbage',       album: 'Version 2.0' },
+          { src: 'assets/album art/Andor_ Season 2 - Vol. 1 (Episodes 1-3) [Original Score].jpg', track: 'Brasso', artist: 'Brandon Roberts', album: 'Andor Season 2' },
+          { src: 'assets/album art/Rumours.jpg',                          track: 'Silver Springs',           artist: 'Fleetwood Mac',            album: 'Rumors' },
+          { src: 'assets/album art/Sing to the Moon.jpg',                 track: 'Green Garden',             artist: 'Laura Mvula',              album: 'Sing to the Moon' },
+          { src: 'assets/album art/The Rise and Fall of a Midwest Princess.jpg', track: 'Naked in Manhattan', artist: 'Chappell Roan',  album: 'The Rise and Fall of a Midwest Princess' },
+          { src: "assets/album art/Speak Now (Taylor's Version).jpg",    track: 'Mine',                     artist: 'Taylor Swift',             album: "Speak Now (Taylor’s Version)" },
+          { src: "assets/album art/Writer's Block.jpg",                  track: 'Young Folks',              artist: 'Peter Bjorn and John',     album: "Writer’s Block" },
+          { src: 'assets/album art/Celebration (Deluxe Version).jpg',     track: 'Vogue',                    artist: 'Madonna',                  album: 'Celebration' },
+          { src: 'assets/album art/Greatest Hits - Chapter One.jpg',      track: 'Catch My Breath',          artist: 'Kelly Clarkson',           album: 'Greatest Hits Chapter One' },
+          { src: "assets/album art/It's Not Me, It's You (Deluxe Version).jpg", track: 'The Fear',    artist: 'Lily Allen', album: "It’s Not Me, It’s You" },
+          { src: 'assets/album art/Smile.jpg',                             track: 'Never Really Over',        artist: 'Katy Perry',               album: 'Smile' },
+          { src: 'assets/album art/reputation.jpg',                        track: 'Dress',                    artist: 'Taylor Swift',             album: 'Reputation' }
+        ];
+        var COUNT = mixtape.length;
+        // Build DOM
+        var covers = mixtape.map(function(item, idx){
+          var d = document.createElement('div'); d.className = 'cover'; d.setAttribute('data-index', idx);
+          var img = document.createElement('img');
+          img.alt = item.album + ' — ' + item.artist + ' — ' + item.track;
+          img.src = encodeURI(item.src);
+          d.appendChild(img);
+          stage.appendChild(d); return d;
+        });
+
+        var center = 0; // current focused index
+        function layout(){
+          var W = 180; // base offset distance
+          for(var i=0;i<covers.length;i++){
+            var offset = i - center;
+            var abs = Math.abs(offset);
+            var dir = offset < 0 ? -1 : 1;
+            var tx = offset * W; // spread
+            var tz = -Math.min(abs*120, 600); // depth
+            var ry = dir * Math.min(abs*36, 60); // tilt
+            var s  = Math.max(1 - abs*0.08, 0.7); // scale falloff
+            var el = covers[i];
+            el.style.zIndex = String(1000 - abs);
+            el.style.opacity = String(Math.max(1 - abs*0.12, 0.45));
+            el.style.transform = 'translate(-50%, -50%) translateX('+tx+'px) translateZ('+tz+'px) rotateY('+ry+'deg) scale('+s+')';
+          }
+        }
+        layout();
+
+        function labelFor(i){
+          var m = mixtape[i % mixtape.length];
+          return { title: m.track, artist: m.artist, album: m.album };
+        }
+        function updateMeta(i){
+          if(!controls) return;
+          var meta = labelFor(i);
+          // Fade swap
+          controls.classList.remove('show');
+          controls.classList.add('cf-fade');
+          controls.innerHTML = '<div class="cf-meta">\n  <div class="cf-title">'+meta.title+'</div>\n  <div class="cf-sub">'+meta.artist+' • '+meta.album+'</div>\n</div>';
+          requestAnimationFrame(function(){ requestAnimationFrame(function(){ controls.classList.add('show'); });});
+        }
+        updateMeta(center);
+
+        // Sequential paging order
+        var order = Array.from({length: COUNT}, function(_,i){ return i; });
+        var k = 0;
+        function goTo(i){ center = ((i % COUNT) + COUNT) % COUNT; layout(); updateMeta(center); }
+        function next(){ goTo(center+1); }
+        function prev(){ goTo(center-1); }
+        function advance(){
+          center = order[k % order.length];
+          k++;
+          next();
+        }
+        function startAuto(){ if(autoTimer) return; autoTimer = setInterval(next, AUTO_MS); }
+        function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer = null; } }
+        function pokeAuto(){
+          stopAuto();
+          if(resumeTimer){ clearTimeout(resumeTimer); }
+          resumeTimer = setTimeout(function(){ startAuto(); }, RESUME_DELAY);
+        }
+        startAuto();
+
+        // --- Pointer drag to page (mouse/touch) ---
+        if(flow){
+          var dragging = false, startX = 0, lastX = 0, accum = 0, THRESH = 60;
+
+          function onDown(e){
+            dragging = true; accum = 0;
+            startX = (e.touches ? e.touches[0].clientX : e.clientX);
+            lastX = startX; flow.classList.add('dragging');
+            stopAuto();
+          }
+          function onMove(e){ if(!dragging) return; var x = (e.touches ? e.touches[0].clientX : e.clientX); var dx = x - lastX; lastX = x; accum += dx; if(Math.abs(accum) > THRESH){ if(accum < 0) next(); else prev(); accum = 0; } }
+          function onUp(){ if(!dragging) return; dragging = false; flow.classList.remove('dragging'); pokeAuto(); }
+
+          flow.addEventListener('mousedown', onDown); document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+          flow.addEventListener('touchstart', onDown, {passive:true}); flow.addEventListener('touchmove', onMove, {passive:true}); flow.addEventListener('touchend', onUp);
+
+          // --- Wheel/trackpad to page ---
+          var wheelLock = false;
+          flow.addEventListener('wheel', function(e){
+            var delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+            if(Math.abs(delta) < 10 || wheelLock) return; // ignore tiny nudges / throttle
+            wheelLock = true; stopAuto();
+            if(delta > 0) next(); else prev();
+            setTimeout(function(){ wheelLock = false; pokeAuto(); }, 350);
+          }, {passive:true});
+        }
+      })();
     })();
   </script>
 </body>

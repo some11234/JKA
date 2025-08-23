@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -84,6 +82,42 @@
     .lightbox.open { display: grid; }
     .lightbox img { max-width: 92vw; max-height: 88vh; border-radius: 12px; border: 1px solid var(--divider); box-shadow: var(--shadow); }
     .lightbox .close { position: absolute; top: 16px; right: 16px; border: 1px solid var(--divider); background: var(--muted-surface); color: var(--text); border-radius: 10px; padding: 8px 10px; font-family: 'JetBrains Mono', ui-monospace; }
+    .lightbox .prev, .lightbox .next {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      background: var(--muted-surface);
+      border: 1px solid var(--divider);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      user-select: none;
+      opacity: 0.9;
+      line-height: 1;
+      transition: transform .15s ease, opacity .15s ease, background .15s ease;
+    }
+    .lightbox .prev:hover, .lightbox .next:hover {
+      opacity: 1;
+      background: var(--surface);
+      transform: translateY(-50%) scale(1.04);
+    }
+    .lightbox .prev:focus-visible, .lightbox .next:focus-visible {
+      outline: 2px solid var(--accent-2);
+      outline-offset: 2px;
+    }
+    .lightbox .prev {
+      left: 16px;
+    }
+    .lightbox .next {
+      right: 16px;
+    }
 
     footer { margin: 50px 0 20px; color: var(--text-2); font-size: 13px; text-align: center; }
     footer .marquee { opacity: .85; }
@@ -136,13 +170,15 @@
 
     <section>
       <div class="grid">
-        <div class="tile"><img src="assets/IMG_1.jpeg" alt="Photo 1" loading="lazy"></div>
-        <div class="tile"><img src="assets/IMG_2.jpeg" alt="Photo 2" loading="lazy"></div>
-        <div class="tile"><img src="assets/IMG_3.jpeg" alt="Photo 3" loading="lazy"></div>
-        <div class="tile"><img src="assets/IMG_4.jpeg" alt="Photo 4" loading="lazy"></div>
-        <div class="tile"><img src="assets/IMG_5.jpeg" alt="Photo 5" loading="lazy"></div>
-        <div class="tile"><img src="assets/IMG_6.JPG" alt="Photo 6" loading="lazy"></div>
-        <div class="tile"><img src="assets/IMG_7.jpeg" alt="Photo 7" loading="lazy"></div>
+        <div class="tile"><img src="assets/gallery/IMG_1.jpeg" alt="Photo 1" loading="lazy"></div>
+        <div class="tile"><img src="assets/gallery/IMG_2.jpeg" alt="Photo 2" loading="lazy"></div>
+        <div class="tile"><img src="assets/gallery/IMG_3.jpeg" alt="Photo 3" loading="lazy"></div>
+        <div class="tile"><img src="assets/gallery/IMG_4.jpeg" alt="Photo 4" loading="lazy"></div>
+        <div class="tile"><img src="assets/gallery/IMG_5.jpeg" alt="Photo 5" loading="lazy"></div>
+        <div class="tile"><img src="assets/gallery/IMG_6.JPG" alt="Photo 6" loading="lazy"></div>
+        <div class="tile"><img src="assets/gallery/IMG_7.jpeg" alt="Photo 7" loading="lazy"></div>
+        <div class="tile"><img src="assets/gallery/IMG_8.jpeg" alt="Photo 8" loading="lazy"></div>
+        <div class="tile"><img src="assets/gallery/IMG_9.jpeg" alt="Photo 9" loading="lazy"></div>
       </div>
     </section>
 
@@ -169,18 +205,52 @@
     (function(){
       var grid = document.querySelector('.grid');
       if(!grid) return;
-      var lb = document.createElement('div'); lb.className = 'lightbox'; lb.innerHTML = '<button class="close" aria-label="Close">Close</button><img alt="Expanded photo">';
+      var lb = document.createElement('div'); lb.className = 'lightbox'; lb.innerHTML = '<button class="close" aria-label="Close">Close</button><button class="prev" aria-label="Previous photo"><</button><img alt="Expanded photo"><button class="next" aria-label="Next photo">></button>';
       document.body.appendChild(lb);
       var imgEl = lb.querySelector('img');
 
-      function open(src, alt){ imgEl.src = src; imgEl.alt = alt || 'Photo'; lb.classList.add('open'); document.body.style.overflow='hidden'; }
-      function close(){ lb.classList.remove('open'); document.body.style.overflow=''; setTimeout(function(){ imgEl.src=''; }, 150); }
+      var photos = Array.from(grid.querySelectorAll('img'));
+      var currentIndex = 0;
+
+      function open(index){
+        currentIndex = index;
+        var photo = photos[currentIndex];
+        imgEl.src = photo.src;
+        imgEl.alt = photo.alt || 'Photo';
+        lb.classList.add('open');
+        document.body.style.overflow='hidden';
+      }
+      function close(){
+        lb.classList.remove('open');
+        document.body.style.overflow='';
+        setTimeout(function(){ imgEl.src=''; }, 150);
+      }
+
+      lb.querySelector('.prev').addEventListener('click', function(){
+        currentIndex = (currentIndex - 1 + photos.length) % photos.length;
+        open(currentIndex);
+      });
+      lb.querySelector('.next').addEventListener('click', function(){
+        currentIndex = (currentIndex + 1) % photos.length;
+        open(currentIndex);
+      });
 
       grid.addEventListener('click', function(e){
-        var t = e.target; if(t && t.tagName === 'IMG'){ open(t.src, t.alt); }
+        var t = e.target; 
+        if(t && t.tagName === 'IMG'){
+          var index = photos.indexOf(t);
+          if(index !== -1){
+            open(index);
+          }
+        }
       });
       lb.addEventListener('click', function(e){ if(e.target === lb || e.target.classList.contains('close')) close(); });
-      document.addEventListener('keydown', function(e){ if(e.key === 'Escape') close(); });
+      document.addEventListener('keydown', function(e){
+        if(!lb.classList.contains('open')) return;
+        if(e.key === 'Escape') { close(); }
+        else if(e.key === 'ArrowRight') { e.preventDefault(); currentIndex = (currentIndex + 1) % photos.length; open(currentIndex); }
+        else if(e.key === 'ArrowLeft') { e.preventDefault(); currentIndex = (currentIndex - 1 + photos.length) % photos.length; open(currentIndex); }
+      });
     })();
   </script>
 </body>

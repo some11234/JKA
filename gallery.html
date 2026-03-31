@@ -123,7 +123,7 @@
     footer .marquee { opacity: .85; }
 
     @media (max-width: 920px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 580px) { .grid { grid-template-columns: 1fr; } .brand.brand-text .joseph span, .brand.brand-text .kerby { font-size: 30px; } .tabs, .pill { display: none; } .hamburger { display: inline-flex; } }
+    @media (max-width: 580px) { .grid { grid-template-columns: 1fr; } .brand.brand-text .joseph span, .brand.brand-text .kerby { font-size: 30px; } }
   </style>
 </head>
 <body>
@@ -136,26 +136,8 @@
         <span class="kerby">Kerby</span>
       </a>
       <div class="spacer"></div>
-      <nav class="tabs" aria-label="Primary">
-        <a href="projects.html">Projects</a>
-        <a class="active" href="gallery.html">Gallery</a>
-        <a href="experience.html">Experience</a>
-        <a href="tidbits.html">Tidbits</a>
-      </nav>
       <div class="spacer"></div>
       <a class="pill" href="mailto:hello@josephkerby.com">Email</a>
-      <button class="hamburger" aria-label="Open menu" aria-controls="mobile-menu" aria-expanded="false">
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar"></span>
-      </button>
-      <div id="mobile-menu" class="mobile-menu" role="menu">
-        <a href="projects.html" role="menuitem">Projects</a>
-        <a class="active" href="gallery.html" role="menuitem">Gallery</a>
-        <a href="experience.html" role="menuitem">Experience</a>
-        <a href="tidbits.html" role="menuitem">Tidbits</a>
-        <a href="mailto:hello@josephkerby.com" role="menuitem">Email</a>
-      </div>
     </div>
   </div>
 
@@ -188,19 +170,6 @@
   </main>
 
   <script>
-    // Hamburger toggle (match index)
-    (function(){
-      var btn = document.querySelector('.hamburger');
-      var menu = document.getElementById('mobile-menu');
-      if(!btn || !menu) return;
-      btn.addEventListener('click', function(){
-        var open = menu.classList.toggle('open');
-        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      });
-      menu.addEventListener('click', function(e){ if(e.target.tagName === 'A'){ menu.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }});
-      document.addEventListener('click', function(e){ if(!menu.contains(e.target) && !btn.contains(e.target)){ menu.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }});
-    })();
-
     // Lightweight lightbox
     (function(){
       var grid = document.querySelector('.grid');

@@ -60,22 +60,23 @@
     .section-title { font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; white-space: nowrap; }
     .section-line { height: 1px; background: var(--divider); flex: 1; }
 
-    /* ── SLIDE DECKS ── */
+    /* ── DECK CARDS ── */
     .decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
     .deck-card { background: var(--muted-surface); border: 1px solid var(--divider); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; }
     .deck-preview { width: 100%; aspect-ratio: 16 / 9; background: #0e0f0f; border-bottom: 1px solid var(--divider); position: relative; overflow: hidden; }
     .deck-preview iframe { width: 100%; height: 100%; border: 0; display: block; }
-    .deck-preview .deck-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-2); }
-    .deck-placeholder-icon { opacity: .35; }
-    .deck-placeholder-label { font-size: 13px; font-family: 'JetBrains Mono', monospace; opacity: .5; }
     .deck-info { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
     .deck-info h3 { margin: 0; font-size: 17px; font-weight: 700; }
-    .deck-info .deck-meta { font-size: 13px; color: var(--text-2); font-family: 'JetBrains Mono', monospace; }
-    .deck-info .deck-desc { font-size: 14px; color: var(--text-2); margin-top: 2px; flex: 1; }
+    .deck-meta { font-size: 13px; color: var(--text-2); font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .place-badge { font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; padding: 2px 8px; border-radius: 999px; border: 1px solid; }
+    .place-1 { color: #FFD763; border-color: color-mix(in oklab, #FFD763 40%, transparent); background: color-mix(in oklab, #FFD763 10%, transparent); }
+    .place-2 { color: #C8D0D8; border-color: color-mix(in oklab, #C8D0D8 40%, transparent); background: color-mix(in oklab, #C8D0D8 10%, transparent); }
+    .place-3 { color: #CD7F32; border-color: color-mix(in oklab, #CD7F32 40%, transparent); background: color-mix(in oklab, #CD7F32 10%, transparent); }
+    .deck-desc { font-size: 14px; color: var(--text-2); margin-top: 2px; flex: 1; line-height: 1.55; }
     .deck-footer { margin-top: 12px; display: flex; gap: 8px; }
-    .btn-outline { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--divider); background: transparent; color: var(--text-2); font-size: 13px; font-weight: 600; transition: border-color .15s, color .15s; cursor: pointer; font-family: inherit; }
+    .btn-outline { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--divider); background: transparent; color: var(--text-2); font-size: 13px; font-weight: 600; transition: border-color .15s, color .15s; text-decoration: none; }
     .btn-outline:hover { border-color: var(--accent-2); color: var(--accent-2); }
-    .btn-accent { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; border: 1px solid transparent; background: color-mix(in oklab, var(--accent-2) 15%, transparent); color: var(--accent-2); font-size: 13px; font-weight: 600; transition: background .15s; }
+    .btn-accent { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; border: 1px solid transparent; background: color-mix(in oklab, var(--accent-2) 15%, transparent); color: var(--accent-2); font-size: 13px; font-weight: 600; transition: background .15s; text-decoration: none; }
     .btn-accent:hover { background: color-mix(in oklab, var(--accent-2) 22%, transparent); }
 
     /* ── TOOLS ── */
@@ -83,12 +84,29 @@
     .tool-card { background: var(--muted-surface); border: 1px solid var(--divider); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: border-color .2s; }
     .tool-card:hover { border-color: color-mix(in oklab, var(--accent-2) 50%, var(--divider)); }
     .tool-header { display: flex; align-items: center; gap: 10px; }
-    .tool-icon { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--divider); background: var(--surface); display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
+    .tool-icon { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--divider); background: var(--surface); display: grid; place-items: center; flex-shrink: 0; overflow: hidden; }
+    .tool-icon img { width: 20px; height: 20px; display: block; }
     .tool-name { font-size: 15px; font-weight: 700; }
-    .tool-tag { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent); background: color-mix(in oklab, var(--accent) 12%, transparent); padding: 2px 7px; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--accent) 25%, transparent); }
+    .tool-tag { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent); background: color-mix(in oklab, var(--accent) 12%, transparent); padding: 2px 7px; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--accent) 25%, transparent); margin-left: auto; }
     .tool-desc { font-size: 13px; color: var(--text-2); line-height: 1.55; flex: 1; }
-    .tool-link { align-self: flex-start; font-size: 13px; font-weight: 600; color: var(--accent-2); border-bottom: 1px dashed color-mix(in oklab, var(--accent-2) 50%, transparent); padding-bottom: 1px; transition: border-color .15s; }
+    .tool-links { display: flex; gap: 14px; flex-wrap: wrap; }
+    .tool-link { font-size: 13px; font-weight: 600; color: var(--accent-2); border-bottom: 1px dashed color-mix(in oklab, var(--accent-2) 50%, transparent); padding-bottom: 1px; transition: border-color .15s; white-space: nowrap; }
     .tool-link:hover { border-color: var(--accent-2); }
+    .tool-link-sub { font-size: 12px; color: var(--text-2); border-bottom: 1px dashed color-mix(in oklab, var(--text-2) 40%, transparent); padding-bottom: 1px; transition: border-color .15s; white-space: nowrap; }
+    .tool-link-sub:hover { color: var(--accent-2); border-color: var(--accent-2); }
+
+    /* ── iOS RESOURCES ── */
+    .ios-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+    .ios-card { background: var(--muted-surface); border: 1px solid var(--divider); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 8px; transition: border-color .2s; }
+    .ios-card:hover { border-color: color-mix(in oklab, var(--accent-2) 50%, var(--divider)); }
+    .ios-card-header { display: flex; align-items: center; gap: 10px; }
+    .ios-icon { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--divider); background: var(--surface); display: grid; place-items: center; flex-shrink: 0; }
+    .ios-icon img { width: 20px; height: 20px; display: block; }
+    .ios-name { font-size: 15px; font-weight: 700; }
+    .ios-tag { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text-2); background: var(--surface); padding: 2px 7px; border-radius: 999px; border: 1px solid var(--divider); margin-left: auto; }
+    .ios-desc { font-size: 13px; color: var(--text-2); line-height: 1.55; flex: 1; }
+    .ios-link { align-self: flex-start; font-size: 13px; font-weight: 600; color: var(--accent-2); border-bottom: 1px dashed color-mix(in oklab, var(--accent-2) 50%, transparent); padding-bottom: 1px; transition: border-color .15s; }
+    .ios-link:hover { border-color: var(--accent-2); }
 
     /* ── DESIGN ELEMENTS ── */
     .elements-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -144,40 +162,92 @@
       </div>
       <div class="decks">
 
-        <!-- To add a deck: copy this card, set the iframe src to a Google Slides embed URL
-             (File → Share → Publish to web → Embed) or a direct PDF URL. -->
-
         <div class="deck-card">
           <div class="deck-preview">
-            <!-- <iframe src="https://docs.google.com/presentation/d/YOUR_ID/embed?start=false&loop=false" allowfullscreen></iframe> -->
-            <div class="deck-placeholder">
-              <svg class="deck-placeholder-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-              <span class="deck-placeholder-label">deck coming soon</span>
-            </div>
+            <iframe src="assets/design%20resources/BUS%201130%20Workshop.pdf#toolbar=0&navpanes=0" title="BUS 1130 Workshop slides" loading="lazy"></iframe>
           </div>
           <div class="deck-info">
-            <h3>Intro to Visual Hierarchy</h3>
-            <div class="deck-meta">Workshop · Spring 2025</div>
-            <div class="deck-desc">How to guide the viewer's eye using size, weight, spacing, and contrast.</div>
+            <h3>BUS 1130 Workshop</h3>
+            <div class="deck-meta">Workshop &middot; Spring 2026 &middot; BUS 1130 Business Communications</div>
+            <div class="deck-desc">Design principles for building long-form professional slide decks — layout, hierarchy, and visual consistency for business audiences.</div>
             <div class="deck-footer">
-              <span class="btn-outline" style="opacity:.4;pointer-events:none;">Preview</span>
+              <a class="btn-accent" href="assets/design%20resources/BUS%201130%20Workshop.pdf" target="_blank" rel="noopener">View PDF</a>
             </div>
           </div>
         </div>
 
         <div class="deck-card">
           <div class="deck-preview">
-            <div class="deck-placeholder">
-              <svg class="deck-placeholder-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-              <span class="deck-placeholder-label">deck coming soon</span>
-            </div>
+            <iframe src="assets/design%20resources/GCCA%20Workshop.pdf#toolbar=0&navpanes=0" title="GCCA Workshop slides" loading="lazy"></iframe>
           </div>
           <div class="deck-info">
-            <h3>Typography Fundamentals</h3>
-            <div class="deck-meta">Workshop · Spring 2025</div>
-            <div class="deck-desc">Pairing typefaces, setting readable body copy, and when to break the rules.</div>
+            <h3>GCCA Design Workshop</h3>
+            <div class="deck-meta">Workshop &middot; GCCA &middot; Slide &amp; Mobile Design</div>
+            <div class="deck-desc">Slide and mobile design workshop for business case competitions — covering deck structure, mobile mockups, and visual storytelling for judges.</div>
             <div class="deck-footer">
-              <span class="btn-outline" style="opacity:.4;pointer-events:none;">Preview</span>
+              <a class="btn-accent" href="assets/design%20resources/GCCA%20Workshop.pdf" target="_blank" rel="noopener">View PDF</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── CASE COMPETITION DECKS ── -->
+    <section id="case-comps">
+      <div class="section-header">
+        <div class="section-title">Case Competition Decks</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="decks">
+
+        <div class="deck-card">
+          <div class="deck-preview">
+            <iframe src="assets/design%20resources/GDC%202025.pdf#toolbar=0&navpanes=0" title="Grossman Dean's Cup 2025 slides" loading="lazy"></iframe>
+          </div>
+          <div class="deck-info">
+            <h3>Grossman Dean's Cup 2025</h3>
+            <div class="deck-meta">
+              Spring 2025 &middot; In-House
+              <span class="place-badge place-1">1st Place</span>
+            </div>
+            <div class="deck-desc">An introductory in-house case competition at UVM's Grossman School of Business — designed to give students an accessible entry point into the world of case competitions.</div>
+            <div class="deck-footer">
+              <a class="btn-accent" href="assets/design%20resources/GDC%202025.pdf" target="_blank" rel="noopener">View PDF</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="deck-card">
+          <div class="deck-preview">
+            <iframe src="assets/design%20resources/GCCA%20Challenger.pdf#toolbar=0&navpanes=0" title="GCCA Challenger slides" loading="lazy"></iframe>
+          </div>
+          <div class="deck-info">
+            <h3>GCCA Challenger</h3>
+            <div class="deck-meta">
+              Spring 2026 &middot; 24-Hour Case
+              <span class="place-badge place-2">2nd Place</span>
+            </div>
+            <div class="deck-desc">Grossman Case Competition Association's Challenger — an in-house competition giving students the chance to test their case skills under a 24-hour turnaround.</div>
+            <div class="deck-footer">
+              <a class="btn-accent" href="assets/design%20resources/GCCA%20Challenger.pdf" target="_blank" rel="noopener">View PDF</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="deck-card">
+          <div class="deck-preview">
+            <iframe src="assets/design%20resources/CHCC%20Slides.pdf#toolbar=0&navpanes=0" title="CHCC Slides" loading="lazy"></iframe>
+          </div>
+          <div class="deck-info">
+            <h3>CHCC Slides</h3>
+            <div class="deck-meta">
+              Fall 2025 &middot; Pre-Arrival Case &middot; Lincoln, NE
+              <span class="place-badge place-3">3rd Place</span>
+            </div>
+            <div class="deck-desc">Cornhuskers Business Honors Case Competition at the University of Nebraska–Lincoln — a pre-arrival format where teams receive and complete the case before arriving on-site.</div>
+            <div class="deck-footer">
+              <a class="btn-accent" href="assets/design%20resources/CHCC%20Slides.pdf" target="_blank" rel="noopener">View PDF</a>
             </div>
           </div>
         </div>
@@ -195,74 +265,171 @@
 
         <div class="tool-card">
           <div class="tool-header">
-            <div class="tool-icon">🎨</div>
-            <div>
-              <div class="tool-name">Figma</div>
+            <div class="tool-icon">
+              <img src="https://www.google.com/s2/favicons?domain=figma.com&sz=32" alt="Figma logo" width="20" height="20">
             </div>
+            <div class="tool-name">Figma</div>
             <div class="tool-tag">Free</div>
           </div>
           <div class="tool-desc">The industry-standard collaborative design tool. Great for UI, decks, and quick mockups.</div>
-          <a class="tool-link" href="https://figma.com" target="_blank" rel="noopener">figma.com ↗</a>
+          <div class="tool-links">
+            <a class="tool-link" href="https://figma.com" target="_blank" rel="noopener">figma.com ↗</a>
+            <a class="tool-link-sub" href="https://www.figma.com/education/" target="_blank" rel="noopener">Education plan ↗</a>
+          </div>
         </div>
 
         <div class="tool-card">
           <div class="tool-header">
-            <div class="tool-icon">🌈</div>
-            <div>
-              <div class="tool-name">Coolors</div>
+            <div class="tool-icon">
+              <img src="https://www.google.com/s2/favicons?domain=coolors.co&sz=32" alt="Coolors logo" width="20" height="20">
             </div>
+            <div class="tool-name">Coolors</div>
             <div class="tool-tag">Free</div>
           </div>
           <div class="tool-desc">Fast color palette generator. Hit spacebar and it spits out palette after palette.</div>
-          <a class="tool-link" href="https://coolors.co" target="_blank" rel="noopener">coolors.co ↗</a>
+          <div class="tool-links">
+            <a class="tool-link" href="https://coolors.co" target="_blank" rel="noopener">coolors.co ↗</a>
+          </div>
         </div>
 
         <div class="tool-card">
           <div class="tool-header">
-            <div class="tool-icon">🔤</div>
-            <div>
-              <div class="tool-name">Google Fonts</div>
+            <div class="tool-icon">
+              <img src="https://www.google.com/s2/favicons?domain=fontshare.com&sz=32" alt="Fontshare logo" width="20" height="20">
             </div>
+            <div class="tool-name">Fontshare</div>
             <div class="tool-tag">Free</div>
           </div>
-          <div class="tool-desc">Huge library of open-source fonts, free for personal and commercial use.</div>
-          <a class="tool-link" href="https://fonts.google.com" target="_blank" rel="noopener">fonts.google.com ↗</a>
+          <div class="tool-desc">Curated library of high-quality fonts, free for personal and commercial use. Home of Satoshi, Cabinet Grotesk, and more.</div>
+          <div class="tool-links">
+            <a class="tool-link" href="https://fontshare.com" target="_blank" rel="noopener">fontshare.com ↗</a>
+          </div>
         </div>
 
         <div class="tool-card">
           <div class="tool-header">
-            <div class="tool-icon">📸</div>
-            <div>
-              <div class="tool-name">Unsplash</div>
+            <div class="tool-icon">
+              <img src="https://www.google.com/s2/favicons?domain=unsplash.com&sz=32" alt="Unsplash logo" width="20" height="20">
             </div>
+            <div class="tool-name">Unsplash</div>
             <div class="tool-tag">Free</div>
           </div>
           <div class="tool-desc">High-quality, free stock photography. No attribution required.</div>
-          <a class="tool-link" href="https://unsplash.com" target="_blank" rel="noopener">unsplash.com ↗</a>
+          <div class="tool-links">
+            <a class="tool-link" href="https://unsplash.com" target="_blank" rel="noopener">unsplash.com ↗</a>
+          </div>
         </div>
 
         <div class="tool-card">
           <div class="tool-header">
-            <div class="tool-icon">✏️</div>
-            <div>
-              <div class="tool-name">Canva</div>
+            <div class="tool-icon">
+              <img src="https://www.google.com/s2/favicons?domain=canva.com&sz=32" alt="Canva logo" width="20" height="20">
             </div>
+            <div class="tool-name">Canva</div>
             <div class="tool-tag">Freemium</div>
           </div>
           <div class="tool-desc">Easy drag-and-drop design for presentations, social posts, and more.</div>
-          <a class="tool-link" href="https://canva.com" target="_blank" rel="noopener">canva.com ↗</a>
+          <div class="tool-links">
+            <a class="tool-link" href="https://canva.com" target="_blank" rel="noopener">canva.com ↗</a>
+            <a class="tool-link-sub" href="https://www.canva.com/education/" target="_blank" rel="noopener">Education plan ↗</a>
+          </div>
         </div>
 
         <div class="tool-card">
           <div class="tool-header">
-            <div class="tool-icon">🔲</div>
-            <div>
-              <div class="tool-name">Phosphor Icons</div>
+            <div class="tool-icon">
+              <img src="https://www.google.com/s2/favicons?domain=phosphoricons.com&sz=32" alt="Phosphor Icons logo" width="20" height="20">
             </div>
+            <div class="tool-name">Phosphor Icons</div>
             <div class="tool-tag">Free</div>
           </div>
           <div class="tool-desc">Flexible icon family with 6 weights, available as SVG, React, Vue, and more.</div>
-          <a class="tool-link" href="https://phosphoricons.com" target="_blank" rel="noopener">phosphoricons.com ↗</a>
+          <div class="tool-links">
+            <a class="tool-link" href="https://phosphoricons.com" target="_blank" rel="noopener">phosphoricons.com ↗</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── DESIGNING FOR iOS ── -->
+    <section id="ios">
+      <div class="section-header">
+        <div class="section-title">Designing for iOS</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="ios-grid">
+
+        <div class="ios-card">
+          <div class="ios-card-header">
+            <div class="ios-icon">
+              <img src="https://www.google.com/s2/favicons?domain=developer.apple.com&sz=32" alt="Apple logo" width="20" height="20">
+            </div>
+            <div class="ios-name">SF Pro</div>
+            <div class="ios-tag">Free</div>
+          </div>
+          <div class="ios-desc">Apple's system typeface family. Includes SF Pro, SF Compact, SF Mono, and the New York serif — essential for any realistic iOS or macOS mockup.</div>
+          <a class="ios-link" href="https://developer.apple.com/fonts/" target="_blank" rel="noopener">developer.apple.com/fonts ↗</a>
+        </div>
+
+        <div class="ios-card">
+          <div class="ios-card-header">
+            <div class="ios-icon">
+              <img src="https://www.google.com/s2/favicons?domain=developer.apple.com&sz=32" alt="Apple logo" width="20" height="20">
+            </div>
+            <div class="ios-name">SF Symbols</div>
+            <div class="ios-tag">Free</div>
+          </div>
+          <div class="ios-desc">Over 6,000 configurable symbols designed to integrate seamlessly with SF Pro. Available in 9 weights and 3 scales — covers virtually any UI need.</div>
+          <a class="ios-link" href="https://developer.apple.com/sf-symbols/" target="_blank" rel="noopener">developer.apple.com/sf-symbols ↗</a>
+        </div>
+
+        <div class="ios-card">
+          <div class="ios-card-header">
+            <div class="ios-icon">
+              <img src="https://www.google.com/s2/favicons?domain=developer.apple.com&sz=32" alt="Apple logo" width="20" height="20">
+            </div>
+            <div class="ios-name">Human Interface Guidelines</div>
+            <div class="ios-tag">Reference</div>
+          </div>
+          <div class="ios-desc">Apple's official design standards for iOS, iPadOS, macOS, and beyond. The definitive guide to spacing, typography, interaction patterns, and component behavior.</div>
+          <a class="ios-link" href="https://developer.apple.com/design/human-interface-guidelines/" target="_blank" rel="noopener">developer.apple.com/design/hig ↗</a>
+        </div>
+
+        <div class="ios-card">
+          <div class="ios-card-header">
+            <div class="ios-icon">
+              <img src="https://www.google.com/s2/favicons?domain=developer.apple.com&sz=32" alt="Apple logo" width="20" height="20">
+            </div>
+            <div class="ios-name">Apple Design Resources</div>
+            <div class="ios-tag">Figma / Sketch</div>
+          </div>
+          <div class="ios-desc">Official Figma and Sketch templates from Apple — includes accurate device frames for iPhone, iPad, Mac, and Apple Watch, plus full UI component libraries.</div>
+          <a class="ios-link" href="https://developer.apple.com/design/resources/" target="_blank" rel="noopener">developer.apple.com/design/resources ↗</a>
+        </div>
+
+        <div class="ios-card">
+          <div class="ios-card-header">
+            <div class="ios-icon">
+              <img src="https://www.google.com/s2/favicons?domain=figma.com&sz=32" alt="Figma logo" width="20" height="20">
+            </div>
+            <div class="ios-name">Apple Mockups (Figma Community)</div>
+            <div class="ios-tag">Free</div>
+          </div>
+          <div class="ios-desc">Community-built Figma files with photorealistic iPhone and iPad mockups — great for dropping your screens into slide decks and presentation materials.</div>
+          <a class="ios-link" href="https://www.figma.com/community/search?resource_type=mixed&sort_by=relevancy&query=apple+mockup+iphone&editor_type=all&price=free" target="_blank" rel="noopener">Browse on Figma Community ↗</a>
+        </div>
+
+        <div class="ios-card">
+          <div class="ios-card-header">
+            <div class="ios-icon">
+              <img src="https://www.google.com/s2/favicons?domain=mockuphone.com&sz=32" alt="MockuPhone logo" width="20" height="20">
+            </div>
+            <div class="ios-name">MockuPhone</div>
+            <div class="ios-tag">Free</div>
+          </div>
+          <div class="ios-desc">Drop a screenshot in and instantly generate a clean iPhone or iPad mockup image — no Figma required. Fast and useful for quick slide deck visuals.</div>
+          <a class="ios-link" href="https://mockuphone.com" target="_blank" rel="noopener">mockuphone.com ↗</a>
         </div>
 
       </div>
@@ -276,14 +443,13 @@
       </div>
       <div class="elements-cols">
 
-        <!-- Fonts -->
         <div class="element-group">
           <p class="element-group-title">Fonts</p>
 
           <div class="element-item">
             <div class="element-item-info">
               <div class="element-item-name">Satoshi</div>
-              <div class="element-item-sub">Fontshare · Variable · Used on this site</div>
+              <div class="element-item-sub">Fontshare &middot; Variable &middot; Used on this site</div>
             </div>
             <div class="element-preview-font" style="font-family:'Satoshi Variable','Satoshi',sans-serif;">Aa</div>
             <a class="element-link" href="https://www.fontshare.com/fonts/satoshi" target="_blank" rel="noopener">Get it ↗</a>
@@ -292,7 +458,7 @@
           <div class="element-item">
             <div class="element-item-info">
               <div class="element-item-name">JetBrains Mono</div>
-              <div class="element-item-sub">Google Fonts · Monospace · Used on this site</div>
+              <div class="element-item-sub">Google Fonts &middot; Monospace &middot; Used on this site</div>
             </div>
             <div class="element-preview-font" style="font-family:'JetBrains Mono',monospace;">Aa</div>
             <a class="element-link" href="https://fonts.google.com/specimen/JetBrains+Mono" target="_blank" rel="noopener">Get it ↗</a>
@@ -301,7 +467,7 @@
           <div class="element-item">
             <div class="element-item-info">
               <div class="element-item-name">Inter</div>
-              <div class="element-item-sub">Google Fonts · Variable · Great for UI</div>
+              <div class="element-item-sub">Google Fonts &middot; Variable &middot; Great for UI</div>
             </div>
             <div class="element-preview-font" style="font-family:Inter,sans-serif;">Aa</div>
             <a class="element-link" href="https://fonts.google.com/specimen/Inter" target="_blank" rel="noopener">Get it ↗</a>
@@ -310,7 +476,7 @@
           <div class="element-item">
             <div class="element-item-info">
               <div class="element-item-name">Playfair Display</div>
-              <div class="element-item-sub">Google Fonts · Serif · Editorial feel</div>
+              <div class="element-item-sub">Google Fonts &middot; Serif &middot; Editorial feel</div>
             </div>
             <div class="element-preview-font" style="font-family:'Playfair Display',Georgia,serif;font-style:italic;">Aa</div>
             <a class="element-link" href="https://fonts.google.com/specimen/Playfair+Display" target="_blank" rel="noopener">Get it ↗</a>
@@ -318,14 +484,13 @@
 
         </div>
 
-        <!-- Icons -->
         <div class="element-group">
           <p class="element-group-title">Icon Libraries</p>
 
           <div class="element-item">
             <div class="element-item-info">
               <div class="element-item-name">Phosphor Icons</div>
-              <div class="element-item-sub">6 weights · 1,000+ icons · SVG & components</div>
+              <div class="element-item-sub">6 weights &middot; 1,000+ icons &middot; SVG &amp; components</div>
             </div>
             <a class="element-link" href="https://phosphoricons.com" target="_blank" rel="noopener">Browse ↗</a>
           </div>
@@ -333,7 +498,7 @@
           <div class="element-item">
             <div class="element-item-info">
               <div class="element-item-name">Lucide</div>
-              <div class="element-item-sub">Clean · Consistent stroke width · Open source</div>
+              <div class="element-item-sub">Clean &middot; Consistent stroke width &middot; Open source</div>
             </div>
             <a class="element-link" href="https://lucide.dev" target="_blank" rel="noopener">Browse ↗</a>
           </div>
@@ -341,7 +506,7 @@
           <div class="element-item">
             <div class="element-item-info">
               <div class="element-item-name">Heroicons</div>
-              <div class="element-item-sub">By Tailwind team · Outline & solid · SVG</div>
+              <div class="element-item-sub">By Tailwind team &middot; Outline &amp; solid &middot; SVG</div>
             </div>
             <a class="element-link" href="https://heroicons.com" target="_blank" rel="noopener">Browse ↗</a>
           </div>
@@ -349,7 +514,7 @@
           <div class="element-item">
             <div class="element-item-info">
               <div class="element-item-name">Simple Icons</div>
-              <div class="element-item-sub">Brand logos · SVG · 3,000+ companies</div>
+              <div class="element-item-sub">Brand logos &middot; SVG &middot; 3,000+ companies</div>
             </div>
             <a class="element-link" href="https://simpleicons.org" target="_blank" rel="noopener">Browse ↗</a>
           </div>
@@ -360,7 +525,7 @@
     </section>
 
     <footer>
-      <div class="marquee">Joseph Kerby Anderson • Last Updated 08/09/2025</div>
+      <div class="marquee">Joseph Kerby Anderson &bull; Last Updated 08/09/2025</div>
     </footer>
 
   </main>

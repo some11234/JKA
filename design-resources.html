@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Design Resources — Joseph Kerby</title>
+  <meta name="description" content="Design resources, slide workshops, tools, and elements — Joseph Kerby" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1,2&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <style>
+    :root {
+      --bg: #0b0b0b;
+      --surface: #1e1e1e;
+      --muted-surface: #121212;
+      --text: #ecede9;
+      --text-2: #9fa3a8;
+      --divider: #2a2a2a;
+      --accent: #6cfdb6;
+      --accent-2: #9e84df;
+      --chip-bg: #0c0c0b;
+      --chip-stroke: #313233;
+      --radius: 16px;
+      --radius-lg: 20px;
+      --shadow: 0 10px 30px rgba(0,0,0,.45);
+    }
+    * { box-sizing: border-box; }
+    html, body { background: var(--bg); color: var(--text); font-family: 'Satoshi-Variable','Satoshi Variable','Satoshi', Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; margin: 0; }
+    a { color: inherit; text-decoration: none; }
+
+    /* Nav */
+    .nav { position: sticky; top: 0; backdrop-filter: blur(10px); background: color-mix(in oklab, var(--bg) 80%, transparent); border-bottom: 1px solid var(--divider); z-index: 10; }
+    .nav .inner { display: flex; align-items: center; gap: 12px; padding: 10px 12px; max-width: 1200px; margin: 0 auto; }
+    .brand { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; letter-spacing: .04em; }
+    .brand.brand-text { display: inline-flex; align-items: center; gap: 6px; line-height: 1; white-space: nowrap; }
+    .brand.brand-text .joseph span { font-size: 32px; }
+    .brand.brand-text .kerby { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-weight: 800; font-size: 32px; line-height: 1; color: var(--text); }
+    .brand.brand-text .j { color: #A7E15F; }
+    .brand.brand-text .o { color: #FFD763; }
+    .brand.brand-text .s { color: #FF9953; }
+    .brand.brand-text .e { color: #EF505A; }
+    .brand.brand-text .p { color: #C95CD1; }
+    .brand.brand-text .h { color: #6ABEFF; }
+    .spacer { flex: 1; }
+    .pill { background: var(--accent); color: #032014; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 13px; box-shadow: var(--shadow); }
+
+    /* Layout */
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; overflow-x: hidden; }
+
+    /* Page header */
+    .page-header { padding: 32px 0 0; }
+    .page-header h1 { font-size: 44px; line-height: 1.06; margin: 0 0 10px; letter-spacing: .01em; font-weight: 800; }
+    .page-header .lead { color: var(--text-2); max-width: 65ch; margin: 0; font-size: 16px; }
+
+    /* Section */
+    section { padding: 44px 0 8px; }
+    .section-header { display: flex; align-items: center; margin-bottom: 20px; gap: 12px; }
+    .section-title { font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; white-space: nowrap; }
+    .section-line { height: 1px; background: var(--divider); flex: 1; }
+
+    /* ── SLIDE DECKS ── */
+    .decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+    .deck-card { background: var(--muted-surface); border: 1px solid var(--divider); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; }
+    .deck-preview { width: 100%; aspect-ratio: 16 / 9; background: #0e0f0f; border-bottom: 1px solid var(--divider); position: relative; overflow: hidden; }
+    .deck-preview iframe { width: 100%; height: 100%; border: 0; display: block; }
+    .deck-preview .deck-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-2); }
+    .deck-placeholder-icon { opacity: .35; }
+    .deck-placeholder-label { font-size: 13px; font-family: 'JetBrains Mono', monospace; opacity: .5; }
+    .deck-info { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .deck-info h3 { margin: 0; font-size: 17px; font-weight: 700; }
+    .deck-info .deck-meta { font-size: 13px; color: var(--text-2); font-family: 'JetBrains Mono', monospace; }
+    .deck-info .deck-desc { font-size: 14px; color: var(--text-2); margin-top: 2px; flex: 1; }
+    .deck-footer { margin-top: 12px; display: flex; gap: 8px; }
+    .btn-outline { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--divider); background: transparent; color: var(--text-2); font-size: 13px; font-weight: 600; transition: border-color .15s, color .15s; cursor: pointer; font-family: inherit; }
+    .btn-outline:hover { border-color: var(--accent-2); color: var(--accent-2); }
+    .btn-accent { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; border: 1px solid transparent; background: color-mix(in oklab, var(--accent-2) 15%, transparent); color: var(--accent-2); font-size: 13px; font-weight: 600; transition: background .15s; }
+    .btn-accent:hover { background: color-mix(in oklab, var(--accent-2) 22%, transparent); }
+
+    /* ── TOOLS ── */
+    .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+    .tool-card { background: var(--muted-surface); border: 1px solid var(--divider); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: border-color .2s; }
+    .tool-card:hover { border-color: color-mix(in oklab, var(--accent-2) 50%, var(--divider)); }
+    .tool-header { display: flex; align-items: center; gap: 10px; }
+    .tool-icon { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--divider); background: var(--surface); display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
+    .tool-name { font-size: 15px; font-weight: 700; }
+    .tool-tag { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent); background: color-mix(in oklab, var(--accent) 12%, transparent); padding: 2px 7px; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--accent) 25%, transparent); }
+    .tool-desc { font-size: 13px; color: var(--text-2); line-height: 1.55; flex: 1; }
+    .tool-link { align-self: flex-start; font-size: 13px; font-weight: 600; color: var(--accent-2); border-bottom: 1px dashed color-mix(in oklab, var(--accent-2) 50%, transparent); padding-bottom: 1px; transition: border-color .15s; }
+    .tool-link:hover { border-color: var(--accent-2); }
+
+    /* ── DESIGN ELEMENTS ── */
+    .elements-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .element-group { background: var(--muted-surface); border: 1px solid var(--divider); border-radius: var(--radius-lg); padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+    .element-group-title { font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--accent-2); text-transform: uppercase; letter-spacing: .08em; margin: 0; }
+    .element-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--divider); }
+    .element-item:last-child { border-bottom: 0; padding-bottom: 0; }
+    .element-item-info { display: flex; flex-direction: column; gap: 3px; }
+    .element-item-name { font-size: 15px; font-weight: 600; }
+    .element-item-sub { font-size: 12px; color: var(--text-2); font-family: 'JetBrains Mono', monospace; }
+    .element-preview-font { font-size: 20px; font-weight: 700; color: var(--text-2); opacity: .6; line-height: 1; white-space: nowrap; }
+    .element-link { font-size: 12px; font-weight: 600; color: var(--accent-2); white-space: nowrap; border-bottom: 1px dashed color-mix(in oklab, var(--accent-2) 50%, transparent); padding-bottom: 1px; align-self: center; }
+    .element-link:hover { border-color: var(--accent-2); }
+
+    footer { margin: 60px 0 20px; color: var(--text-2); font-size: 13px; text-align: center; }
+    footer .marquee { opacity: .85; }
+
+    @media (max-width: 720px) {
+      .page-header h1 { font-size: 34px; }
+      .brand.brand-text .joseph span, .brand.brand-text .kerby { font-size: 30px; }
+      .elements-cols { grid-template-columns: 1fr; }
+      .decks { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="nav">
+    <div class="inner">
+      <a class="brand brand-text" href="./" aria-label="Home">
+        <span class="joseph">
+          <span class="j">J</span><span class="o">o</span><span class="s">s</span><span class="e">e</span><span class="p">p</span><span class="h">h</span>
+        </span>
+        <span class="kerby">Kerby</span>
+      </a>
+      <div class="spacer"></div>
+      <a class="pill" href="mailto:hello@josephkerby.com">Email</a>
+    </div>
+  </div>
+
+  <main class="wrap">
+
+    <header class="page-header">
+      <h1>Design Resources</h1>
+      <p class="lead">Workshops, tools, and elements I use and recommend.</p>
+    </header>
+
+    <!-- ── SLIDE WORKSHOPS ── -->
+    <section id="workshops">
+      <div class="section-header">
+        <div class="section-title">Slide Workshops</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="decks">
+
+        <!-- To add a deck: copy this card, set the iframe src to a Google Slides embed URL
+             (File → Share → Publish to web → Embed) or a direct PDF URL. -->
+
+        <div class="deck-card">
+          <div class="deck-preview">
+            <!-- <iframe src="https://docs.google.com/presentation/d/YOUR_ID/embed?start=false&loop=false" allowfullscreen></iframe> -->
+            <div class="deck-placeholder">
+              <svg class="deck-placeholder-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+              <span class="deck-placeholder-label">deck coming soon</span>
+            </div>
+          </div>
+          <div class="deck-info">
+            <h3>Intro to Visual Hierarchy</h3>
+            <div class="deck-meta">Workshop · Spring 2025</div>
+            <div class="deck-desc">How to guide the viewer's eye using size, weight, spacing, and contrast.</div>
+            <div class="deck-footer">
+              <span class="btn-outline" style="opacity:.4;pointer-events:none;">Preview</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="deck-card">
+          <div class="deck-preview">
+            <div class="deck-placeholder">
+              <svg class="deck-placeholder-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+              <span class="deck-placeholder-label">deck coming soon</span>
+            </div>
+          </div>
+          <div class="deck-info">
+            <h3>Typography Fundamentals</h3>
+            <div class="deck-meta">Workshop · Spring 2025</div>
+            <div class="deck-desc">Pairing typefaces, setting readable body copy, and when to break the rules.</div>
+            <div class="deck-footer">
+              <span class="btn-outline" style="opacity:.4;pointer-events:none;">Preview</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── DESIGN TOOLS ── -->
+    <section id="tools">
+      <div class="section-header">
+        <div class="section-title">Design Tools</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="tools-grid">
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <div class="tool-icon">🎨</div>
+            <div>
+              <div class="tool-name">Figma</div>
+            </div>
+            <div class="tool-tag">Free</div>
+          </div>
+          <div class="tool-desc">The industry-standard collaborative design tool. Great for UI, decks, and quick mockups.</div>
+          <a class="tool-link" href="https://figma.com" target="_blank" rel="noopener">figma.com ↗</a>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <div class="tool-icon">🌈</div>
+            <div>
+              <div class="tool-name">Coolors</div>
+            </div>
+            <div class="tool-tag">Free</div>
+          </div>
+          <div class="tool-desc">Fast color palette generator. Hit spacebar and it spits out palette after palette.</div>
+          <a class="tool-link" href="https://coolors.co" target="_blank" rel="noopener">coolors.co ↗</a>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <div class="tool-icon">🔤</div>
+            <div>
+              <div class="tool-name">Google Fonts</div>
+            </div>
+            <div class="tool-tag">Free</div>
+          </div>
+          <div class="tool-desc">Huge library of open-source fonts, free for personal and commercial use.</div>
+          <a class="tool-link" href="https://fonts.google.com" target="_blank" rel="noopener">fonts.google.com ↗</a>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <div class="tool-icon">📸</div>
+            <div>
+              <div class="tool-name">Unsplash</div>
+            </div>
+            <div class="tool-tag">Free</div>
+          </div>
+          <div class="tool-desc">High-quality, free stock photography. No attribution required.</div>
+          <a class="tool-link" href="https://unsplash.com" target="_blank" rel="noopener">unsplash.com ↗</a>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <div class="tool-icon">✏️</div>
+            <div>
+              <div class="tool-name">Canva</div>
+            </div>
+            <div class="tool-tag">Freemium</div>
+          </div>
+          <div class="tool-desc">Easy drag-and-drop design for presentations, social posts, and more.</div>
+          <a class="tool-link" href="https://canva.com" target="_blank" rel="noopener">canva.com ↗</a>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <div class="tool-icon">🔲</div>
+            <div>
+              <div class="tool-name">Phosphor Icons</div>
+            </div>
+            <div class="tool-tag">Free</div>
+          </div>
+          <div class="tool-desc">Flexible icon family with 6 weights, available as SVG, React, Vue, and more.</div>
+          <a class="tool-link" href="https://phosphoricons.com" target="_blank" rel="noopener">phosphoricons.com ↗</a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── DESIGN ELEMENTS ── -->
+    <section id="elements">
+      <div class="section-header">
+        <div class="section-title">Design Elements</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="elements-cols">
+
+        <!-- Fonts -->
+        <div class="element-group">
+          <p class="element-group-title">Fonts</p>
+
+          <div class="element-item">
+            <div class="element-item-info">
+              <div class="element-item-name">Satoshi</div>
+              <div class="element-item-sub">Fontshare · Variable · Used on this site</div>
+            </div>
+            <div class="element-preview-font" style="font-family:'Satoshi Variable','Satoshi',sans-serif;">Aa</div>
+            <a class="element-link" href="https://www.fontshare.com/fonts/satoshi" target="_blank" rel="noopener">Get it ↗</a>
+          </div>
+
+          <div class="element-item">
+            <div class="element-item-info">
+              <div class="element-item-name">JetBrains Mono</div>
+              <div class="element-item-sub">Google Fonts · Monospace · Used on this site</div>
+            </div>
+            <div class="element-preview-font" style="font-family:'JetBrains Mono',monospace;">Aa</div>
+            <a class="element-link" href="https://fonts.google.com/specimen/JetBrains+Mono" target="_blank" rel="noopener">Get it ↗</a>
+          </div>
+
+          <div class="element-item">
+            <div class="element-item-info">
+              <div class="element-item-name">Inter</div>
+              <div class="element-item-sub">Google Fonts · Variable · Great for UI</div>
+            </div>
+            <div class="element-preview-font" style="font-family:Inter,sans-serif;">Aa</div>
+            <a class="element-link" href="https://fonts.google.com/specimen/Inter" target="_blank" rel="noopener">Get it ↗</a>
+          </div>
+
+          <div class="element-item">
+            <div class="element-item-info">
+              <div class="element-item-name">Playfair Display</div>
+              <div class="element-item-sub">Google Fonts · Serif · Editorial feel</div>
+            </div>
+            <div class="element-preview-font" style="font-family:'Playfair Display',Georgia,serif;font-style:italic;">Aa</div>
+            <a class="element-link" href="https://fonts.google.com/specimen/Playfair+Display" target="_blank" rel="noopener">Get it ↗</a>
+          </div>
+
+        </div>
+
+        <!-- Icons -->
+        <div class="element-group">
+          <p class="element-group-title">Icon Libraries</p>
+
+          <div class="element-item">
+            <div class="element-item-info">
+              <div class="element-item-name">Phosphor Icons</div>
+              <div class="element-item-sub">6 weights · 1,000+ icons · SVG & components</div>
+            </div>
+            <a class="element-link" href="https://phosphoricons.com" target="_blank" rel="noopener">Browse ↗</a>
+          </div>
+
+          <div class="element-item">
+            <div class="element-item-info">
+              <div class="element-item-name">Lucide</div>
+              <div class="element-item-sub">Clean · Consistent stroke width · Open source</div>
+            </div>
+            <a class="element-link" href="https://lucide.dev" target="_blank" rel="noopener">Browse ↗</a>
+          </div>
+
+          <div class="element-item">
+            <div class="element-item-info">
+              <div class="element-item-name">Heroicons</div>
+              <div class="element-item-sub">By Tailwind team · Outline & solid · SVG</div>
+            </div>
+            <a class="element-link" href="https://heroicons.com" target="_blank" rel="noopener">Browse ↗</a>
+          </div>
+
+          <div class="element-item">
+            <div class="element-item-info">
+              <div class="element-item-name">Simple Icons</div>
+              <div class="element-item-sub">Brand logos · SVG · 3,000+ companies</div>
+            </div>
+            <a class="element-link" href="https://simpleicons.org" target="_blank" rel="noopener">Browse ↗</a>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <footer>
+      <div class="marquee">Joseph Kerby Anderson • Last Updated 08/09/2025</div>
+    </footer>
+
+  </main>
+</body>
+</html>

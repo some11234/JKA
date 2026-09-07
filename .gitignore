@@ -1,0 +1,8 @@
+.DS_Store
+assets/_originals/
+.backups/
+
+# Photo masters — read by the gallery build script, never served.
+# 135 MB that would otherwise be pushed to GitHub Pages for no reason;
+# the site only ever loads assets/gallery/web/.
+assets/gallery/Originals/

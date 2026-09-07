@@ -1,0 +1,558 @@
+/* ==========================================================================
+   gallery.css — the three gallery views. Loaded after styles.css, which owns
+   the tokens, the header/footer and the pills. Nothing here redefines a color;
+   hierarchy comes from the same white-opacity steps as the rest of the site.
+
+     1. overview   /gallery/            city rows, horizontal scroll, rounded
+     2. collection /gallery/<city>/     one column, square corners, no captions
+     3. lightbox   (overlay on either)  full-bleed photo, EXIF + map, blurred bg
+   ========================================================================== */
+
+.gal {
+  /* The header is fixed and transparent; content scrolls under its fade. */
+  padding-top: calc(var(--header-h) + clamp(24px, 5vh, 56px));
+  padding-bottom: clamp(64px, 10vh, 120px);
+}
+
+.gal__inner { padding-inline: var(--gal-gutter); }
+
+:root {
+  --gal-gutter: clamp(20px, 5vw, 72px);
+  --gal-tile-w: clamp(220px, 24vw, 340px);
+  --gal-radius: 14px;
+}
+
+/* ------------------------------------------------------------ page head --- */
+
+.gal-head { max-width: 62ch; }
+
+.gal-head h1 {
+  font-weight: 800;
+  font-size: clamp(2.5rem, 7vw, 4.75rem);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+/* One accent rule under the title instead of the underlined text in the sketch —
+   an underlined heading reads as a link, and this one isn't. */
+.gal-head h1::after {
+  content: '';
+  display: block;
+  width: 3.5ch;
+  height: 3px;
+  margin-top: 18px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.gal-head .gal-copy { margin-top: 22px; }
+.gal-head .gal-copy p + p { margin-top: 0.9em; }
+
+.gal-head p, .gal-head .gal-copy p {
+  margin-top: 0;
+  color: var(--ink-70);
+  font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+/* --------------------------------------------------------- overview rows --- */
+
+.gal-row { margin-top: clamp(44px, 7vh, 84px); }
+
+/* The heading IS the link into the collection — the sketch had a bare "London >"
+   twice with no indication it was clickable, so it gets a real affordance. */
+.gal-row__head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding-inline: var(--gal-gutter);
+  margin-bottom: 18px;
+}
+
+.gal-row__link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--ink-100);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 3vw, 2.1rem);
+  letter-spacing: -0.02em;
+  transition: color 160ms ease;
+}
+
+.gal-row__link .chev {
+  display: inline-block;
+  font-weight: 500;
+  color: var(--ink-45);
+  transition: transform 220ms cubic-bezier(.22,.9,.3,1), color 160ms ease;
+}
+
+.gal-row__link:hover { color: var(--ink-100); }
+.gal-row__link:hover .chev { transform: translateX(5px); color: var(--accent); }
+
+.gal-row__count {
+  margin-left: auto;
+  color: var(--ink-45);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* The scroller runs full-bleed and pads itself, so photos bleed off both edges
+   instead of stopping at a margin — that is what makes it read as scrollable. */
+.gal-scroller {
+  display: flex;
+  gap: clamp(12px, 1.6vw, 22px);
+  padding-inline: var(--gal-gutter);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  /* Without this the first tile snaps to the raw scrollport edge and swallows
+     padding-inline, so the row starts flush left while its heading is inset.
+     scroll-padding insets the snap area to match the visual padding. */
+  scroll-padding-inline: var(--gal-gutter);
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+.gal-scroller::-webkit-scrollbar { display: none; }
+
+.gal-scroller > * { scroll-snap-align: start; flex: 0 0 auto; }
+
+/* ---------------------------------------------------------------- tiles --- */
+
+.gal-tile {
+  display: block;
+  width: var(--gal-tile-w);
+  text-decoration: none;
+  color: inherit;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Landing rows only: one shape for every tile, landscape cropped to fit, so a
+   row reads as an even run. gallery.js leaves the inline aspect-ratio off these
+   and sets it per photo on collection pages instead. */
+.gal-scroller .gal-tile__frame { aspect-ratio: 2 / 3; }
+
+.gal-tile__frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--gal-radius);
+  background: rgba(255, 255, 255, 0.04);   /* holds the space while loading */
+  transition: transform 320ms cubic-bezier(.22,.9,.3,1);
+}
+
+.gal-tile__frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The scrim: flat --bg at low opacity, per the brief. A touch of vertical
+   gradient keeps it from looking like a flat grey sheet. */
+.gal-tile__frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+              rgba(11, 11, 11, 0.28), rgba(11, 11, 11, 0.58));
+  opacity: 0;
+  transition: opacity 240ms ease;
+  pointer-events: none;
+}
+
+.gal-tile__glass {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 46px;
+  height: 46px;
+  opacity: 0;
+  transform: scale(0.82);
+  transition: opacity 240ms ease, transform 320ms cubic-bezier(.22,.9,.3,1);
+  pointer-events: none;
+}
+
+.gal-tile__glass svg { width: 100%; height: 100%; display: block; }
+
+.gal-tile:hover .gal-tile__frame::after,
+.gal-tile:focus-visible .gal-tile__frame::after { opacity: 1; }
+
+.gal-tile:hover .gal-tile__glass,
+.gal-tile:focus-visible .gal-tile__glass { opacity: 1; transform: scale(1); }
+
+.gal-tile:hover .gal-tile__frame { transform: translateY(-3px); }
+
+.gal-tile:focus-visible { outline: none; }
+.gal-tile:focus-visible .gal-tile__frame { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.gal-tile__cap {
+  margin-top: 10px;
+  color: var(--ink-45);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+/* --------------------------------------------------- collection (city) --- */
+
+.gal-collection { max-width: 1680px; margin-inline: auto; }
+
+.gal-collection .gal-head h1 { font-size: clamp(2.75rem, 8vw, 5.5rem); }
+.gal-collection .gal-head { max-width: 62ch; }
+
+.gal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+  color: var(--ink-45);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  transition: color 160ms ease;
+}
+
+.gal-back:hover { color: var(--ink-100); }
+
+/* Two to three across, square corners, no captions.
+
+   CSS columns rather than grid: these sets mix 2:3 portraits with 3:2
+   landscapes, and a grid would leave a ragged gap under every short photo.
+   Columns pack them tight. The trade is that reading order runs down each
+   column instead of across — for a photo set that reads fine, and the lightbox
+   still steps through in data order either way. */
+.gal-stack {
+  margin-top: clamp(36px, 6vh, 64px);
+  column-count: 2;
+  column-gap: clamp(12px, 1.4vw, 22px);
+}
+
+@media (min-width: 1100px) { .gal-stack { column-count: 3; } }
+@media (max-width: 620px)  { .gal-stack { column-count: 1; } }
+
+.gal-stack .gal-tile {
+  width: 100%;
+  margin-bottom: clamp(12px, 1.4vw, 22px);
+  break-inside: avoid;                 /* never split a photo across columns */
+  -webkit-column-break-inside: avoid;
+}
+
+.gal-stack .gal-tile__frame { border-radius: 0; }
+.gal-stack .gal-tile:hover .gal-tile__frame { transform: none; }
+
+/* ------------------------------------------------------------- lightbox --- */
+
+.gal-lb {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 24vw);
+  gap: clamp(20px, 3vw, 48px);
+  align-items: center;
+  padding: clamp(20px, 4vh, 56px) clamp(20px, 4vw, 64px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 260ms ease, visibility 0s linear 260ms;
+}
+
+.gal-lb.is-open { opacity: 1; visibility: visible; transition-delay: 0s; }
+
+/* The blurred backdrop is the photo itself, blown up and blurred, over --bg.
+   backdrop-filter would blur the page behind it, which is the wrong subject. */
+.gal-lb__bg {
+  position: absolute;
+  inset: -8%;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(52px) saturate(1.25) brightness(0.42);
+  transform: scale(1.08);
+}
+
+.gal-lb__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(11, 11, 11, 0.62);
+}
+
+.gal-lb__stage {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 0;
+}
+
+.gal-lb__img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+}
+
+.gal-lb__side {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.gal-lb__side::-webkit-scrollbar { display: none; }
+
+/* Panels: dark and translucent so the blurred photo reads through them. The
+   sketch had light-grey serif cards, which belong to a different site. */
+.gal-panel {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.055);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  padding: 18px 20px;
+}
+
+.gal-panel__label {
+  color: var(--ink-45);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.gal-lb__title { font-weight: 700; font-size: 1.05rem; margin-bottom: 4px; }
+.gal-lb__place { color: var(--ink-45); font-size: 0.82rem; }
+
+/* Label / value rows, mono for the numbers so they line up. */
+.gal-exif { display: grid; grid-template-columns: auto 1fr; gap: 7px 16px; }
+.gal-exif dt { color: var(--ink-45); font-size: 0.74rem; }
+.gal-exif dd {
+  color: var(--ink-100);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  text-align: right;
+}
+
+.gal-map {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  padding: 0;
+}
+
+.gal-map__canvas {
+  position: relative;
+  display: block;
+  height: 156px;
+  background: #0d1013;                 /* shows while tiles are still arriving */
+  overflow: hidden;
+}
+
+.gal-map__tiles { position: absolute; inset: 0; display: block; }
+
+/* FORCED DARK. The standard OSM basemap is light, so it is inverted: invert()
+   flips it dark but also flips every hue (parks go magenta, water orange), and
+   hue-rotate(180deg) puts them back. The rest just settles it into the site's
+   muted palette instead of a glaring negative. */
+.gal-map__tile {
+  position: absolute;
+  width: 128px;
+  height: 128px;
+  filter: invert(1) hue-rotate(180deg) saturate(0.62) brightness(0.92) contrast(0.95);
+}
+
+.gal-map__pin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(0, 255, 176, 0.25),
+              0 0 0 1.5px rgba(11, 11, 11, 0.85) inset,
+              0 0 20px rgba(0, 255, 176, 0.55);
+  pointer-events: none;
+}
+
+/* Required by both OpenStreetMap and CARTO. Small, but it must be legible. */
+.gal-map__attr {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 3px 7px;
+  background: rgba(11, 11, 11, 0.62);
+  color: rgba(255, 255, 255, 0.62);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.02em;
+  border-top-left-radius: 6px;
+  pointer-events: none;
+}
+
+.gal-map__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 18px 15px;
+}
+
+.gal-map__place { font-size: 0.82rem; }
+.gal-map__coord {
+  color: var(--ink-45);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+}
+
+.gal-map:hover .gal-map__place { color: var(--accent); }
+
+/* ------------------------------------------------------ lightbox chrome --- */
+
+.gal-lb__btn {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: rgba(11, 11, 11, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--ink-100);
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease,
+              transform 160ms ease, opacity 160ms ease;
+}
+
+.gal-lb__btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: var(--ink-70);
+  transform: scale(1.06);
+}
+
+.gal-lb__btn:disabled { opacity: 0.25; cursor: default; transform: none; }
+
+.gal-lb__close {
+  top: clamp(16px, 3vh, 30px);
+  right: clamp(16px, 3vw, 34px);
+  height: 40px;
+  padding-inline: 18px;
+  gap: 9px;
+  grid-auto-flow: column;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.gal-lb__nav { top: 50%; width: 48px; height: 48px; margin-top: -24px; }
+/* Positioned against .gal-lb__stage (the photo column), so they sit either side
+   of the image instead of hugging the window and colliding with the panels. */
+.gal-lb__nav--prev { left: clamp(-6px, -0.6vw, 6px); }
+.gal-lb__nav--next { right: clamp(-6px, -0.6vw, 6px); }
+.gal-lb__nav svg { width: 19px; height: 19px; }
+
+.gal-lb__counter {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: clamp(14px, 2.5vh, 26px);
+  transform: translateX(-50%);
+  color: var(--ink-45);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+}
+
+/* Locks the page behind the overlay without the scrollbar-width jump. */
+.gal-lb-open { overflow: hidden; }
+
+/* ---------------------------------------------------------- narrow view --- */
+
+@media (max-width: 900px) {
+  .gal-lb {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-content: center;
+    gap: 14px;
+    padding: clamp(58px, 9vh, 76px) 14px clamp(52px, 8vh, 70px);
+  }
+
+  /* ONE panel that scrolls vertically, not three that scroll sideways.
+     Swiping horizontally between separate boxes fought the page and the
+     photo's own gestures, and each box was cut off at the screen edge. The
+     three panels below become sections of a single card instead. */
+  .gal-lb__side {
+    flex-direction: column;
+    gap: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: min(38vh, 320px);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.055);
+    backdrop-filter: blur(20px) saturate(1.3);
+    -webkit-backdrop-filter: blur(20px) saturate(1.3);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;      /* don't scroll the page behind it */
+  }
+
+  /* The children give up their own chrome — the wrapper carries it now. */
+  .gal-lb__side > .gal-panel {
+    flex: none;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .gal-lb__side > :last-child { border-bottom: 0; }
+
+  .gal-map__canvas { border-radius: 10px; margin-inline: 20px; }
+  .gal-map { padding-block: 18px 0; }
+
+  /* The buttons live inside .gal-lb__stage, so they are already anchored to the
+     photo and the info panel's scrolling cannot move them. They just keep the
+     desktop centring — `top: auto` here dropped them to static position. */
+  .gal-lb__counter { bottom: auto; top: clamp(22px, 3.6vh, 34px); }
+}
+
+@media (max-width: 620px) {
+  :root { --gal-tile-w: 74vw; }
+  .gal-row__count { display: none; }
+}
+
+/* Reduced motion: keep the state changes, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .gal-tile:hover .gal-tile__frame { transform: none; }
+  .gal-tile__frame,
+  .gal-tile__glass,
+  .gal-row__link .chev { transition-duration: 1ms; }
+}

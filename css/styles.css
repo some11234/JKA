@@ -1,0 +1,956 @@
+/* ==========================================================================
+   josephkerby.com
+   Dark-only, image-forward, scroll-driven. Hierarchy comes from white opacity
+   steps — not from new colors. The accent appears at most once per viewport-ful.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- fonts ---
+   Both faces are loaded from the web — nothing to upload into assets/.
+     Satoshi        → Fontshare CDN   (variable, 300–900)
+     JetBrains Mono → Google Fonts    (variable, 400–700)
+   The <link> tags live in the <head> of every page. To self-host later instead,
+   drop the woff2 files in assets/fonts/, add @font-face rules here, and delete
+   the two <link>s — --font-sans / --font-mono below don't need to change.
+   -------------------------------------------------------------------------- */
+
+/* --------------------------------------------------------------- tokens --- */
+
+:root {
+  --bg: #0B0B0B;                       /* near-black, never pure black */
+  --ink-100: #FFFFFF;                  /* primary text */
+  --ink-70: rgba(255, 255, 255, 0.72); /* body / secondary */
+  --ink-45: rgba(255, 255, 255, 0.45); /* captions, faint labels */
+  --line: rgba(255, 255, 255, 0.22);   /* hairline dividers, outlined pills */
+  --accent: #00FFB0;                   /* Email pill ONLY */
+  --accent-ink: #06231A;               /* dark text on accent */
+
+  /* 'Satoshi' is what Fontshare names the family; 'Satoshi Variable' is kept as
+     a fallback so a future self-hosted copy under either name still resolves. */
+  --font-sans: 'Satoshi', 'Satoshi Variable', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* No --font-display-* tokens: the city titles are supplied SVGs now, so their
+     typefaces are baked into the artwork and no webfont is requested for them. */
+
+  --radius-card: 28px;
+  --radius-pill: 999px;
+  --header-h: 80px;
+
+  /* Written from CONFIG in js/main.js so the numbers live in exactly one place. */
+  --anno-left: 58%;
+  --anno-top: 16%;
+  --anno-width: 30%;
+}
+
+/* ----------------------------------------------------------------- base --- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* NO scroll-behavior HERE — deliberately, and it must stay that way.
+
+   ScrollTrigger measures a pinned trigger by scrolling the page to 0, reading
+   every trigger's position, and putting the scroll back. `scroll-behavior:
+   smooth` on the scroller makes those internal scrolls ANIMATE, so the
+   measuring happened while the page was still somewhere in between: the
+   journey's start came back short by exactly the current scroll offset
+   (683 -> -317 at scrollY 1000), which put progress at 1 while the reader was
+   still 40% of the way in. The scrub then drove the whole sequence to its end
+   and the handoff fired, so the gallery built itself out on screen and could
+   never be scrubbed back.
+
+   That fires on EVERY refresh, and ScrollTrigger refreshes on window 'load' —
+   which, with several MB of photographs here, lands seconds after the reader
+   has already taken the hero's "Scroll down" invitation. Hence "it's broken
+   every time". Resize and document.fonts.ready do the same thing.
+
+   Smooth anchor scrolling is kept — main.js does it per-click with
+   scrollIntoView({ behavior: 'smooth' }), which only affects that one call and
+   leaves ScrollTrigger's own scrolling instant. */
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink-100);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  /* clip, not hidden: `hidden` would turn <body> into a scroll container and
+     break ScrollTrigger's viewport pinning. */
+  overflow-x: clip;
+}
+
+img { display: block; max-width: 100%; }
+h1, h2, h3, p, ul { margin: 0; }
+ul { padding: 0; list-style: none; }
+
+a { color: inherit; }
+
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: 'liga' 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* --------------------------------------------------------------- header --- */
+
+.site-header {
+  position: fixed;
+  top: 0;
+  inset-inline: 0;
+  z-index: 100;
+  pointer-events: none; /* only the row itself is interactive */
+}
+
+/* Tall soft falloff — photos slide under a long fade, never a hard edge. */
+.site-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  height: 170px;
+  background: linear-gradient(to bottom, rgba(11, 11, 11, 1) 0%, rgba(11, 11, 11, 0) 100%);
+  pointer-events: none;
+}
+
+.site-header__row {
+  position: relative;
+  pointer-events: auto;
+  height: var(--header-h);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  padding-inline: clamp(20px, 4vw, 48px);
+}
+
+.site-header__home { display: inline-block; justify-self: start; line-height: 0; }
+
+.site-header__logo {
+  height: 40px;
+  width: auto;
+  aspect-ratio: 200 / 56; /* reserves space while the asset is missing */
+}
+
+.site-nav {
+  justify-self: center;
+  display: flex;
+  gap: clamp(20px, 3vw, 40px);
+}
+
+.site-nav a {
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--ink-70);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current='page'] { color: var(--ink-100); }
+
+/* ---------------------------------------------------------------- pills --- */
+
+.pill {
+  display: inline-block;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 150ms ease, filter 150ms ease,
+              background-color 150ms ease, border-color 150ms ease;
+}
+
+.pill--accent {
+  justify-self: end;
+  padding: 10px 22px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.pill--accent:hover { filter: brightness(1.06); transform: scale(1.03); }
+
+.pill--ghost {
+  padding: 12px 26px;
+  border: 1px solid var(--line);
+  color: var(--ink-100);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.pill--ghost:hover {
+  border-color: var(--ink-70);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ----------------------------------------------------------------- hero --- */
+
+.hero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.hero__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Legibility gradient from the right — tuned so the right third stays calm. */
+.hero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(to left, rgba(11, 11, 11, 0.82), rgba(11, 11, 11, 0.35) 45%, transparent 70%),
+    linear-gradient(to right, rgba(11, 11, 11, 0.35), transparent 28%);
+}
+
+.hero__copy {
+  position: relative;
+  z-index: 2;
+  width: min(52ch, 46vw);
+  margin-inline-end: clamp(20px, 5vw, 88px);
+  padding-top: var(--header-h);
+}
+
+.hero__title {
+  font-weight: 900;
+  font-size: clamp(3rem, 7vw, 6.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+.hero__intro {
+  margin-top: 22px;
+  max-width: 46ch;
+  color: var(--ink-100);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.hero__cue {
+  position: absolute;
+  z-index: 2;
+  bottom: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--ink-70);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+}
+
+/* -------------------------------------------------------------- journey --- */
+
+.journey { position: relative; }
+
+.stage {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 2.6vh, 34px);
+  padding-block: calc(var(--header-h) + 16px) 24px;
+}
+
+/* Hidden until main.js has measured and applied the opening state (no flash on
+   a mid-page refresh). Both the animated and the reduced-motion path add it. */
+.js .stage { visibility: hidden; }
+.js .stage.is-ready { visibility: visible; }
+
+/* Once the pin has been retired, nothing inside the stage is being scaled up
+   any more, so it no longer has to fill the viewport. Collapsing it to its
+   content removes the band of black above and below the strip — the leftover
+   of height:100svh with the contents centred, which only becomes visible when
+   London is no longer full-bleed. main.js adds this in the same task as the
+   un-pin, so the reflow is folded into that one scroll correction.
+   The top padding stays: the site header is fixed, and the strip still has to
+   clear it when this section sits at the top of the viewport. */
+.js .stage.is-unpinned {
+  height: auto;
+  /* The top padding was clearing the fixed header for a stage that FILLED the
+     viewport. Collapsed and in normal flow it buys nothing — the header is
+     transparent and every other section already scrolls under it — while
+     leaving ~96px of black between the hero and the heading. */
+  padding-block: clamp(12px, 2vh, 28px) 24px;
+}
+
+/* position: relative on these three is load-bearing — z-index only applies to
+   positioned elements, and the whole reverse-scrub story depends on the cards
+   painting above them. */
+.strip-heading {
+  position: relative;
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3.5vw, 3rem);
+  color: var(--ink-100);
+  z-index: 1;
+}
+
+.strip {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: clamp(14px, 1.8vw, 28px);
+  width: min(92vw, 1280px);
+  /* No horizontal scrollport at desktop — the full-bleed card must be free to
+     scale past these bounds. The stage does the clipping. */
+  overflow: visible;
+}
+
+.slot {
+  position: relative;
+  flex: 0 1 380px;
+  min-width: 0;
+  z-index: 2;
+}
+
+/* London sits above the side cards; both sit above heading / captions / CTA.
+   That z-order is what makes reverse-scrubbing free: when London is scaled up
+   full-bleed it re-covers every revealed element with no un-reveal logic. */
+.slot--london { z-index: 3; }
+
+.card {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  /* Query container so the title can be sized in cqw — 1cqw = 1% of THIS
+     card's width. Without it, --title-w resolved against .card-title's content
+     box, which padding-inline had already narrowed, so every width rendered
+     ~12% smaller than the number said and changing the padding silently
+     resized all three titles. */
+  container-type: inline-size;
+  overflow: hidden;           /* the title containment guarantee */
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.03);
+  z-index: 2;                 /* paints above its own caption at any scale */
+}
+
+.card-full,
+.card-cutout {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;   /* full + cutout must register identically */
+}
+
+.card-full { z-index: 1; }
+
+/* ------------------------------------------------- the plane, at 1:1 -------
+   Positioned as a box of the CARD, in the same percentages the crop was taken
+   from, so it rides the card's transform and stays registered to the photo
+   underneath at every scale. 15% of the card's width by 10% of its height is
+   square on a 2:3 card, which is exactly the crop's shape.
+
+   Above .card-cutout (3) so the cutout's softer copy cannot sit back on top of
+   it; below .annotation (5), whose arrow points at it. */
+.card-plane {
+  position: absolute;
+  z-index: 4;
+  left: 72%;
+  top: 34%;
+  width: 15%;
+  height: 10%;
+  object-fit: cover;
+  pointer-events: none;
+  /* Feathered to nothing well before the edge. The sky around the plane is a
+     smooth gradient with no detail, so a sharpness change there is invisible —
+     it is only the hard rectangle edge that would give it away. */
+  -webkit-mask-image: radial-gradient(ellipse at 50% 49%,
+                      #000 42%, rgba(0,0,0,0.6) 62%, transparent 80%);
+          mask-image: radial-gradient(ellipse at 50% 49%,
+                      #000 42%, rgba(0,0,0,0.6) 62%, transparent 80%);
+}
+
+/* No JS means no journey, so the card never blows up and this buys nothing. */
+.no-js .card-plane,
+.is-static .card-plane { display: none; }
+
+/* ------------------------------------- the strip cards are links now ------
+   Each card opens its own collection. The journey itself is untouched: this
+   only adds link semantics, a hover scrim, and a magnifier — the same
+   treatment the gallery tiles use, so the two pages behave alike. */
+
+.card { display: block; text-decoration: none; color: inherit; }
+
+/* NOT INTERACTIVE UNTIL THE STRIP HAS FINISHED ASSEMBLING ITSELF.
+
+   This one class gates the hover state as well as the click: pointer-events:
+   none suppresses :hover, so the scrim and magnifier below stay inert too.
+   That is deliberate. While the cards are still building, a cursor left
+   hovering over the strip would dim one and float a magnifier over artwork
+   that is plainly mid-animation; and earlier still, London is scaled across
+   the whole viewport, so a click anywhere would navigate rather than scroll.
+
+   main.js adds .is-live from goLive(), on the completion of the reveal tween —
+   the moment the strip heading and the captions under the cards have finished
+   fading in. The static path skips the animation entirely and is live from the
+   start. */
+.js .strip .card { pointer-events: none; }
+.js .strip.is-live .card,
+.js.is-static .strip .card { pointer-events: auto; }
+
+/* Above everything inside the card — full(1), title(2), cutout(3), anno(4). */
+.strip .card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  background: linear-gradient(180deg,
+              rgba(11, 11, 11, 0.28), rgba(11, 11, 11, 0.58));
+  opacity: 0;
+  transition: opacity 240ms ease;
+  pointer-events: none;
+}
+
+.strip .card::before {
+  content: '';
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  background: no-repeat center / contain
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='10.5' cy='10.5' r='6.75' stroke='%23fff' stroke-width='1.6'/%3E%3Cpath d='M15.4 15.4 21 21' stroke='%23fff' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  opacity: 0;
+  transform: scale(0.82);
+  transition: opacity 240ms ease, transform 320ms cubic-bezier(.22,.9,.3,1);
+  pointer-events: none;
+}
+
+.strip .card:hover::after,
+.strip .card:focus-visible::after { opacity: 1; }
+
+.strip .card:hover::before,
+.strip .card:focus-visible::before { opacity: 1; transform: scale(1); }
+
+.strip .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .strip .card::after,
+  .strip .card::before { transition-duration: 1ms; }
+}
+
+/* City titles are supplied vectors, not live text — the typefaces live inside
+   the SVGs. Each art file is sized by width as a percentage of the card, and
+   the intrinsic width/height attributes on the <img> reserve the right space
+   even while a file is missing. */
+.card-title {
+  position: absolute;
+  z-index: 2;
+  top: var(--title-top, 6%);       /* % of card HEIGHT — that's what top resolves to */
+  inset-inline: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  gap: 5.4cqw;                     /* the storyboard's LONDON/ENGLAND leading */
+  padding-inline: var(--title-inset, 4.6%);   /* per-card; see the block below */
+}
+
+.card-title__art {
+  height: auto;
+  will-change: transform;   /* cheap: these only ever slide sideways */
+}
+
+/* ...EXCEPT ON LONDON, where the card itself scales 5.5x.
+
+   will-change gives the element its own compositor layer, and that layer's
+   texture is cut at the element's untransformed size — here about 255px of
+   title on a 380px card. London's scale then stretches that 255px texture
+   across half the screen, so the lettering arrives soft no matter how much
+   vector detail the SVG holds. The Edinburgh and Brussels titles never leave
+   card size, so the hint is free for them and stays. See the matching note in
+   main.js next to cards.london. */
+.card--london .card-title__art { will-change: auto; }
+
+/* --- the tuning knobs -----------------------------------------------------
+   Each title enters from the side it's aligned to, so the alignment and the
+   animation read as one gesture.
+
+   LONDON and ENGLAND are separate files with the same glyph height in their
+   source units (131 vs 132), so their widths must stay in the ratio of their
+   viewBoxes — 831/6.34 vs 928/7.03 — or the two lines end up at visibly
+   different type sizes. If you retune one, retune the other by the same factor.
+   -------------------------------------------------------------------------- */
+/* Every number below was measured off Joe's storyboard frame, not guessed:
+   the type was isolated from that screenshot, its cap heights and insets read
+   as percentages of each card, then matched back through each SVG's own
+   internal geometry. Verified by re-rendering the real SVGs over the real
+   photos and re-measuring: London and Brussels land within 0.3%, Edinburgh
+   within 0.5%.
+
+     --title-top   % of card HEIGHT (that's what `top` resolves against)
+     width         cqw = % of card WIDTH
+
+   Per card, as the storyboard has it:
+     Edinburgh  flush to the top-left, 69% wide. Both lines run into the
+                shopfronts at the right — that overlap is the design.
+     London     CENTRED, both lines, starting 6.3% down. It still enters
+                split (LONDON from the left, ENGLAND from the right); only
+                the resting position is centred.
+     Brussels   left-inset, 9.3% down, 65% wide, with the final letters
+                running under the spire.
+
+   Two deliberate departures from the storyboard, both by eye on the real page:
+   Edinburgh is inset 10% rather than 4.6% — it reads better filling the sky
+   than hugging the card edge — and Brussels is smaller (60cqw), higher (3%)
+   and further left (2%) than the frame, because at storyboard size its last
+   letters disappeared into the spire. At these values 98% of its glyph pixels
+   survive: every letter legible, the final M just grazed.
+
+   One thing the SVGs can't reproduce: in the storyboard, Edinburgh's two lines
+   are indented independently (SCOTLAND sits further left than EDINBURGH). The
+   exported SVG bakes one fixed relative offset for both, so EDINBURGH's inset
+   is matched and SCOTLAND lands ~3% of card width right of the storyboard.
+   Fixing that needs a re-export as two files, like London's. */
+.card-title--edinburgh { --title-top: 0.3%; --title-inset: 10%; align-items: flex-start; }
+.card-title--london    { --title-top: 6.3%; align-items: center; }
+/* The one card where resting alignment and entry direction disagree, and it's
+   deliberate: Brussels still ENTERS from the right (that's the data-from
+   attribute below, untouched) but comes to rest on the left, because the right
+   half of this frame is solid spire. */
+.card-title--brussels  { --title-top: 3%;   --title-inset: 2%;  align-items: flex-start; }
+
+/* Widths are cqw = % of the card. The plain % above each is a fallback for
+   engines without container queries; it must stay FIRST, and must be a literal
+   rather than a var(), so an unsupported cqw is dropped at parse time instead
+   of falling back to width:auto and rendering the raw SVG at 751px. */
+.card-title--edinburgh .card-title__art { width: 86%; width: 69cqw; }
+.card-title--brussels  .card-title__art { width: 62%; width: 60cqw; }
+
+/* LONDON and ENGLAND are separate files, so their widths must stay in the ratio
+   of their viewBoxes (831/928) or the two lines land at different type sizes.
+   67 / 74 is that ratio; scale both together if you retune either. */
+.card-title__art--london  { width: 74%; width: 67cqw; }
+.card-title__art--england { width: 81%; width: 74cqw; }
+
+/* Pre-slide offsets, covering the sliver of time between the stylesheet
+   applying and main.js parking each title at its own measured offset. Kept
+   deliberately over-generous — the exact per-title value is computed in
+   clearingPercent(), and nothing here needs to be precise, only clear of the
+   card. Do not treat these as the tuning knobs; the JS overrides them. */
+.js .card-title__art[data-from='left']  { transform: translateX(-200%); }
+.js .card-title__art[data-from='right'] { transform: translateX(200%); }
+
+/* Foreground duplicate — sits ABOVE the title so buildings appear in front of
+   the sliding text. That layering is the whole depth effect. */
+.card-cutout {
+  z-index: 3;
+  pointer-events: none;
+}
+
+.annotation {
+  position: absolute;
+  z-index: 5;      /* above .card-plane (4), which its arrow points at */
+  left: var(--anno-left);
+  top: var(--anno-top);
+  width: var(--anno-width);
+  height: auto;
+  /* NO aspect-ratio here, deliberately. It used to force 600/420 (1.43), but
+     annotation-ba266.svg is 720x287 (2.51) — so the box was nearly twice as
+     tall as the artwork, and an <img> with a forced box defaults to
+     object-fit: fill. The label and arrow were stretched vertically and the
+     arrow tip landed well below the plane it points at. Leaving height auto
+     lets the file's own proportions drive it, and keeps this correct if the
+     artwork is ever re-exported at another size. */
+  pointer-events: none;
+  opacity: 0;                 /* final state: erased. .js re-shows it at pin start. */
+}
+
+.js .annotation { opacity: 1; }
+
+.strip-caption {
+  position: relative;
+  margin-top: 16px;
+  text-align: center;
+  color: var(--ink-45);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  z-index: 1;
+}
+
+.strip-cta { position: relative; z-index: 1; }
+
+.js .strip-heading,
+.js .strip-caption,
+.js .strip-cta { opacity: 0; }
+
+/* ---------------------------------------------------------------- about --- */
+
+.about {
+  position: relative;
+  overflow: clip;             /* tucks the headshot away above the divider */
+  /* The coverflow already carries ~56px of its own space under the artwork for
+     the title and subtitle, so this only needs to clear the footer rule. */
+  padding-block: 0 clamp(28px, 4vh, 56px);
+}
+
+.about__divider {
+  height: 1px;
+  width: 92%;
+  margin-inline: auto;
+  background: var(--line);
+}
+
+.about__heading {
+  margin-top: clamp(56px, 9vh, 110px);
+  margin-inline: auto;
+  width: min(92vw, 1180px);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3.5vw, 3rem);
+}
+
+.about__grid {
+  margin-top: clamp(28px, 4vh, 48px);
+  margin-inline: auto;
+  width: min(92vw, 1180px);
+  display: grid;
+  grid-template-columns: minmax(340px, 420px) 1fr;
+  gap: 64px;
+  align-items: start;
+}
+
+.headshot-slot {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.headshot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.js .headshot { visibility: hidden; }
+.js .headshot.is-placed { visibility: visible; }
+
+.about__name {
+  margin-top: 18px;
+  text-align: center;
+  color: var(--ink-70);
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+}
+
+.badges {
+  margin-top: clamp(28px, 4vh, 44px);
+  display: grid;
+  gap: 22px;
+}
+
+.badge {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 16px;
+  /* start, not center: the descriptions are real paragraphs now, and a 44px
+     mark floating against the middle of four lines reads as a mistake. */
+  align-items: start;
+}
+
+.badge__icon {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.badge__title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink-100);
+}
+
+/* Sans, not mono. These began as one-line labels; they are now a few sentences
+   each, and JetBrains Mono at this length is a wall. The title above stays mono
+   so the pairing still reads as a labelled entry. */
+.badge__desc {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ink-70);
+  text-wrap: pretty;
+}
+
+.about__col--right {
+  display: grid;
+  gap: clamp(36px, 6vh, 64px);
+}
+
+.module__heading {
+  font-weight: 700;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  margin-bottom: 14px;
+}
+
+.js .about__heading,
+.js .about__name,
+.js .badge,
+.js .module { opacity: 0; }
+
+/* ------------------------------------------------------------ coverflow --- */
+
+.coverflow {
+  position: relative;
+  perspective: 1400px;
+  overflow: clip;
+  contain: layout paint;
+  height: var(--cf-h, 360px);
+  outline-offset: 6px;
+}
+
+.cf-stage {
+  position: relative;
+  height: var(--cf-stage-h, 300px);
+  transform-style: preserve-3d;
+  touch-action: pan-y;        /* horizontal drag is ours, vertical stays the page's */
+  cursor: grab;
+}
+
+.cf-stage.is-dragging { cursor: grabbing; }
+
+.cf-item {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--cf-w, 220px);
+  margin-left: calc(var(--cf-w, 220px) / -2);
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease, opacity 0.6s ease;
+  will-change: transform, opacity;
+}
+
+.cf-cover {
+  width: 100%;
+  aspect-ratio: var(--cf-aspect, 1 / 1);
+  object-fit: cover;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.cf-reflect {
+  width: 100%;
+  height: var(--cf-reflect-h, 100px);
+  object-fit: cover;
+  /* Local bottom holds the image's bottom edge; scaleY(-1) puts that edge up
+     against the cover. Masked in local space, so the opaque end lands there
+     too. Same iTunes look as -webkit-box-reflect, but it works in Firefox. */
+  object-position: 50% 100%;
+  transform: scaleY(-1);
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.28), transparent 45%);
+          mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.28), transparent 45%);
+  pointer-events: none;
+  border-radius: 6px;
+}
+
+.cf-meta {
+  position: absolute;
+  bottom: 0;
+  inset-inline: 0;
+  text-align: center;
+  transition: opacity 0.25s ease;
+}
+
+.cf-meta.is-swapping { opacity: 0; }
+
+.cf-meta__title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ink-100);
+}
+
+.cf-meta__sub {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-45);
+}
+
+/* --------------------------------------------------------------- footer --- */
+
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding-block: 28px;
+  text-align: center;
+}
+
+.site-footer p {
+  color: var(--ink-45);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+/* ----------------------------------------------------------- stub pages --- */
+
+.stub {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: var(--header-h) 24px;
+}
+
+.stub h1 {
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3.5vw, 3rem);
+}
+
+.stub p { color: var(--ink-45); font-size: 0.9rem; }
+
+/* ===================================================== responsive (820px) ===
+   ⚠ No mockups behind this section — it is a proposal, and the most likely
+   area of revision. See spec §11.
+   ========================================================================== */
+
+@media (max-width: 820px) {
+
+  :root { --header-h: 64px; }
+
+  .site-header::before { height: 140px; }
+  .site-header__row { gap: 12px; padding-inline: 16px; }
+  .site-header__logo { height: 32px; }
+  .site-nav { gap: 16px; }
+  .site-nav a { font-size: 0.8rem; }
+  .pill--accent { padding: 8px 16px; font-size: 0.82rem; }
+
+  .hero { justify-content: flex-start; align-items: flex-end; }
+
+  /* Legibility gradient comes from the bottom on portrait screens. */
+  .hero__scrim {
+    background: linear-gradient(to top, rgba(11, 11, 11, 0.88), rgba(11, 11, 11, 0.4) 42%, transparent 72%);
+  }
+
+  /* 1. Sits low in the frame. The old bottom margin left a dead band of photo
+     between the last line and the bottom of the screen; this keeps just enough
+     to clear the "Scroll" cue, which sits 34px up and is ~19px tall. */
+  .hero__copy {
+    width: auto;
+    margin: 0 20px clamp(56px, 7.5vh, 80px);
+    padding-top: 0;
+  }
+
+  /* Portrait crops the 3:2 photo hard from both sides, and dead centre puts Joe
+     left of middle. He sits at ~43% across the frame, so biasing the crop here
+     centres him. Desktop shows nearly the whole width and is left alone. */
+  .hero__photo { object-position: 40% 50%; }
+
+  .hero__intro { max-width: none; font-size: 0.85rem; }
+
+  .stage { gap: 16px; }
+
+  /* Cards ~78vw in a row: London centered, the sides peeking at both edges.
+     Kept overflow-visible during the pin so the full-bleed scale isn't clipped;
+     main.js flips it to a snap scrollport once the pin releases. */
+  .strip { width: 100%; }
+  .slot { flex: 0 0 78vw; }
+
+  .strip.is-swipeable {
+    justify-content: flex-start;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 11vw;
+    padding-inline: 11vw;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .strip.is-swipeable .slot { scroll-snap-align: center; }
+
+  .strip-caption { margin-top: 12px; font-size: 0.75rem; }
+
+  /* 2. THE SAME TOP PADDING THE PINNED STAGE USES, deliberately.
+
+     While pinned the stage pads by header + 16px; unpinning dropped that to
+     ~15px, so at the instant the pin retired the whole strip jumped up by the
+     difference and the top of the London card was shaved off under the header.
+     Matching the two means the strip does not move at all when the pin goes. */
+  .js .stage.is-unpinned {
+    padding-block: calc(var(--header-h) + 16px) 20px;
+  }
+
+  /* The swipeable strip is a scrollport, which clips vertically as well as
+     horizontally — a little padding keeps the card edges off that boundary. */
+  .strip.is-swipeable { padding-block: 4px; }
+
+  /* 3. The gap under the divider was set for desktop; on a phone it read as a
+     blank screenful before the heading arrived. */
+  .about__heading { margin-top: clamp(28px, 4.5vh, 48px); }
+
+  .about__grid { grid-template-columns: 1fr; gap: 40px; }
+
+  .headshot-slot { max-width: 320px; margin-inline: auto; }
+
+  .coverflow { height: var(--cf-h-sm, 300px); }
+}
+
+/* ===================================================== static render ======
+   main.js adds .is-static to <html> when it deliberately runs no choreography:
+   reduced-motion, or GSAP unavailable (e.g. a file:// open). It undoes every
+   pre-animation state so the page renders as the finished layout — the same
+   thing the no-JS path gets for free.
+   ========================================================================== */
+
+.js.is-static .stage { visibility: visible; }
+.js.is-static .headshot { visibility: visible; }
+.js.is-static .annotation { opacity: 0; }
+
+.js.is-static .strip-heading,
+.js.is-static .strip-caption,
+.js.is-static .strip-cta,
+.js.is-static .about__heading,
+.js.is-static .about__name,
+.js.is-static .badge,
+.js.is-static .module { opacity: 1; }
+
+.js.is-static .card-title__art[data-from] { transform: none; }
+
+/* ================================================= reduced motion =========
+   No pinning, no scrubbing, no fall — the finished layout, rendered calmly.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  /* Nothing to undo for scrolling any more — the root never declares
+     scroll-behavior, and main.js's anchor handler already jumps instantly
+     when reduced motion is asked for. */
+
+  /* The cue stays — it just never floats (main.js skips the loop tween). */
+
+  .cf-item { transition: transform 0.15s ease, opacity 0.15s ease; }
+
+  .card-title__art,
+  .cf-item { will-change: auto; }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

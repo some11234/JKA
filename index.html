@@ -1,449 +1,252 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Joseph Kerby — Joseph Kerby</title>
-  <meta name="description" content="Joseph Kerby — projects, experience, and more" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
-  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1,2&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-  <style>
-    :root {
-      --bg: #0b0b0b;
-      --surface: #1e1e1e;
-      --muted-surface: #121212;
-      --text: #ecede9;
-      --text-2: #9fa3a8;
-      --divider: #2a2a2a;
-      --accent: #6cfdb6;
-      --accent-2: #9e84df;
-      --chip-bg: #0c0c0b;
-      --chip-stroke: #313233;
-      --radius: 16px;
-      --radius-lg: 20px;
-      --shadow: 0 10px 30px rgba(0,0,0,.45);
-    }
-    * { box-sizing: border-box; }
-    html, body { background: var(--bg); color: var(--text); font-family: 'Satoshi-Variable','Satoshi Variable','Satoshi', Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
-    a { color: inherit; text-decoration: none; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
-    .wrap { overflow-x: hidden; }
-    .nav { position: sticky; top: 0; backdrop-filter: blur(10px); background: color-mix(in oklab, var(--bg) 80%, transparent); border-bottom: 1px solid var(--divider); z-index: 10; }
-    .nav .inner { display: flex; align-items: center; gap: 12px; padding: 10px 12px; max-width: 1200px; margin: 0 auto; }
-    .brand { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; letter-spacing: .04em; font-size: 20px; }
-    /* Brand as colored text + outlined SVG */
-    .brand.brand-text { display: inline-flex; align-items: center; gap: 6px; line-height: 1; white-space: nowrap; }
-    .brand.brand-text .joseph span { font-size: 32px; }
-    .brand.brand-text .kerby {
-      font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
-      font-weight: 800;
-      font-size: 32px;
-      line-height: 1;
-      color: var(--text);
-    }
-    .brand.brand-text .j { color: #A7E15F; }   /* green (brighter) */
-    .brand.brand-text .o { color: #FFD763; }   /* yellow (brighter) */
-    .brand.brand-text .s { color: #FF9953; }   /* orange (brighter) */
-    .brand.brand-text .e { color: #EF505A; }   /* red (brighter) */
-    .brand.brand-text .p { color: #C95CD1; }   /* purple (brighter) */
-    .brand.brand-text .h { color: #6ABEFF; }   /* blue (brighter) */
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Joseph Kerby Anderson</title>
+<meta name="description" content="Joe Anderson — student at UVM's Grossman School of Business, licensed EMT, and part-time maker of small internet things.">
+<meta name="theme-color" content="#0B0B0B">
+<meta name="color-scheme" content="dark">
 
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://josephkerby.com/">
+<meta property="og:title" content="Joseph Kerby Anderson">
+<meta property="og:description" content="Joe Anderson — student at UVM's Grossman School of Business, licensed EMT, and part-time maker of small internet things.">
+<meta property="og:image" content="https://josephkerby.com/assets/core/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Joseph Kerby Anderson">
+<meta name="twitter:description" content="Joe Anderson — student at UVM's Grossman School of Business, licensed EMT, and part-time maker of small internet things.">
+<meta name="twitter:image" content="https://josephkerby.com/assets/core/og.jpg">
 
-    /* Brand as image logo */
-    .brand.brand-logo { line-height: 0; }
-    .brand.brand-logo img { height: 28px; width: auto; display: block; }
-    .spacer { flex: 1; }
-    .tabs a { display: inline-block; padding: 8px 10px; border-radius: 10px; color: var(--text-2); transition: color .15s ease; }
-    .tabs a:hover { color: var(--accent-2); }
-    .tabs a.active { color: var(--accent-2); }
-    .pill { background: var(--accent); color: #032014; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 13px; box-shadow: var(--shadow); }
-    /* Hamburger + mobile menu */
-    .hamburger { display: none; align-items: center; justify-content: center; flex-direction: column; gap: 4px; padding: 10px; border-radius: 10px; border: 1px solid var(--divider); background: var(--muted-surface); }
-    .hamburger .bar { width: 20px; height: 2px; background: var(--text); display: block; border-radius: 2px; }
-    .mobile-menu { display: none; position: fixed; top: 64px; right: 12px; background: var(--surface); border: 1px solid var(--divider); border-radius: 12px; padding: 10px; box-shadow: var(--shadow); z-index: 20; }
-    .mobile-menu a { display: block; padding: 10px 12px; border-radius: 8px; color: var(--text-2); }
-    .mobile-menu a:hover { background: var(--muted-surface); color: var(--accent-2); }
-    .mobile-menu.open { display: block; }
-    .hero { margin-top: 28px; background: var(--muted-surface); border: 1px solid var(--divider); border-radius: var(--radius-lg); padding: 32px; display: grid; grid-template-columns: 160px 1fr; gap: 22px; box-shadow: var(--shadow); }
-    .avatar { width: 160px; height: 160px; border-radius: 18px; border: 1px solid var(--divider); background: #0f1010; display: grid; place-items: center; color: var(--text-2); font-size: 12px; }
-    .avatar img { 
-      width: 100%; 
-      height: 100%; 
-      object-fit: cover; 
-      border-radius: inherit; 
-      display: block; 
-    }
-    h1 { font-size: 44px; line-height: 1.06; margin: 0 0 14px; letter-spacing: .01em; font-weight: 800; }
-    .badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--chip-stroke); background: var(--chip-bg); font-size: 13px; color: var(--accent); font-weight: 600; }
-    .badge.flip { position: relative; perspective: 700px; }
-    .flip-inner { display: inline-block; transform-origin: center bottom; will-change: transform, opacity; }
-    .flip-out { animation: flipOut 280ms ease forwards; }
-    .flip-in { animation: flipIn 280ms ease forwards; }
+<link rel="icon" href="/assets/core/favicon.png" type="image/png" sizes="500x500">
 
-    @keyframes flipOut {
-      0%   { transform: rotateX(0deg);   opacity: 1; }
-      100% { transform: rotateX(-90deg); opacity: .6; }
-    }
-    @keyframes flipIn {
-      0%   { transform: rotateX(90deg); opacity: .6; }
-      100% { transform: rotateX(0deg);  opacity: 1; }
-    }
+<!-- Fonts, all from the web — nothing to upload into assets/.
+     Satoshi (Fontshare, variable 300-900) is the primary face; JetBrains Mono
+     (Google, variable 400-700) is the accent face. The city display faces are
+     gone: those titles are supplied SVGs now, with the type baked in. -->
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=satoshi@1,2&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..700&display=swap">
 
-    @media (prefers-reduced-motion: reduce) {
-      .flip-out, .flip-in { animation: none !important; }
-    }
-    .lead { color: var(--text-2); max-width: 70ch; }
-    .cta { margin-top: 12px; display: inline-block; color: var(--accent-2); border-bottom: 1px dashed var(--accent-2); padding-bottom: 2px; }
-    section { padding: 40px 0 8px; }
-    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-    .section-title { font-size: 28px; }
-    .section-line { height: 1px; background: var(--divider); flex: 1; margin-left: 10px; }
-    .see-more-link { padding: 6px 12px; border-radius: 8px; background: var(--muted-surface); color: var(--accent-2); font-size: 14px; font-weight: 600; border: 1px solid var(--divider); transition: background .2s; }
-    .see-more-link:hover { background: var(--surface); }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
-    .card { background: var(--muted-surface); border: 1px solid var(--divider); border-radius: var(--radius); padding: 16px; min-height: 120px; display: flex; flex-direction: column; gap: 12px; }
-    /* Projects: remove outer card container, keep inner thumbnail box */
-    .cards > .card { background: transparent; border: 0; padding: 0; border-radius: 0; box-shadow: none; gap: 10px; }
-    .card h3 { margin: 6px 0 6px; font-size: 18px; }
-    .card .row { margin-bottom: 4px; text-align: center; }
-.card .row .muted { font-weight: 600; font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .muted { color: var(--text-2); font-size: 14px; }
-    .meta { color: var(--accent); font-size: 14px; font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .experience-item h3 { margin: 0; }
-    .experience-item .muted { margin-top: 4px; }
-    .thumb { width: 100%; aspect-ratio: 275 / 139; border-radius: 12px; border: 1px solid var(--divider); background: #0e0f0f; display: grid; place-items: center; color: var(--text-2); overflow: hidden; position: relative; }
-    .thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      border-radius: inherit;
-      display: block;
-    }
-    /* Frosted glass hover overlay inspired by iOS */
-    .thumb-cta {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      opacity: 0;
-      transition: opacity .25s ease, transform .25s ease;
-      background: rgba(255,255,255,0.04);
-      backdrop-filter: blur(12px) saturate(140%);
-      -webkit-backdrop-filter: blur(12px) saturate(140%);
-      border: 1px solid rgba(255,255,255,0.12);
-      text-decoration: none;
-    }
-    .thumb:hover .thumb-cta,
-    .thumb:focus-within .thumb-cta { opacity: 1; }
-    .glass-pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px 14px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 13px;
-      color: var(--text);
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.18);
-      box-shadow: inset 0 1px rgba(255,255,255,0.16), 0 10px 20px rgba(0,0,0,.25);
-    }
-    ul.bullets { list-style: none; padding-left: 0; margin: 8px 0 0; }
-    ul.bullets li { position: relative; margin: 10px 0; color: var(--text-2); padding-left: 28px; }
-    ul.bullets li::before { content: ""; position: absolute; left: 0; top: 0.6em; transform: translateY(-50%); width: 16px; height: 16px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%239e84df" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l8 6-8 6z"/></svg>'); background-size: contain; background-repeat: no-repeat; opacity: .95; }
-    .frame { border-radius: 14px; border: 1px solid var(--divider); padding: 10px; }
-    .frame .img { width: 100%; height: 260px; border-radius: 10px; border: 1px solid var(--divider); background: #0f1010; display: grid; place-items: center; color: var(--text-2); }
-    .caption { color: var(--text-2); font-size: 13px; margin-top: 8px; }
-    
-    /* CAROUSEL */
-    .carousel { position: relative; }
-    .carousel .track { display: grid; grid-auto-flow: column; gap: 12px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
-    .carousel .slide { scroll-snap-align: start; }
-    .carousel .img { width: 320px; height: 336px; border-radius: 10px; border: 1px solid var(--divider); background: #0f1010; display: grid; place-items: center; color: var(--text-2); }
-    .carousel .img img { 
-      width: 100%; 
-      height: 100%; 
-      object-fit: cover; 
-      border-radius: inherit; 
-      display: block; 
-    }
-    /* MIXTAPE — iTunes-style cover flow */
-    #mixtape { padding-top: 40px; contain: layout paint; }
-    .coverflow { position: relative; perspective: 1400px; height: 360px; max-width: 100%; margin: 0 auto; overflow: hidden; /* Safari 16 fallback */ overflow: clip; isolation: isolate; }
-    .cf-stage { position: relative; height: 100%; transform-style: preserve-3d; }
-    .cover {
-      position: absolute; top: 50%; left: 50%; width: 220px; height: 220px;
-      transform-style: preserve-3d; border-radius: 14px; overflow: hidden;
-      border: 1px solid var(--divider); background: #0f1010; box-shadow: var(--shadow);
-      will-change: transform, opacity; transition: transform .6s ease, opacity .6s ease;
-      -webkit-box-reflect: below 0 linear-gradient(transparent 55%, rgba(0,0,0,.06), rgba(0,0,0,.25));
-    }
-    .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .cover::after {
-      content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
-      background: linear-gradient(to top, rgba(0,0,0,.18), rgba(255,255,255,.0) 60%);
-      mix-blend-mode: multiply;
-    }
-    .coverflow { cursor: grab; }
-    .coverflow.dragging { cursor: grabbing; }
-    .cf-controls { margin-top: 14px; text-align: center; color: var(--text-2); font-size: 12px; }
-    .cf-meta { display: inline-block; text-align: center; }
-    .cf-title { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: .02em; }
-    .cf-sub { font-size: 13px; color: var(--text-2); margin-top: 2px; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; }
-    .cf-fade { opacity: 0; transition: opacity .25s ease; }
-    .cf-fade.show { opacity: 1; }
-
-    @media (max-width: 720px) {
-      .coverflow { height: 300px; }
-      .cover { width: 180px; height: 180px; }
-    }
-
-    footer { margin: 50px 0 20px; color: var(--text-2); font-size: 13px; text-align: center; }
-    footer .marquee { opacity: .85; }
-    /* Mobile polish */
-    @media (max-width: 720px) {
-      /* Stack hero vertically */
-      .hero { grid-template-columns: 1fr; gap: 14px; }
-      .avatar { width: clamp(150px, 42vw, 200px); height: clamp(150px, 42vw, 200px); }
-      .hero > .avatar { justify-self: center; }
-
-      /* Dates: stack start/end, hide dash */
-      .experience-item header { position: relative; padding-right: 96px; }
-      .experience-item header .meta { position: absolute; top: 0; right: 0; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; gap: 6px; }
-      .experience-item header .meta .date-sep { display: none; }
-      .experience-item .muted { margin-top: 0.22em; }
-      .experience-item h3 { line-height: 1.05; }
-      .cards { gap: 16px; }
-      .thumb { aspect-ratio: 275 / 139; }
-      .brand.brand-logo img { height: 26px; }
-      .brand.brand-text .joseph span { font-size: 30px; }
-      .brand.brand-text .kerby { font-size: 30px; }
-    }
-  </style>
+<link rel="stylesheet" href="/css/styles.css">
+<script>document.documentElement.classList.replace('no-js', 'js');</script>
 </head>
 <body>
-  <div class="nav">
-    <div class="inner">
-      <a class="brand brand-text" href="./" aria-label="Home">
-        <span class="joseph">
-          <span class="j">J</span><span class="o">o</span><span class="s">s</span><span class="e">e</span><span class="p">p</span><span class="h">h</span>
-        </span>
-        <span class="kerby">Kerby</span>
-      </a>
-       <div class="spacer"></div>
-      <div class="spacer"></div>
-      <a class="pill" href="mailto:hello@josephkerby.com">Email</a>
-    </div>
+
+<header class="site-header">
+  <div class="site-header__row">
+    <a class="site-header__home" href="/">
+      <img class="site-header__logo" src="/assets/core/logo.svg" alt="Joseph Kerby — home">
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/#about">About</a>
+      <a href="/gallery/">Gallery</a>
+      <a href="/resources/">Resources</a>
+    </nav>
+    <!-- TODO(JOE): confirm this is still the right address (§14). -->
+    <a class="pill pill--accent" href="mailto:hello@josephkerby.com">Email</a>
   </div>
+</header>
 
-  <main class="wrap">
-    <section id="about" class="hero">
-      <div class="avatar">
-        <img src="assets/joe.jpeg" alt="Photo of Joe Kerby" />
-      </div>
-      <div>
-        <h1>Hey, I'm Joe!</h1>
-        <span class="badge flip" aria-live="polite"><span class="flip-inner">Radio Announcer</span></span>
-        <p class="lead">I'm a sophomore at the University of Vermont's Grossman School of Business. Concentrating in marketing with a minor in Emergency Medical Services (EMS). Welcome to my personal website, I hope you enjoy it!</p>
-      </div>
-    </section>
+<main>
 
+  <!-- ============================================================ Frame 1 — hero -->
+  <section id="hero" class="hero">
+    <!-- The right third of hero.webp should stay visually calm — the copy sits there. -->
+    <img class="hero__photo" src="/assets/core/hero.webp"
+         alt="Joe standing against a stone wall in Edinburgh"
+         width="3600" height="2400" fetchpriority="high" decoding="async">
+    <div class="hero__scrim" aria-hidden="true"></div>
 
-    <section id="gallery">
-      <div class="section-header">
-        <div class="section-title">Gallery</div>
-        <div class="section-line"></div>
-        <a class="see-more-link" href="gallery.html">My Photos</a>
-      </div>
-      <div class="carousel" role="region" aria-label="Gallery carousel">
-        <div class="track" tabindex="0">
-          <div class="slide"><div class="img"><img src="assets/gallery/IMG_1.jpeg" alt="Photo 1" /></div></div>
-          <div class="slide"><div class="img"><img src="assets/gallery/IMG_2.jpeg" alt="Photo 2" /></div></div>
-          <div class="slide"><div class="img"><img src="assets/gallery/IMG_3.jpeg" alt="Photo 3" /></div></div>
-          <div class="slide"><div class="img"><img src="assets/gallery/IMG_4.jpeg" alt="Photo 4" /></div></div>
-          <div class="slide"><div class="img"><img src="assets/gallery/IMG_5.jpeg" alt="Photo 5" /></div></div>
-          <div class="slide"><div class="img"><img src="assets/gallery/IMG_6.JPG" alt="Photo 6" /></div></div>
-          <div class="slide"><div class="img"><img src="assets/gallery/IMG_7.jpeg" alt="Photo 7" /></div></div>
-          <div class="slide"><div class="img"><img src="assets/gallery/IMG_10.jpeg" alt="Photo 10" /></div></div>
-          <div class="slide"><div class="img"><img src="assets/gallery/IMG_11.jpeg" alt="Photo 11" /></div></div>
-          <div class="slide"><div class="img"><img src="assets/gallery/IMG_12.jpeg" alt="Photo 12" /></div></div>
-          <div class="slide"><div class="img"><img src="assets/gallery/IMG_13.jpeg" alt="Photo 13" /></div></div>
+    <div class="hero__copy">
+      <h1 class="hero__title">Hey, I&rsquo;m Joe!</h1>
+      <p class="hero__intro mono">I&rsquo;m a junior at the University of Vermont&rsquo;s Grossman School of Business. Concentrating in marketing with a minor in Emergency Medical Services (EMS). Welcome to my personal website, I hope you enjoy it!</p>
+    </div>
+
+    <p class="hero__cue mono" aria-hidden="true">Scroll &darr;</p>
+  </section>
+
+  <!-- ================================== Frames 2–4 — the pinned journey sequence -->
+  <section id="journey" class="journey" aria-label="Gallery preview">
+    <div class="stage">
+
+      <!-- TODO(JOE): strip heading copy is open — doesn't have to be the word "Gallery",
+           and doesn't have to carry h2 weight. Swap freely. -->
+      <h2 class="strip-heading">Gallery</h2>
+
+      <div class="strip">
+
+        <div class="slot slot--edinburgh">
+          <a class="card card--edinburgh" href="/gallery/edinburgh/"
+               aria-label="View the Edinburgh collection">
+            <img class="card-full" src="/assets/journey/edinburgh-full.webp"
+                 alt="Colorful shopfronts on a cobblestone street in Edinburgh"
+                 width="1400" height="2100" loading="lazy" decoding="async">
+            <!-- One vector, both lines — slides in from the left as a single unit. -->
+            <div class="card-title card-title--edinburgh">
+              <img class="card-title__art" src="/assets/journey/edinburgh-scotland.svg"
+                   alt="Edinburgh, Scotland" data-from="left"
+                   width="751" height="326" decoding="async">
+            </div>
+            <!-- Cutout must be exported at the IDENTICAL canvas size and crop as the
+                 full photo above (1400×2100). The depth effect is an absolute overlay —
+                 a 1px crop difference reads as a glitch at card scale. -->
+            <img class="card-cutout" data-src="/assets/journey/edinburgh-cutout.webp"
+                 alt="" aria-hidden="true" width="1400" height="2100" decoding="async">
+          </a>
+          <p class="strip-caption mono">Edinburgh</p>
         </div>
+
+        <div class="slot slot--london">
+          <a class="card card--london" href="/gallery/london/"
+               aria-label="View the London collection">
+            <img class="card-full" src="/assets/journey/london-full.webp"
+                 alt="Government building in London with a Union Jack and a plane overhead"
+                 width="2000" height="3000" decoding="async">
+            <!-- THE PLANE, CUT FROM THE MASTER AT NATIVE RESOLUTION.
+
+                 london-full is 2730px wide; blown up to fill the viewport that
+                 is a ~1.5x upscale, so the whole frame goes soft. Shipping a
+                 sharp copy of the whole frame is not an option — it would be
+                 ~26MP, which is what Safari was subsampling in the first place.
+
+                 But the plane is the only thing in that sky worth resolving,
+                 and the annotation points straight at it. A 624x624 crop covers
+                 its patch at 1:1 for 19KB. The surrounding sky is a smooth
+                 gradient, so the resolution seam has nothing to reveal — the
+                 radial mask in the CSS feathers it away completely. -->
+            <img class="card-plane" src="/assets/journey/london-plane.webp"
+                 alt="" aria-hidden="true" width="624" height="624"
+                 decoding="async">
+            <!-- Split pair: LONDON enters from the left, ENGLAND from the right.
+                 Two separate vectors so each half can be driven independently. -->
+            <div class="card-title card-title--london">
+              <img class="card-title__art card-title__art--london" src="/assets/journey/london.svg"
+                   alt="London" data-from="left"
+                   width="831" height="131" decoding="async">
+              <img class="card-title__art card-title__art--england" src="/assets/journey/england.svg"
+                   alt="England" data-from="right"
+                   width="928" height="132" decoding="async">
+            </div>
+            <!-- Same crop and aspect as london-full.webp. It only ever shows at
+                 card size, so it does not need the base image's pixel count. -->
+            <img class="card-cutout" data-src="/assets/journey/london-cutout.webp"
+                 alt="" aria-hidden="true" width="1400" height="2100" decoding="async">
+            <!-- Label + curved arrow baked into one SVG; no HTML text here by design. -->
+            <img class="annotation" src="/assets/journey/annotation-ba266.svg"
+                 alt="" aria-hidden="true" decoding="async">
+          </a>
+          <p class="strip-caption mono">London</p>
+        </div>
+
+        <div class="slot slot--brussels">
+          <a class="card card--brussels" href="/gallery/brussels/"
+               aria-label="View the Brussels collection">
+            <img class="card-full" src="/assets/journey/brussels-full.webp"
+                 alt="Gothic spire of Brussels Town Hall with EU and Belgian flags"
+                 width="1400" height="2100" loading="lazy" decoding="async">
+            <!-- One vector, both lines — slides in from the right as a single unit. -->
+            <div class="card-title card-title--brussels">
+              <img class="card-title__art" src="/assets/journey/brussels-belgium.svg"
+                   alt="Brussels, Belgium" data-from="right"
+                   width="669" height="258" decoding="async">
+            </div>
+            <!-- Same canvas/crop as brussels-full.webp — exactly 1400×2100. -->
+            <img class="card-cutout" data-src="/assets/journey/brussels-cutout.webp"
+                 alt="" aria-hidden="true" width="1400" height="2100" decoding="async">
+          </a>
+          <p class="strip-caption mono">Brussels</p>
+        </div>
+
       </div>
-    </section>
-    <section id="mixtape">
-      <div class="section-header">
-        <div class="section-title">Joe's Mixtape</div>
-        <div class="section-line"></div>
+
+      <div class="strip-cta">
+        <a class="pill pill--ghost mono" href="/gallery/">View the collection</a>
       </div>
-      <div class="coverflow" role="region" aria-label="Cover flow carousel">
-        <div class="cf-stage" id="cf-stage" aria-live="polite"></div>
+
+    </div>
+  </section>
+
+  <!-- ================================ Frames 5–6 — falling headshot + about -->
+  <section id="about" class="about" aria-labelledby="about-heading">
+    <div class="about__divider" aria-hidden="true"></div>
+
+    <h2 class="about__heading" id="about-heading">More about me</h2>
+
+    <div class="about__grid">
+
+      <div class="about__col about__col--left">
+        <div class="headshot-slot">
+          <img class="headshot" src="/assets/about/headshot.webp" alt="Portrait of Joe"
+               width="1000" height="1000" loading="lazy" decoding="async">
+        </div>
+        <p class="about__name mono">Joseph K. Anderson</p>
+
+        <ul class="badges">
+          <li class="badge">
+            <img class="badge__icon" src="/assets/about/badge-uvm.png"
+                 alt="University of Vermont Catamounts"
+                 width="44" height="44" loading="lazy" decoding="async">
+            <div class="badge__text">
+              <p class="badge__title mono">UVM Student</p>
+              <p class="badge__desc">Student at the University of Vermont&rsquo;s Grossman School
+                of Business. Pursuing a Bachelor of Science in Business Administration. Minor in
+                Emergency Medical Services. Graduating class of 2028.</p>
+            </div>
+          </li>
+          <li class="badge">
+            <img class="badge__icon" src="/assets/about/badge-emt.png"
+                 alt="Oregon Emergency Medical Services"
+                 width="44" height="44" loading="lazy" decoding="async">
+            <div class="badge__text">
+              <p class="badge__title mono">Licensed EMT</p>
+              <p class="badge__desc">Nationally certified Emergency Medical Technician&ndash;Basic.
+                Actively holding an Oregon EMT license, and pursuing licensure in Vermont.</p>
+            </div>
+          </li>
+          <li class="badge">
+            <img class="badge__icon" src="/assets/about/badge-kbps.png"
+                 alt="AM 1450 KBPS"
+                 width="44" height="44" loading="lazy" decoding="async">
+            <div class="badge__text">
+              <p class="badge__title mono">Radio DJ</p>
+              <p class="badge__desc">Three-year student broadcaster at AM 1450 KBPS, the oldest
+                educational radio station in the nation. Led on-air interviews and traffic, news
+                &amp; weather reports. Curated station playlists and hosted programs across
+                Portland area stations.</p>
+            </div>
+          </li>
+        </ul>
       </div>
-      <div class="cf-controls" id="cf-controls" aria-live="polite"></div>
-    </section>
-    <footer>
-      <div class="marquee">Joseph Kerby Anderson • Last Updated March 2026</div>
-    </footer>
-  </main>
-  <script>
-    (function(){
-      // --- Mixtape Cover Flow ---
-      (function(){
-        var stage = document.getElementById('cf-stage');
-        var controls = document.getElementById('cf-controls');
-        var flow = stage && stage.parentElement; // .coverflow
-        var autoTimer = null, resumeTimer = null;
-        if(!stage) return;
-        var AUTO_MS = 2800;      // how long each cover stays focused
-        var RESUME_DELAY = 3200; // how long to wait after user interaction before resuming
-        // Real album art + metadata (assets/album art/*.jpg|png)
-        var mixtape = [
-          { src: 'assets/album art/Hold The Girl.jpg',                   track: 'This Hell',                artist: 'Rina Sawayama',            album: 'Hold The Girl' },
-          { src: 'assets/album art/Love Songs.png',                      track: "Let’s Stay Together",     artist: 'Tina Turner',              album: 'Love Songs' },
-          { src: 'assets/album art/Taking the Long Way.jpg',             track: 'Not Ready to Make Nice',   artist: 'The Chicks',               album: 'Taking the Long Way' },
-          { src: 'assets/album art/Version 2.0 (20th Anniversary Deluxe Edition).jpg', track: "I Think I’m Paranoid", artist: 'Garbage',       album: 'Version 2.0' },
-          { src: 'assets/album art/Andor_ Season 2 - Vol. 1 (Episodes 1-3) [Original Score].jpg', track: 'Brasso', artist: 'Brandon Roberts', album: 'Andor Season 2' },
-          { src: 'assets/album art/Rumours.jpg',                          track: 'Silver Springs',           artist: 'Fleetwood Mac',            album: 'Rumors' },
-          { src: 'assets/album art/Sing to the Moon.jpg',                 track: 'Green Garden',             artist: 'Laura Mvula',              album: 'Sing to the Moon' },
-          { src: 'assets/album art/The Rise and Fall of a Midwest Princess.jpg', track: 'Naked in Manhattan', artist: 'Chappell Roan',  album: 'The Rise and Fall of a Midwest Princess' },
-          { src: "assets/album art/Speak Now (Taylor's Version).jpg",    track: 'Mine',                     artist: 'Taylor Swift',             album: "Speak Now (Taylor’s Version)" },
-          { src: "assets/album art/Writer's Block.jpg",                  track: 'Young Folks',              artist: 'Peter Bjorn and John',     album: "Writer’s Block" },
-          { src: 'assets/album art/Celebration (Deluxe Version).jpg',     track: 'Vogue',                    artist: 'Madonna',                  album: 'Celebration' },
-          { src: 'assets/album art/Greatest Hits - Chapter One.jpg',      track: 'Catch My Breath',          artist: 'Kelly Clarkson',           album: 'Greatest Hits Chapter One' },
-          { src: "assets/album art/It's Not Me, It's You (Deluxe Version).jpg", track: 'The Fear',    artist: 'Lily Allen', album: "It’s Not Me, It’s You" },
-          { src: 'assets/album art/Smile.jpg',                             track: 'Never Really Over',        artist: 'Katy Perry',               album: 'Smile' },
-          { src: 'assets/album art/reputation.jpg',                        track: 'Dress',                    artist: 'Taylor Swift',             album: 'Reputation' },
-          { src: 'assets/album art/Tapestry.jpg',                          track: 'I Feel the Earth Move',    artist: 'Carole King',              album: 'Tapestry' },
-          { src: 'assets/album art/Some-Girls.png',                        track: 'Before They Make Me Run',  artist: 'The Rolling Stones',       album: 'Some Girls' },
-          { src: 'assets/album art/Bob-Dylan.png',                         track: 'Hurricane',                artist: 'Bob Dylan',                album: 'Desire' },
-          { src: 'assets/album art/Neon Moon.png',                         track: 'Neon Moon',                artist: 'Brooks & Dunn',            album: 'Brand New Man' },
-          { src: 'assets/album art/London Calling (Expanded Edition).jpg', track: 'Lost in the Supermarket', artist: 'The Clash',                album: 'London Calling' }
-        ];
-        var COUNT = mixtape.length;
-        // Build DOM
-        var covers = mixtape.map(function(item, idx){
-          var d = document.createElement('div'); d.className = 'cover'; d.setAttribute('data-index', idx);
-          var img = document.createElement('img');
-          img.alt = item.album + ' — ' + item.artist + ' — ' + item.track;
-          img.src = encodeURI(item.src);
-          d.appendChild(img);
-          stage.appendChild(d); return d;
-        });
 
-        var center = 0; // current focused index
-        function layout(){
-          var W = 180; // base offset distance
-          for(var i=0;i<covers.length;i++){
-            var offset = i - center;
-            var abs = Math.abs(offset);
-            var dir = offset < 0 ? -1 : 1;
-            var tx = offset * W; // spread
-            var tz = -Math.min(abs*120, 600); // depth
-            var ry = dir * Math.min(abs*36, 60); // tilt
-            var s  = Math.max(1 - abs*0.08, 0.7); // scale falloff
-            var el = covers[i];
-            el.style.zIndex = String(1000 - abs);
-            el.style.opacity = String(Math.max(1 - abs*0.12, 0.45));
-            el.style.transform = 'translate(-50%, -50%) translateX('+tx+'px) translateZ('+tz+'px) rotateY('+ry+'deg) scale('+s+')';
-          }
-        }
-        layout();
+      <div class="about__col about__col--right">
+        <section class="module" aria-labelledby="mixtape-heading">
+          <h3 class="module__heading" id="mixtape-heading">Mixtape</h3>
+          <div class="coverflow" data-coverflow="mixtape" aria-label="Mixtape"></div>
+        </section>
 
-        function labelFor(i){
-          var m = mixtape[i % mixtape.length];
-          return { title: m.track, artist: m.artist, album: m.album };
-        }
-        function updateMeta(i){
-          if(!controls) return;
-          var meta = labelFor(i);
-          // Fade swap
-          controls.classList.remove('show');
-          controls.classList.add('cf-fade');
-          controls.innerHTML = '<div class="cf-meta">\n  <div class="cf-title">'+meta.title+'</div>\n  <div class="cf-sub">'+meta.artist+' • '+meta.album+'</div>\n</div>';
-          requestAnimationFrame(function(){ requestAnimationFrame(function(){ controls.classList.add('show'); });});
-        }
-        updateMeta(center);
+        <section class="module" aria-labelledby="movies-heading">
+          <h3 class="module__heading" id="movies-heading">Movies &amp; TV</h3>
+          <div class="coverflow" data-coverflow="movies" aria-label="Movies"></div>
+        </section>
+      </div>
 
-        // Sequential paging order
-        var order = Array.from({length: COUNT}, function(_,i){ return i; });
-        var k = 0;
-        function goTo(i){ center = ((i % COUNT) + COUNT) % COUNT; layout(); updateMeta(center); }
-        function next(){ goTo(center+1); }
-        function prev(){ goTo(center-1); }
-        function advance(){
-          center = order[k % order.length];
-          k++;
-          next();
-        }
-        function startAuto(){ if(autoTimer) return; autoTimer = setInterval(next, AUTO_MS); }
-        function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer = null; } }
-        function pokeAuto(){
-          stopAuto();
-          if(resumeTimer){ clearTimeout(resumeTimer); }
-          resumeTimer = setTimeout(function(){ startAuto(); }, RESUME_DELAY);
-        }
-        startAuto();
+    </div>
+  </section>
 
-        // --- Pointer drag to page (mouse/touch) ---
-        if(flow){
-          var dragging = false, startX = 0, lastX = 0, accum = 0, THRESH = 60;
+</main>
 
-          function onDown(e){
-            dragging = true; accum = 0;
-            startX = (e.touches ? e.touches[0].clientX : e.clientX);
-            lastX = startX; flow.classList.add('dragging');
-            stopAuto();
-          }
-          function onMove(e){ if(!dragging) return; var x = (e.touches ? e.touches[0].clientX : e.clientX); var dx = x - lastX; lastX = x; accum += dx; if(Math.abs(accum) > THRESH){ if(accum < 0) next(); else prev(); accum = 0; } }
-          function onUp(){ if(!dragging) return; dragging = false; flow.classList.remove('dragging'); pokeAuto(); }
+<footer class="site-footer">
+  <p class="mono">&copy; Joseph Kerby Anderson, <span data-year>2026</span>. All Rights Reserved.</p>
+</footer>
 
-          flow.addEventListener('mousedown', onDown); document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
-          flow.addEventListener('touchstart', onDown, {passive:true}); flow.addEventListener('touchmove', onMove, {passive:true}); flow.addEventListener('touchend', onUp);
-
-          // --- Wheel/trackpad to page ---
-          var wheelLock = false;
-          flow.addEventListener('wheel', function(e){
-            var delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-            if(Math.abs(delta) < 10 || wheelLock) return; // ignore tiny nudges / throttle
-            wheelLock = true; stopAuto();
-            if(delta > 0) next(); else prev();
-            setTimeout(function(){ wheelLock = false; pokeAuto(); }, 350);
-          }, {passive:true});
-        }
-      })();
-    })();
-  </script>
+<script defer src="/js/vendor/gsap.min.js"></script>
+<script defer src="/js/vendor/ScrollTrigger.min.js"></script>
+<script defer src="/js/media-data.js"></script>
+<script defer src="/js/coverflow.js"></script>
+<script defer src="/js/main.js"></script>
 </body>
-  <script>
-  (function(){
-    var inner = document.querySelector('.badge.flip .flip-inner');
-    if(!inner) return;
-    var roles = [
-      'Radio Announcer',
-      'Green Thumb',
-      'EMT',
-      'Average Nerd',
-      'Marketing Student',
-      'Designer'
-    ];
-    var i = 0;
-    inner.textContent = roles[i];
-    inner.addEventListener('animationend', function(e){
-      if(e.animationName === 'flipOut'){
-        i = (i + 1) % roles.length;
-        inner.textContent = roles[i];
-        inner.classList.remove('flip-out');
-        inner.classList.add('flip-in');
-      } else if(e.animationName === 'flipIn'){
-        inner.classList.remove('flip-in');
-      }
-    });
-    setInterval(function(){
-      inner.classList.add('flip-out');
-    }, 2400);
-  })();
-  </script>
 </html>

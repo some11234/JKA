@@ -6,3 +6,6 @@ assets/_originals/
 # 135 MB that would otherwise be pushed to GitHub Pages for no reason;
 # the site only ever loads assets/gallery/web/.
 assets/gallery/Originals/
+
+# Left behind by `npm install --no-save` for tools/build-travel-map.js.
+node_modules/

@@ -18,12 +18,42 @@ names come from a one-time reverse geocode cached in `<cache-dir>/geocache.json`
 To add a collection, add its folder to `ORDER` at the top of the script and
 create `gallery/<slug>/index.html` from any existing one.
 
+## build-travel-map.js
+
+Writes `assets/travel/countries.json`, the world map the travel page's globe is
+drawn from. **Adding a country to the page never needs this** — that's an edit
+to `js/travel-data.js`. Rerun it only to change how much coastline detail the
+globe carries.
+
+    npm install --no-save world-atlas@2 topojson-client@3 topojson-simplify@3 \
+                          d3-geo@3 i18n-iso-countries@7
+    node tools/build-travel-map.js
+
+It starts from world-atlas's 50m map (the smaller 110m one leaves out the
+Vatican, Monaco, Malta and 61 other places) and thins it to about a third of the
+size, keeping every small country at full detail so none of them vanish. It also
+bakes a two-letter ISO code into each country, which is how `js/travel-data.js`
+refers to them. The output is deterministic — rerunning with the same settings
+gives a byte-identical file. `node_modules/` from the install is gitignored.
+
+Map data: Natural Earth (public domain), via world-atlas (ISC). The globe itself
+uses d3-array, d3-geo and topojson-client (all ISC), vendored in `js/vendor/`.
+
+## The travel page
+
+`/travel/` is live but **unlisted**: it isn't in the nav on any page, and it
+carries `<meta name="robots" content="noindex">`. To launch it, delete that tag
+from `travel/index.html` and add `<a href="/travel/">Travel</a>` to `.site-nav`
+on every page. Its content — countries, cities, photos, links — all lives in
+`js/travel-data.js`.
+
 ## assets/ layout
 
     core/       logo, hero, favicon, og image — site furniture
     about/      badge icons, headshot, album-art/, movies/
     journey/    the pinned home-page sequence (city cards, title SVGs, annotation)
     gallery/    Originals/ (masters, gitignored) + web/ (generated derivatives)
+    travel/     countries.json, the globe's map (generated, see above)
     _originals/ masters for everything outside the gallery (gitignored)
 
 `album art` was renamed `album-art` — a space in a path means `%20` in every URL

@@ -1,0 +1,631 @@
+/* ==========================================================================
+   travel.css — the travel page. Loaded after styles.css, which owns the
+   tokens, the header/footer and the pills. Same rules as every other page:
+   no new colours, hierarchy from white-opacity steps. The accent is kept for
+   the one thing this page is about — the places that have been visited — and
+   home is drawn in plain white, so the two never read as the same thing.
+
+   Two layouts, one markup:
+     wide    text and cards on the left, the globe sticky on the right. The
+             globe flies to each country as its card scrolls past the middle.
+     narrow  the globe sticks to the top of the screen and the cards scroll
+             OVER it as frosted panels, so it stays in view the whole way down.
+   ========================================================================== */
+
+.trv {
+  padding-top: calc(var(--header-h) + clamp(24px, 5vh, 56px));
+  padding-bottom: clamp(64px, 10vh, 120px);
+}
+
+.trv-layout {
+  --trv-gutter: clamp(20px, 5vw, 72px);
+  --trv-lead: clamp(24px, 5vh, 56px);   /* matches .trv's top padding */
+
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: var(--trv-gutter);
+  display: grid;
+  grid-template-columns: minmax(340px, 0.8fr) minmax(0, 1.2fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "head stage"
+    "list stage";
+  column-gap: clamp(32px, 5vw, 96px);
+}
+
+/* ------------------------------------------------------------ page head --- */
+
+.trv-head { grid-area: head; max-width: 52ch; }
+
+.trv-head h1 {
+  font-weight: 800;
+  font-size: clamp(2.5rem, 7vw, 4.75rem);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+/* The same accent rule the gallery and resources titles carry. */
+.trv-head h1::after {
+  content: '';
+  display: block;
+  width: 3.5ch;
+  height: 3px;
+  margin-top: 18px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.trv-copy { margin-top: 22px; }
+.trv-copy p + p { margin-top: 0.9em; }
+
+.trv-copy p {
+  color: var(--ink-70);
+  font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+/* Three numbers, spec-sheet style: big sans figure over a small mono label.
+   The <dt> comes first in the markup, as a <dl> requires, and column-reverse
+   puts the figure on top. */
+.trv-stats {
+  margin: clamp(28px, 4vh, 40px) 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-block: 1px solid var(--line);
+}
+
+.trv-stat {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 6px;
+  padding: 16px 0 14px 18px;
+  border-left: 1px solid var(--line);
+}
+
+.trv-stat:first-child { border-left: 0; padding-left: 0; }
+
+.trv-stat dd {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.trv-stat dt {
+  color: var(--ink-45);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------- stage --- */
+
+/* Sticky from the very first frame: the negative margin cancels the page's top
+   padding, so the stage already sits at its stuck position at scroll 0 instead
+   of starting lower and jumping up to meet the header. */
+.trv-stage {
+  grid-area: stage;
+  position: sticky;
+  top: var(--header-h);
+  align-self: start;
+  height: calc(100vh - var(--header-h));
+  height: calc(100svh - var(--header-h));
+  margin-top: calc(-1 * var(--trv-lead));
+  display: flex;
+  flex-direction: column;
+  padding-block: 4px 20px;
+}
+
+.trv-globe {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: 24px;
+  outline-offset: -6px;
+  /* A drag that strays off the canvas mustn't start selecting the page. */
+  -webkit-user-select: none;
+          user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The canvas is the full stage, not a square around the globe: zoomed in on a
+   small country, the globe grows past its resting circle and gets to fill the
+   column. The mask feathers it away at the edges instead of cutting it off
+   against an invisible box. At rest the globe sits well inside the fade. */
+.trv-globe__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  /* Vertical swipes still scroll the page on a phone — only sideways drags
+     spin the globe. Same contract as the coverflow: never hijack scroll. */
+  touch-action: pan-y;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
+    linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-composite: source-in;
+          mask-image:
+    linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
+    linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
+          mask-composite: intersect;
+}
+
+.trv-globe.is-dragging .trv-globe__canvas { cursor: grabbing; }
+.trv-globe.is-over-place .trv-globe__canvas { cursor: pointer; }
+
+/* Pins are HTML rather than canvas so the "here now" ping can be a plain CSS
+   animation — the canvas only has to redraw when the globe actually moves. */
+.trv-globe__pins {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* The gallery lightbox's map pin, at globe scale. */
+.trv-pin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 255, 176, 0.22),
+              0 0 0 1.5px rgba(11, 11, 11, 0.85) inset,
+              0 0 14px rgba(0, 255, 176, 0.5);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.trv-pin--home {
+  background: var(--ink-100);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16),
+              0 0 0 1.5px rgba(11, 11, 11, 0.85) inset,
+              0 0 12px rgba(255, 255, 255, 0.3);
+}
+
+.trv-pin--now::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  animation: trv-ping 2.4s cubic-bezier(.22,.9,.3,1) infinite;
+}
+
+@keyframes trv-ping {
+  from { transform: scale(0.35); opacity: 0.9; }
+  to   { transform: scale(2.2);  opacity: 0; }
+}
+
+/* City names only appear for the country in focus — at rest the globe would
+   otherwise be a scatter of labels. */
+.trv-pin__label {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  color: var(--ink-100);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 3px rgba(11, 11, 11, 0.95), 0 1px 10px rgba(11, 11, 11, 0.9);
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.trv-pin.is-labelled .trv-pin__label { opacity: 1; }
+
+/* Hover card for whatever country is under the pointer. */
+.trv-tip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  max-width: 240px;
+  padding: 9px 13px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(11, 11, 11, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  pointer-events: none;
+}
+
+.trv-tip[hidden] { display: none; }
+
+.trv-tip__name { font-weight: 700; font-size: 0.86rem; line-height: 1.3; }
+
+.trv-tip__sub {
+  margin-top: 3px;
+  color: var(--ink-45);
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  line-height: 1.45;
+}
+
+.trv-tip--visited .trv-tip__sub { color: var(--accent); }
+.trv-tip--home .trv-tip__sub { color: var(--ink-100); }
+
+/* The home page's "Scroll" cue, reworded. Gone for good after the first spin. */
+.trv-globe__hint {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  transform: translateX(-50%);
+  color: var(--ink-45);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 400ms ease;
+}
+
+.trv-globe.is-touched .trv-globe__hint { opacity: 0; }
+
+/* Legend on the left, live coordinates of the globe's centre on the right. */
+.trv-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  color: var(--ink-45);
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+}
+
+.trv-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.trv-legend li { display: inline-flex; align-items: center; gap: 8px; }
+
+.trv-swatch { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+
+.trv-swatch--visited {
+  background: rgba(0, 255, 176, 0.28);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.trv-swatch--home {
+  background: rgba(255, 255, 255, 0.26);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75);
+}
+
+.trv-swatch--now {
+  width: 7px;
+  height: 7px;
+  margin-inline: 1.5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 255, 176, 0.22);
+}
+
+.trv-readout { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ------------------------------------------------------------ countries --- */
+
+.trv-countries { grid-area: list; margin-top: clamp(48px, 8vh, 88px); }
+
+.trv-countries__title {
+  font-weight: 700;
+  font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+  letter-spacing: -0.02em;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: clamp(20px, 3vh, 30px);
+}
+
+/* styles.css resets <ul> but not <ol>, which would otherwise keep the
+   browser's 40px indent and push every card off the heading's left edge. */
+.trv-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: clamp(20px, 3.5vh, 32px);
+}
+
+.trv-card {
+  /* An anchor jump to #country-gb has to stop short of the fixed header. */
+  scroll-margin-top: calc(var(--header-h) + 20px);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+  transition: border-color 240ms ease, background-color 240ms ease;
+}
+
+.trv-card:hover { border-color: rgba(255, 255, 255, 0.38); }
+
+/* The card the globe is showing. White on home, accent everywhere else —
+   the same split as the map. */
+.trv-card.is-active {
+  border-color: rgba(0, 255, 176, 0.5);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.trv-card--home.is-active { border-color: rgba(255, 255, 255, 0.6); }
+
+/* Two photos side by side, each close to its own portrait shape, so neither
+   is cropped to a sliver. A single photo simply takes the whole strip. */
+.trv-card__media {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  /* Both of these, or aspect-ratio loses to the photos: a grid row sizes to
+     its content, and with overflow visible the box is allowed to grow past
+     its ratio to fit — portrait photos made the strip ~1.35:1 whatever the
+     ratio said. */
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+  gap: 2px;
+  aspect-ratio: 3 / 2;
+  background: rgba(255, 255, 255, 0.04);   /* holds the space while loading */
+  border-bottom: 1px solid var(--line);
+}
+
+.trv-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trv-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 22px 20px;
+}
+
+.trv-card__top { display: flex; align-items: center; gap: 12px; }
+
+/* The ISO code in a tile, where the resources cards put a logo. */
+.trv-code {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink-70);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: color 240ms ease, border-color 240ms ease, background-color 240ms ease;
+}
+
+.trv-card.is-active .trv-code {
+  color: var(--accent);
+  border-color: rgba(0, 255, 176, 0.45);
+  background: rgba(0, 255, 176, 0.1);
+}
+
+.trv-card--home.is-active .trv-code {
+  color: var(--ink-100);
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.trv-card__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+.trv-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  color: var(--ink-70);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.trv-chip--now {
+  border-color: rgba(0, 255, 176, 0.4);
+  background: rgba(0, 255, 176, 0.1);
+  color: var(--accent);
+}
+
+/* A tiny copy of the pulsing pin, so the chip and the globe point at each
+   other. */
+.trv-chip--now::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: trv-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes trv-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 176, 0.55); }
+  50%      { box-shadow: 0 0 0 4px rgba(0, 255, 176, 0); }
+}
+
+.trv-card__meta {
+  color: var(--ink-45);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+.trv-card__note {
+  color: var(--ink-70);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.trv-cities { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.trv-cities li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  color: var(--ink-70);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.03em;
+}
+
+/* Each city carries its pin's colour. */
+.trv-cities li::before {
+  content: '';
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.trv-card--home .trv-cities li::before { background: var(--ink-100); }
+
+.trv-card__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding-top: 4px;
+}
+
+/* Same link treatment as the resources page. */
+.trv-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-100);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 2px;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.trv-link:hover { color: var(--accent); border-color: var(--accent); }
+
+.trv-link .arr { transition: transform 200ms cubic-bezier(.22,.9,.3,1); }
+.trv-link:hover .arr { transform: translateX(3px); }
+
+/* ------------------------------------------------------- without a globe --- */
+
+/* No JavaScript: nothing below the intro can be built, so show the note
+   instead of an empty frame and an orphaned "Countries" heading. */
+.no-js .trv-stage,
+.no-js .trv-stats,
+.no-js .trv-countries { display: none; }
+
+.trv-noscript {
+  max-width: 1440px;
+  margin: 28px auto 0;
+  padding-inline: clamp(20px, 5vw, 72px);
+  color: var(--ink-45);
+  font-size: 0.8rem;
+}
+
+/* The drawing libraries failed to load. The cards still work; the globe's
+   column just folds away. travel.js sets this. */
+.trv-layout.is-globe-off {
+  grid-template-columns: minmax(0, 720px);
+  grid-template-areas: "head" "list";
+}
+
+.trv-layout.is-globe-off .trv-stage { display: none; }
+
+/* ---------------------------------------------------------- narrow view --- */
+
+@media (max-width: 900px) {
+
+  /* The globe's box: tall enough to be the star of the screen, short enough
+     to leave room under it for the first card to peek in. */
+  .trv-layout { display: block; --globe-h: min(54svh, 104vw); }
+
+  .trv-stage {
+    position: sticky;
+    top: 0;
+    z-index: 0;
+    height: 100vh;
+    height: 100svh;
+    margin: 0 calc(-1 * var(--trv-gutter));
+    padding: calc(var(--header-h) + 4px) 0 0;
+  }
+
+  .trv-globe { flex: none; height: var(--globe-h); border-radius: 0; }
+
+  .trv-bar { padding-inline: var(--trv-gutter); }
+
+  /* Pull the list up into the stage, so the first card starts right under
+     the legend and every card after it scrolls over the stuck globe. */
+  .trv-countries {
+    position: relative;
+    z-index: 1;
+    margin-top: calc(var(--header-h) + 4px + var(--globe-h) + 44px - 100svh);
+  }
+
+  /* Over the globe, a heading would just be text floating on a map. The
+     cards introduce themselves; screen readers still get the heading. */
+  .trv-countries__title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Big gaps are the point: each one is a clear look at the globe flying to
+     the next card's country before that card slides over it. */
+  .trv-list { gap: 50svh; padding-bottom: 8svh; }
+
+  /* Frosted like the lightbox panels, so text stays readable over the map. */
+  .trv-card {
+    background: rgba(16, 16, 16, 0.76);
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  }
+
+  .trv-card.is-active { background: rgba(20, 20, 20, 0.8); }
+
+  .trv-card__media { aspect-ratio: 2 / 1; }
+
+  .trv-layout.is-globe-off .trv-countries { margin-top: clamp(40px, 6vh, 64px); }
+  .trv-layout.is-globe-off .trv-list { gap: 20px; }
+}
+
+@media (max-width: 420px) {
+  .trv-stat { padding-left: 12px; }
+  .trv-card__body { padding: 16px 18px 18px; }
+}
+
+/* Reduced motion: keep every state, drop the movement. The ping and the glow
+   are already stopped by the global animation rule in styles.css. */
+@media (prefers-reduced-motion: reduce) {
+  .trv-card, .trv-code, .trv-link .arr,
+  .trv-pin__label, .trv-globe__hint { transition-duration: 1ms; }
+  .trv-link:hover .arr { transform: none; }
+}

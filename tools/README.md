@@ -110,6 +110,26 @@ swap a painting, update that entry's `credit` and `alt` too.
 The `2026-10-03 at …@2x.png` screenshots in `assets/passport/` are the Wallet
 ID style references the grade was tuned against. The page never loads them.
 
+## build-visa-scans.js
+
+The page currently shows the **real passport** instead of the paintings:
+flat scans of a Next Generation US passport's visa pages (pp. 8–25) by Gabe
+Classon, released under CC0 ("The Little Blue Book",
+https://classon.onrender.com/posts/passport — he asks for credit and a link,
+which the page carries under the book).
+
+    npm install --no-save sharp@0.33
+    node tools/build-visa-scans.js
+
+It crops the two pages out of each scan either side of the spine (found per
+scan) and writes the same `visa-01.webp` … `visa-18.webp` as build-visas.js,
+so whichever ran last is what the passport shows. The scans have their
+quotes and page numbers printed on them, so `js/passport-data.js` sets
+`PASSPORT_VISA_PRINTED = true`: the page then lays no quote, caption, seal
+or credit over them, reads out each entry's `scan` description, and counts
+pages with the real numbers (8–25). To go back to the paintings, run
+build-visas.js and set it to `false`.
+
 ## The passport page
 
 `/passport/` is live but **unlisted**, the same way the travel page is: it

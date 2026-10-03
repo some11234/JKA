@@ -16,7 +16,16 @@
      by      Attribution under the quote, as the passport prints it.
      credit  The painting, up the outer edge of the right page.
      alt     What the painting shows, for screen readers.
+     scan    What the real passport page shows, read out instead of alt
+             while the pages are the scans (below).
+
+   PASSPORT_VISA_PRINTED says which pages are in assets/: true when they are
+   the scans of a real passport from tools/build-visa-scans.js, which have
+   the quotes and page numbers printed on them, so the page lays no text of
+   its own over them; false for the paintings from tools/build-visas.js.
    ========================================================================== */
+
+window.PASSPORT_VISA_PRINTED = true;
 
 window.PASSPORT_VISAS = [
   {
@@ -26,6 +35,7 @@ window.PASSPORT_VISAS = [
     by: 'Martin Luther King, Jr.',
     credit: 'Ferdinand Richardt · Independence Hall in Philadelphia · 1858–63 · The White House',
     alt: 'A painting of Independence Hall’s white clock tower and the red-brick Congress Hall beside it, with crowds, carriages and children on Chestnut Street under a cloudy sky.',
+    scan: 'The Liberty Bell beside the brick tower of Independence Hall, over the engrossed heading of the Declaration of Independence.',
   },
   {
     title: 'Penobscot Bay',
@@ -34,6 +44,7 @@ window.PASSPORT_VISAS = [
     by: 'John F. Kennedy',
     credit: 'Fitz Henry Lane · Owl’s Head, Penobscot Bay, Maine · 1862 · Museum of Fine Arts, Boston',
     alt: 'A painting of a square-rigged ship riding at anchor on a glassy bay at dawn, beside a wooded island with a white lighthouse and keeper’s house, a man standing on the rocky shore in front.',
+    scan: 'A clipper ship under full sail on the left page; a gull over a lighthouse and keeper’s houses on the right.',
   },
   {
     title: 'The Ohio River',
@@ -42,6 +53,7 @@ window.PASSPORT_VISAS = [
     by: 'Theodore Roosevelt',
     credit: 'Lefevre James Cranstone · The Ohio River near Wheeling, West Virginia · 1859–60 · The Metropolitan Museum of Art',
     alt: 'A watercolor of a broad river winding between hazy hills, a white twin-stacked steamboat trailing smoke along the right bank.',
+    scan: 'A V of geese over a broad river and wooded hills, with a twin-stacked sternwheel steamboat on the right page.',
   },
   {
     title: 'Washington',
@@ -50,6 +62,7 @@ window.PASSPORT_VISAS = [
     by: 'George Washington',
     credit: 'Emanuel Leutze · Washington Crossing the Delaware · 1851 · The Metropolitan Museum of Art',
     alt: 'A painting of George Washington standing in the bow of a crowded rowboat, soldiers poling it through the ice of the Delaware at dawn as the flag streams behind him.',
+    scan: 'The four carved faces of Mount Rushmore, Washington and Jefferson on the left page, Roosevelt and Lincoln on the right.',
   },
   {
     title: 'Sierra Nevada',
@@ -58,6 +71,7 @@ window.PASSPORT_VISAS = [
     by: 'Daniel Webster',
     credit: 'Albert Bierstadt · Among the Sierra Nevada, California · 1868 · Smithsonian American Art Museum',
     alt: 'A painting of snowy peaks breaking through storm clouds above a still mountain lake, a waterfall pouring down a granite cliff on the left and deer at the water’s edge.',
+    scan: 'A jagged range of snowy peaks mirrored in a still mountain lake.',
   },
   {
     title: 'Delaware Valley',
@@ -66,6 +80,7 @@ window.PASSPORT_VISAS = [
     by: 'Dwight D. Eisenhower',
     credit: 'George Inness · Harvest Scene in the Delaware Valley · 1867 · National Gallery of Art',
     alt: 'A painting of sunbeams breaking through clouds over a wide valley, a stand of trees and a farmhouse beyond fields where harvested grain stands in shocks.',
+    scan: 'Ripe wheat in the foreground of the left page; a farmer ploughing with a team of oxen before a farmstead on the right.',
   },
   {
     title: 'The Plains',
@@ -74,6 +89,7 @@ window.PASSPORT_VISAS = [
     by: 'Lyndon B. Johnson',
     credit: 'Frank Reaugh · The Approaching Herd · 1902 · Panhandle–Plains Historical Museum',
     alt: 'A painting of longhorn cattle walking toward the viewer through tall dry prairie grass, a white steer in the lead, under a pale hazy sky.',
+    scan: 'A cowboy driving a herd of longhorn cattle on the left page; a rider and a windmill before distant mountains on the right.',
   },
   {
     title: 'Waikīkī',
@@ -82,6 +98,7 @@ window.PASSPORT_VISAS = [
     by: 'Ellison S. Onizuka',
     credit: 'Gideon Jacques Denny · Diamond Head from Waikiki · 1882 · Bishop Museum',
     alt: 'A painting of tall coconut palms on the flats of Waikīkī, the long ridge of Diamond Head beyond a grove and a sliver of surf, under a soft grey sky.',
+    scan: 'A leaning coconut palm, and Diamond Head across the water of Oʻahu.',
   },
   {
     title: 'Starrucca Viaduct',
@@ -90,5 +107,6 @@ window.PASSPORT_VISAS = [
     by: 'Inscribed on the Golden Spike, Promontory, Utah, 1869',
     credit: 'Jasper Francis Cropsey · Starrucca Viaduct, Pennsylvania · 1865 · Toledo Museum of Art',
     alt: 'A painting of an autumn valley seen from a rocky outcrop, a steam train crossing a long stone viaduct below wooded hills, a lake and village in the valley.',
+    scan: 'A steam locomotive charging past telegraph poles on the left page; a wooden trestle in snowy hills on the right.',
   },
 ];

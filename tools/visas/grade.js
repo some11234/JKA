@@ -48,7 +48,11 @@ const DEFAULTS = {
   // Soft pale patches under the live type, so it reads over a busy painting:
   // x, y = centre (fractions of the spread), r = radius (fraction of the
   // width), a = strength. Defaults sit under the seal and the caption.
-  spots: [{ x: 0.912, y: 0.876, r: 0.15, a: 0.42 }, { x: 0.14, y: 0.895, r: 0.2, a: 0.22 }],
+  spots: [{ x: 0.912, y: 0.876, r: 0.16, a: 0.34 }, { x: 0.14, y: 0.895, r: 0.2, a: 0.2 }],
+  // The real passport's pages run from dawn pink at the top to blue at the
+  // bottom; this lays the same wash over every painting (soft light).
+  wash: [[0, '#F7B4C2'], [0.45, '#F3D2C8'], [1, '#93ACE4']],
+  washAmount: 0.4,
   paper: '#FBF6EE',
   grain: 0.022,
   mottle: 0.03,
@@ -87,6 +91,13 @@ function palette(stops) {
     for (let j = 0; j < 3; j++) out[i * 3 + j] = toSrgb(c0[j] + (c1[j] - c0[j]) * u);
   }
   return out;
+}
+
+// The W3C soft-light blend of one channel: base v, blend s.
+function softLight(v, s) {
+  return s < 0.5
+    ? v - (1 - 2 * s) * v * (1 - v)
+    : v + (2 * s - 1) * ((v < 0.25 ? ((16 * v - 12) * v + 4) * v : Math.sqrt(v)) - v);
 }
 
 function percentile(hist, total, p) {
@@ -218,11 +229,13 @@ async function gradeSpread(src, opts = {}) {
     .resize(W, H, { kernel: 'cubic' }).blur(6).raw().toBuffer();
 
   const spots = o.spots.map((sp) => ({ x: sp.x * W, y: sp.y * H, r2: (sp.r * W) ** 2, a: sp.a }));
+  const washRow = palette(o.wash.map(([at, col]) => [at, col]));
   const res = Buffer.alloc(N * 3);
   const sh = [0, 0, 0];
   for (let y = 0; y < H; y++) {
     const fy = y / H;
     const fade = o.fade * (1 - smooth(0, o.fadeTo, fy));
+    const wr = Math.min(1023, Math.round(fy * 1023)) * 3;
     for (let x = 0; x < W; x++) {
       const p = y * W + x;
       let lift = fade;
@@ -241,11 +254,9 @@ async function gradeSpread(src, opts = {}) {
       for (let j = 0; j < 3; j++) {
         let v = out[p * 3 + j];
         v += (fadeC[j] - v) * lift;
+        v += (softLight(v, washRow[wr + j]) - v) * o.washAmount;
         const s = sh[j];
-        const soft = s < 0.5
-          ? v - (1 - 2 * s) * v * (1 - v)
-          : v + (2 * s - 1) * ((v < 0.25 ? ((16 * v - 12) * v + 4) * v : Math.sqrt(v)) - v);
-        v += (soft - v) * o.sheen;
+        v += (softLight(v, s) - v) * o.sheen;
         v *= 1 - a * (1 - ink[j]);
         v = v * paper[j] + g;
         res[p * 3 + j] = Math.round(clamp(v) * 255);

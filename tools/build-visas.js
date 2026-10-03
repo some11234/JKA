@@ -60,7 +60,8 @@ async function master(spread) {
     const ext = ((url.match(/\.(jpe?g|png|tiff?|webp)(?:$|[?#])/i) || [])[1] || 'jpg').toLowerCase();
     const file = path.join(CACHE, `${spread.slug}.${ext}`);
     const part = file + '.part';
-    for (let attempt = 0; attempt < 3; attempt++) {
+    // Wikimedia answers 429 when busy; back off and try again.
+    for (let attempt = 0; attempt < 4; attempt++) {
       try {
         execFileSync('curl', ['-sS', '-fL', '-A', UA, '-o', part, url], { stdio: ['ignore', 'ignore', 'pipe'] });
         const m = await sharp(part, { limitInputPixels: 1e9 }).metadata();
@@ -69,7 +70,7 @@ async function master(spread) {
         return file;
       } catch (e) {
         fs.rmSync(part, { force: true });
-        if (attempt < 2) await sleep(3000 * 2 ** attempt);
+        if (attempt < 3) await sleep(5000 * 2 ** attempt);
       }
     }
   }

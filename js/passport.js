@@ -74,7 +74,6 @@
     FILL: { closed: 0.62, flighty: 0.95, read: 0.95 }, // share of the stage
     FIT_MARGIN: 0.97,        // mid-move, the outline never gets closer to the edge than this
     PERSPECTIVE: 3.4,        // × the book's largest on-screen height
-    MAX_DPR: 2,              // lay out at up to 2× so 3D layers raster sharp
 
     LIGHT: [-0.30, -0.42, 0.86], // toward the light: up, left, in front
     AMBIENT: 0.56,
@@ -291,7 +290,6 @@
   // tail, z toward the viewer, the closed book centred on z = 0.
 
   var G = {};
-  var K = 1;                 // device pixels per CSS pixel the layout is built at
   var faces = [];
   var generated = [];
 
@@ -328,9 +326,9 @@
   // (rotateX), turned to the step (rotateZ), moved into place. Each overlaps
   // its neighbours and tucks under the faces it meets, so no seam shows.
   function strips(parent, before, pts, zTop, depth, kind, group) {
-    var ov = 0.5 * K;
-    zTop += 0.5 * K;
-    depth += 1 * K;
+    var ov = 0.5;
+    zTop += 0.5;
+    depth += 1;
     for (var i = 0; i < pts.length - 1; i++) {
       var p = pts[i], q = pts[i + 1];
       var dx = q[0] - p[0], dy = q[1] - p[1];
@@ -363,7 +361,7 @@
       zTop: T / 2 - tb,        // the level both open pages lie at
       blk: blk,                // the page block's full thickness
       leaf: blk / LEAVES,      // one leaf
-      eps: 0.6 * K             // how far a turning leaf floats above the stacks
+      eps: 0.6                 // how far a turning leaf floats above the stacks
     };
 
     var art = ph / B.ART_W;
@@ -392,8 +390,8 @@
     // The two top pages and the turning leaf, all page-sized.
     place(rTop, pw, ph, t3(0, py, 0));
     place(lTop, pw, ph, t3(-pw, py, 0));
-    place(leafFront, pw, ph, t3(0, py, 0.3 * K));
-    place(leafBack, pw, ph, t3(pw, py, -0.3 * K) + ' rotateY(180deg)');
+    place(leafFront, pw, ph, t3(0, py, 0.3));
+    place(leafBack, pw, ph, t3(pw, py, -0.3) + ' rotateY(180deg)');
 
     place(floor, W, H, 'none');
     place(spine, 10, H, 'none');
@@ -587,7 +585,6 @@
     if (view.w < 40 || view.h < 40) return false;
 
     // Size the book in units first: how tall can each resting state be?
-    K = Math.min(window.devicePixelRatio || 1, CONFIG.MAX_DPR);
     build(100);
     Dcss = 1e7;   // measure flat; the per-frame fit handles perspective, shrink-only
     var hcss = {};
@@ -598,14 +595,14 @@
       var F = fit(pts, piv, S, S.pose[1], 4 * Math.max(view.w, view.h) / 100, 1);
       hcss[r[0]] = F.s * 100 * CONFIG.FILL[r[0]];      // CSS px tall at this fill
     });
-    var Hcss = Math.max(hcss.closed, hcss.flighty, hcss.read);
-    // Lay out at device resolution: Chrome rasterises perspective-transformed
-    // layers at about one texel per LAYOUT pixel whatever the screen's DPR, so
-    // a book laid out in CSS px goes soft on a retina screen. The scale then
-    // brings it back down to size.
-    var U = Math.ceil(Hcss * K);
+    // Lay the book out at the largest it's ever shown, so it's only ever
+    // scaled down. (In CSS px: on real hi-DPI screens Chrome already
+    // rasterises 3D layers at device resolution. Only DevTools/Playwright
+    // device emulation draws them at one texel per CSS px and looks soft —
+    // laying out at the DPR to "fix" that triples tile memory for nothing.)
+    var U = Math.ceil(Math.max(hcss.closed, hcss.flighty, hcss.read));
     build(U);
-    Dcss = CONFIG.PERSPECTIVE * U / K;
+    Dcss = CONFIG.PERSPECTIVE * U;
     scene.style.perspective = px(Dcss);
     PREF.closed = hcss.closed / U;
     PREF.flighty = hcss.flighty / U;
@@ -695,7 +692,7 @@
     var bh = backHinge();
     flap.style.transform = 'translate3d(0,0,' + px(flapHinge(S)) + ') rotateY(' + (-S.flap).toFixed(3) + 'deg)';
     backGroup.style.transform = 'translate3d(0,0,' + px(bh) + ') rotateY(' + (-S.back).toFixed(3) + 'deg) translate3d(0,0,' + px(-bh) + ')';
-    backBoard.style.transform = 'translate3d(0,0,' + px(zT - nR * t1 - 0.4 * K) + ')';
+    backBoard.style.transform = 'translate3d(0,0,' + px(zT - nR * t1 - 0.4) + ')';
     rStack.style.transform = 'translate3d(0,0,' + px(zT) + ') scale3d(1,1,' + Math.max(0.02, nR / LEAVES).toFixed(4) + ')';
     lStack.style.transform = 'translate3d(0,0,' + px(zT) + ') scale3d(1,1,' + Math.max(0.02, nL / LEAVES).toFixed(4) + ')';
     show(lStack, nL > 0.02);

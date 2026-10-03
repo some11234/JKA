@@ -420,6 +420,27 @@
   font-family: 'Libre Caslon Text', Georgia, serif;
 }
 
+/* The painting's credit runs up the outer edge of the right page, small,
+   like the microprinted lines on a real passport page. */
+.pp-visa__credit {
+  position: absolute;
+  right: 2.6%;
+  bottom: 31%;
+  height: 50%;
+  display: block;
+  line-height: 1.5;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.34em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #1E2A72;
+  opacity: 0.6;
+  text-shadow: 0 0 0.5em rgba(255, 250, 246, 0.9);
+}
+
 /* Page numbers, small, in the outer top corners. */
 .pp-visa__num {
   position: absolute;

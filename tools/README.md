@@ -73,31 +73,42 @@ re-measuring `MAP_ROWS` / `DATA_ROWS` at the top of the script.
 ## build-visas.js
 
 Renders the eighteen visa pages, `assets/passport/web/visa-01.webp` …
-`visa-18.webp`, from the art in `tools/visas/`:
+`visa-18.webp`, from nine public-domain American paintings — one per spread:
 
     npm install --no-save @resvg/resvg-js@2 sharp@0.33 \
-        @expo-google-fonts/pinyon-script @expo-google-fonts/libre-caslon-text
+        @expo-google-fonts/libre-caslon-text
     node tools/build-visas.js                 # every spread
-    node tools/build-visas.js 05              # just one spread
-    node tools/build-visas.js --preview DIR   # also write whole-spread PNGs
+    node tools/build-visas.js 3               # just the third spread (pages 5–6)
+    node tools/build-visas.js --preview DIR   # also write whole-spread JPEGs
 
-Each `tools/visas/NN-*.js` draws one **spread** (two facing pages, 2080×1572,
-the spine at x = 1040) as SVG, in the style of the Apple Wallet state IDs —
-borrowed, not copied: one bold hero subject, grainy stippled gradients,
-pastel hazy skies, flowers framing the corners, faint security-print
-linework. `tools/visas/kit.js` holds the shared pieces (palette, grain
-filter, microtext, guilloche, landscape and flower helpers), so the nine
-read as one family; `01-we-the-people.js` is the reference spread the others
-followed. The renderer cuts each spread at the spine into two pages. All the
-randomness is seeded, so rebuilds are byte-identical.
+`tools/visas/spreads.js` lists each painting: where to download it (museum
+open-access files first, Wikimedia Commons as a fallback), how to crop a
+spread out of it (2080×1572, two pages with the spine down the middle), and
+any per-painting grade tweaks. The script downloads each one once into
+`tools/visas/.masters/` (gitignored; it can be several hundred MB), so later
+runs are offline. If a server refuses, save the painting by hand under the
+file name the error gives and run it again.
 
-The quotes, captions, page numbers and the seal are **not** in the images —
-they're live text laid over them, written in `js/passport-data.js`, so
-editing a quote never needs a rebuild. Keep the art's top band (y < 290) and
-the gutter (x 960–1120) clear for that reason.
+`tools/visas/grade.js` turns each painting into a page of the same printed
+book: it lifts old varnish, raises the blacks to an ink blue and caps the
+whites at paper, pulls every colour part-way toward one shared palette
+(indigo, periwinkle, mauve, apricot, cream — the Apple Wallet state IDs'
+colours, borrowed rather than copied), adds a little highlight bloom, fades
+the top toward pale sky for the quote, lightens the print under the seal and
+the caption, and finishes with faint security linework (wavy microtext,
+guilloche), a gentle iridescent sheen, paper grain and mottle. Every default
+is documented at the top of that file; a spread can override any of them.
+The randomness is seeded, so rebuilds are byte-identical.
+
+The quotes, captions, credits, page numbers and the seal are **not** in the
+images — they're live text laid over them, written in `js/passport-data.js`,
+so editing a quote never needs a rebuild. The two lists are matched by order:
+the first painting in `spreads.js` goes with the first entry in
+`passport-data.js`, and the script warns if their lengths differ. When you
+swap a painting, update that entry's `credit` and `alt` too.
 
 The `2026-10-03 at …@2x.png` screenshots in `assets/passport/` are the Wallet
-ID style references the art was drawn against. The page never loads them.
+ID style references the grade was tuned against. The page never loads them.
 
 ## The passport page
 

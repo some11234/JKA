@@ -9,3 +9,6 @@ assets/gallery/Originals/
 
 # Left behind by `npm install --no-save` for tools/build-travel-map.js.
 node_modules/
+
+# Painting masters fetched by tools/build-visas.js — big, and re-downloadable.
+tools/visas/.masters/

@@ -237,6 +237,8 @@
           var seal = el('span', 'pp-visa__seal');
           seal.innerHTML = SEAL_SVG;
           s.appendChild(seal);
+          // Who painted it, up the outer edge like a passport's microprint.
+          if (v.credit) s.appendChild(el('span', 'pp-visa__credit', v.credit));
         }
         sheets['v' + page] = s;
         sheetBox.appendChild(s);
@@ -902,7 +904,8 @@
     else if (p === 1) msg = 'Open on the Flighty passport. ' + ((document.getElementById('pp-desc') || {}).textContent || '').trim();
     else if (VISAS[p - 2]) {
       var v = VISAS[p - 2];
-      msg = labelFor(p) + ': ' + v.title + '. ' + v.alt + ' “' + v.quote + '” — ' + v.by + '.';
+      msg = labelFor(p) + ': ' + v.title + '. ' + v.alt + ' “' + v.quote + '” — ' + v.by + '.' +
+        (v.credit ? ' Painting: ' + v.credit + '.' : '');
     }
     if (live) live.textContent = msg;
   }

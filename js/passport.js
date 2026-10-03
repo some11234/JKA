@@ -95,6 +95,7 @@
   };
 
   var VISAS = (window.PASSPORT_VISAS || []).slice(0, 9);
+  var PRINTED = !!window.PASSPORT_VISA_PRINTED;
   var SPREADS = VISAS.length;
   var LEAVES = SPREADS + 1;   // leaf 0: Flighty page / visa 1
   var END = SPREADS + 2;      // "closed from the back"
@@ -220,6 +221,8 @@
         img.addEventListener('error', function () { img.style.visibility = 'hidden'; });
         s.appendChild(img);
         s.appendChild(el('span', 'pp-gutter'));
+        // Scans of a real passport carry their own quote and page number.
+        if (PRINTED) { sheets['v' + page] = s; sheetBox.appendChild(s); return; }
         // The quote is one box spanning the whole spread, present on both
         // pages and offset so each shows its own half; across the fold it
         // reads as one line of type.
@@ -237,6 +240,8 @@
           var seal = el('span', 'pp-visa__seal');
           seal.innerHTML = SEAL_SVG;
           s.appendChild(seal);
+          // Who painted it, up the outer edge like a passport's microprint.
+          if (v.credit) s.appendChild(el('span', 'pp-visa__credit', v.credit));
         }
         sheets['v' + page] = s;
         sheetBox.appendChild(s);
@@ -883,6 +888,8 @@
     if (p <= 0 || p >= END) return (mqFine.matches ? 'Click' : 'Tap') + ' to open';
     if (p === 1) return 'Flighty';
     var a = (p - 2) * 2 + 1;
+    // The scans carry the real passport's page numbers, 8–25.
+    if (PRINTED) return 'Pages ' + (a + 7) + '–' + (a + 8);
     return 'Visa pages ' + a + '–' + (a + 1) + ' of ' + (SPREADS * 2);
   }
 
@@ -902,7 +909,10 @@
     else if (p === 1) msg = 'Open on the Flighty passport. ' + ((document.getElementById('pp-desc') || {}).textContent || '').trim();
     else if (VISAS[p - 2]) {
       var v = VISAS[p - 2];
-      msg = labelFor(p) + ': ' + v.title + '. ' + v.alt + ' “' + v.quote + '” — ' + v.by + '.';
+      msg = PRINTED
+        ? labelFor(p) + ': ' + (v.scan || v.alt) + ' “' + v.quote + '” — ' + v.by + '.'
+        : labelFor(p) + ': ' + v.title + '. ' + v.alt + ' “' + v.quote + '” — ' + v.by + '.' +
+          (v.credit ? ' Painting: ' + v.credit + '.' : '');
     }
     if (live) live.textContent = msg;
   }

@@ -1,62 +1,81 @@
 #!/usr/bin/env node
 /* ==========================================================================
-   build-visas.js — renders the passport's visa pages.
+   build-visas.js — renders the passport's visa pages from paintings.
 
-   Each module in tools/visas/ (other than kit.js) draws one SPREAD — two facing
-   visa pages — as SVG, using the shared look in kit.js. This renders every
-   spread and cuts it at the spine into two page images:
+   Each visa spread is a public-domain American painting, listed with its
+   source and crop in tools/visas/spreads.js and graded into the passport's
+   shared look by tools/visas/grade.js. This fetches each painting (once, into
+   tools/visas/.masters/, which git ignores), grades it, and cuts it at the
+   spine into two page images:
 
        assets/passport/web/visa-01.webp … visa-18.webp   (920 × 1391 each)
 
-   The quotes, captions, page numbers and seal are NOT in these images: they
-   are live text laid over them by js/passport.js (from js/passport-data.js),
-   so they stay sharp at any size and can be edited without a rebuild. (The
-   art does carry some lettering of its own — calligraphy on the Constitution,
-   security microtext — drawn with the fonts below.)
+   The quotes, captions, credits, page numbers and seal are NOT in these
+   images: they are live text laid over them by js/passport.js (from
+   js/passport-data.js), so they can be edited without a rebuild.
 
        npm install --no-save @resvg/resvg-js@2 sharp@0.33 \
-           @expo-google-fonts/pinyon-script @expo-google-fonts/libre-caslon-text
+           @expo-google-fonts/libre-caslon-text
        node tools/build-visas.js                 # every spread
-       node tools/build-visas.js 03              # just visa pages 3–4's spread
-       node tools/build-visas.js --preview DIR   # also write whole-spread PNGs
+       node tools/build-visas.js 3               # just the third spread (pages 5–6)
+       node tools/build-visas.js --preview DIR   # also write whole-spread JPEGs
 
-   Output is deterministic: the art uses seeded randomness only.
+   If a museum's server refuses the download, save the painting by hand as
+   tools/visas/.masters/<slug>.jpg (the error says which) and run it again.
    ========================================================================== */
 
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
-const { Resvg } = require('@resvg/resvg-js');
+const vm = require('vm');
+const { execFileSync } = require('child_process');
 const sharp = require('sharp');
-const kit = require('./visas/kit');
+const { gradeSpread, W, H, PAGE } = require('./visas/grade');
+const SPREADS = require('./visas/spreads');
 
 const ROOT = path.resolve(__dirname, '..');
-const SRC = path.join(__dirname, 'visas');
 const OUT = path.join(ROOT, 'assets', 'passport', 'web');
-// Pages are drawn at 1040 × 1572 and saved at 920 wide: still ~2× for the
-// largest the page is ever shown (about 710 CSS px tall on a laptop), and the
-// downscale softens the grain just enough to halve the file.
+const CACHE = path.join(__dirname, 'visas', '.masters');
+// Pages are graded at 1040 × 1572 and saved at 920 wide: still ~2× for the
+// largest the page is ever shown (about 710 CSS px tall on a laptop).
 const OUT_W = 920;
 const QUALITY = 80;
+const UA = 'josephkerby.com passport build (https://josephkerby.com)';
 
-// Lettering in the art (calligraphy, security microtext) uses two open-licensed
-// Google Fonts, installed from npm alongside the renderer (see the header).
-const FONTS = [
-  '@expo-google-fonts/pinyon-script/400Regular/PinyonScript_400Regular.ttf',
-  '@expo-google-fonts/libre-caslon-text/400Regular/LibreCaslonText_400Regular.ttf',
-  '@expo-google-fonts/libre-caslon-text/400Regular_Italic/LibreCaslonText_400Regular_Italic.ttf',
-  '@expo-google-fonts/libre-caslon-text/700Bold/LibreCaslonText_700Bold.ttf',
-].map((f) => require.resolve(f));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function render(svg, viewBox, width, height) {
-  const sized = svg.replace(/<svg([^>]*?)viewBox="[^"]*"([^>]*?)width="[^"]*"([^>]*?)height="[^"]*"/,
-    `<svg$1viewBox="${viewBox}"$2width="${width}"$3height="${height}"`);
-  const r = new Resvg(sized, {
-    fitTo: { mode: 'original' },
-    font: { loadSystemFonts: false, fontFiles: FONTS, defaultFontFamily: 'Libre Caslon Text' },
-  });
-  return r.render().asPng();
+// The page text, read the way the browser reads it, to check the two lists agree.
+function pageText() {
+  const ctx = { window: {} };
+  vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'js', 'passport-data.js'), 'utf8'), ctx);
+  return ctx.window.PASSPORT_VISAS || [];
+}
+
+async function master(spread) {
+  fs.mkdirSync(CACHE, { recursive: true });
+  const have = fs.readdirSync(CACHE).find((f) => f.startsWith(spread.slug + '.') && !f.endsWith('.part'));
+  if (have) return path.join(CACHE, have);
+  for (const url of spread.sources) {
+    const ext = ((url.match(/\.(jpe?g|png|tiff?|webp)(?:$|[?#])/i) || [])[1] || 'jpg').toLowerCase();
+    const file = path.join(CACHE, `${spread.slug}.${ext}`);
+    const part = file + '.part';
+    // Wikimedia answers 429 when busy; back off and try again.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        execFileSync('curl', ['-sS', '-fL', '-A', UA, '-o', part, url], { stdio: ['ignore', 'ignore', 'pipe'] });
+        const m = await sharp(part, { limitInputPixels: 1e9 }).metadata();
+        fs.renameSync(part, file);
+        console.log(`  fetched ${spread.slug}: ${m.width}×${m.height} from ${new URL(url).host}`);
+        return file;
+      } catch (e) {
+        fs.rmSync(part, { force: true });
+        if (attempt < 3) await sleep(5000 * 2 ** attempt);
+      }
+    }
+  }
+  throw new Error(`Couldn't fetch the painting for "${spread.slug}". Save it by hand as\n` +
+    `  ${path.relative(ROOT, CACHE)}/${spread.slug}.jpg\nfrom one of:\n  ${spread.sources.join('\n  ')}`);
 }
 
 async function main() {
@@ -64,28 +83,33 @@ async function main() {
   let preview = null, only = null;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--preview') preview = args[++i];
-    else only = args[i].padStart(2, '0');
+    else only = parseInt(args[i], 10);
   }
   if (preview) fs.mkdirSync(preview, { recursive: true });
 
-  const files = fs.readdirSync(SRC).filter((f) => /^\d\d-.*\.js$/.test(f)).sort();
-  for (const f of files) {
-    if (only && !f.startsWith(only)) continue;
-    const mod = require(path.join(SRC, f));
-    const svg = mod.svg(kit);
-    const [left, right] = mod.pages;
-    for (const [half, page] of [[0, left], [1, right]]) {
-      const png = render(svg, `${half * kit.PAGE} 0 ${kit.PAGE} ${kit.H}`, kit.PAGE, kit.H);
+  const text = pageText();
+  if (text.length !== SPREADS.length) {
+    console.warn(`warning: spreads.js lists ${SPREADS.length} paintings but passport-data.js has ${text.length} spreads`);
+  }
+
+  for (let i = 0; i < SPREADS.length; i++) {
+    if (only && only !== i + 1) continue;
+    const s = SPREADS[i];
+    console.log(`${i + 1}. ${(text[i] && text[i].title) || s.slug}`);
+    const img = await gradeSpread(await master(s), Object.assign({ crop: s.crop }, s.grade));
+    for (const half of [0, 1]) {
+      const page = i * 2 + 1 + half;
       const file = path.join(OUT, `visa-${String(page).padStart(2, '0')}.webp`);
-      await sharp(png).resize(OUT_W, null, { kernel: 'lanczos3' })
+      await img.clone().extract({ left: half * PAGE, top: 0, width: PAGE, height: H })
+        .resize(OUT_W, null, { kernel: 'lanczos3' })
         .webp({ quality: QUALITY, effort: 6, smartSubsample: true }).toFile(file);
       console.log(`  ${path.relative(ROOT, file).padEnd(36)} ${(fs.statSync(file).size / 1024).toFixed(0).padStart(4)} KB`);
     }
     if (preview) {
-      const png = render(svg, `0 0 ${kit.W} ${kit.H}`, kit.W / 2, kit.H / 2);
-      fs.writeFileSync(path.join(preview, f.replace(/\.js$/, '.png')), png);
+      await img.clone().resize(W / 1.3 | 0).jpeg({ quality: 86 })
+        .toFile(path.join(preview, `${String(i + 1).padStart(2, '0')}-${s.slug}.jpg`));
     }
   }
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((e) => { console.error(e.message || e); process.exit(1); });

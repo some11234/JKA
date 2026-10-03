@@ -40,6 +40,203 @@ var GALLERY = {
 
   collections: [
     {
+      slug: 'malta',
+      name: 'Malta',
+      blurb: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',   /* TODO(JOE): your write-up */
+
+      photos: [
+        {
+          id: 'malta-dscf2605',
+          file: 'malta/malta-dscf2605',
+          w: 1333, h: 2000,
+          caption: 'Republic Street, Valletta',
+          alt: 'Photograph taken at Republic Street, Valletta',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.897808, lon: 14.511833, place: 'Republic Street, Valletta' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 23mm f/2 R WR', focal: '23 mm', aperture: 'f/5.6', shutter: '1/600 s', iso: 'ISO 160', date: '25 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf2848',
+          file: 'malta/malta-dscf2848',
+          w: 1333, h: 2000,
+          caption: 'Saint Dominic Street, Valletta',
+          alt: 'Photograph taken at Saint Dominic Street, Valletta',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.899533, lon: 14.516092, place: 'Saint Dominic Street, Valletta' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 23mm f/2 R WR', focal: '23 mm', aperture: 'f/6.4', shutter: '1/1000 s', iso: 'ISO 160', date: '25 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf2860',
+          file: 'malta/malta-dscf2860',
+          w: 1333, h: 2000,
+          caption: 'Republic Street, Valletta',
+          alt: 'Photograph taken at Republic Street, Valletta',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.897808, lon: 14.511833, place: 'Republic Street, Valletta' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 23mm f/2 R WR', focal: '23 mm', aperture: 'f/5.6', shutter: '1/480 s', iso: 'ISO 160', date: '25 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf2876',
+          file: 'malta/malta-dscf2876',
+          w: 1333, h: 2000,
+          caption: 'Neptune\'s Court, Valletta',
+          alt: 'Photograph taken at Neptune\'s Court, Valletta',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.898592, lon: 14.514117, place: 'Neptune\'s Court, Valletta' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 23mm f/2 R WR', focal: '23 mm', aperture: 'f/5.6', shutter: '1/1100 s', iso: 'ISO 160', date: '25 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf2999',
+          file: 'malta/malta-dscf2999',
+          w: 1333, h: 2000,
+          caption: 'Castille Place, Valletta',
+          alt: 'Photograph taken at Castille Place, Valletta',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.895903, lon: 14.511356, place: 'Castille Place, Valletta' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 35mm f/2 R WR', focal: '35 mm', aperture: 'f/5.6', shutter: '1/950 s', iso: 'ISO 160', date: '25 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3018',
+          file: 'malta/malta-dscf3018',
+          w: 1333, h: 2000,
+          caption: 'Lascaris War Rooms Access, Valletta',
+          alt: 'Photograph taken at Lascaris War Rooms Access, Valletta',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.894853, lon: 14.511986, place: 'Lascaris War Rooms Access, Valletta' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 23mm f/2 R WR', focal: '23 mm', aperture: 'f/5.6', shutter: '1/680 s', iso: 'ISO 160', date: '25 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3035',
+          file: 'malta/malta-dscf3035',
+          w: 1333, h: 2000,
+          caption: 'Triq ta\' Wara s-Sur, Mdina',
+          alt: 'Photograph taken at Triq ta\' Wara s-Sur, Mdina',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.887264, lon: 14.404608, place: 'Triq ta\' Wara s-Sur, Mdina' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 35mm f/2 R WR', focal: '35 mm', aperture: 'f/6.4', shutter: '1/1000 s', iso: 'ISO 160', date: '25 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3052',
+          file: 'malta/malta-dscf3052',
+          w: 1333, h: 2000,
+          caption: 'Republic Street, Valletta',
+          alt: 'Photograph taken at Republic Street, Valletta',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.897808, lon: 14.511833, place: 'Republic Street, Valletta' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 35mm f/2 R WR', focal: '35 mm', aperture: 'f/4.5', shutter: '1/280 s', iso: 'ISO 160', date: '25 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3065',
+          file: 'malta/malta-dscf3065',
+          w: 2000, h: 1333,
+          caption: 'Archbishop Street, Valletta',
+          alt: 'Photograph taken at Archbishop Street, Valletta',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.900997, lon: 14.512406, place: 'Archbishop Street, Valletta' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 23mm f/2 R WR', focal: '23 mm', aperture: 'f/4', shutter: '1/280 s', iso: 'ISO 160', date: '25 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3131',
+          file: 'malta/malta-dscf3131',
+          w: 1333, h: 2000,
+          caption: 'St. Elmo Bridge, Valletta',
+          alt: 'Photograph taken at St. Elmo Bridge, Valletta',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.905181, lon: 14.523931, place: 'St. Elmo Bridge, Valletta' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 23mm f/2 R WR', focal: '23 mm', aperture: 'f/5', shutter: '1/400 s', iso: 'ISO 160', date: '25 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3143',
+          file: 'malta/malta-dscf3143',
+          w: 1333, h: 2000,
+          caption: 'Old Theatre Street, Valletta',
+          alt: 'Photograph taken at Old Theatre Street, Valletta',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.900631, lon: 14.511875, place: 'Old Theatre Street, Valletta' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 23mm f/2 R WR', focal: '23 mm', aperture: 'f/5.6', shutter: '1/600 s', iso: 'ISO 160', date: '25 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3167',
+          file: 'malta/malta-dscf3167',
+          w: 2000, h: 1333,
+          caption: 'St. Elmo Bridge, Valletta',
+          alt: 'Photograph taken at St. Elmo Bridge, Valletta',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.905181, lon: 14.523931, place: 'St. Elmo Bridge, Valletta' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 23mm f/2 R WR', focal: '23 mm', aperture: 'f/5', shutter: '1/480 s', iso: 'ISO 160', date: '25 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3298',
+          file: 'malta/malta-dscf3298',
+          w: 1333, h: 2000,
+          caption: 'Triq ta\' Wara s-Sur, Mdina',
+          alt: 'Photograph taken at Triq ta\' Wara s-Sur, Mdina',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.887264, lon: 14.404608, place: 'Triq ta\' Wara s-Sur, Mdina' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 35mm f/2 R WR', focal: '35 mm', aperture: 'f/5.6', shutter: '1/550 s', iso: 'ISO 160', date: '26 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3356',
+          file: 'malta/malta-dscf3356',
+          w: 1333, h: 2000,
+          caption: 'Triq ta\' Wara s-Sur, Mdina',
+          alt: 'Photograph taken at Triq ta\' Wara s-Sur, Mdina',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.887264, lon: 14.404608, place: 'Triq ta\' Wara s-Sur, Mdina' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 35mm f/2 R WR', focal: '35 mm', aperture: 'f/5.6', shutter: '1/1000 s', iso: 'ISO 160', date: '26 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3405',
+          file: 'malta/malta-dscf3405',
+          w: 1333, h: 2000,
+          caption: 'Misraħ l-Arċisqof, Mdina',
+          alt: 'Photograph taken at Misraħ l-Arċisqof, Mdina',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.8864, lon: 14.404131, place: 'Misraħ l-Arċisqof, Mdina' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 23mm f/2 R WR', focal: '23 mm', aperture: 'f/2.2', shutter: '1/80 s', iso: 'ISO 160', date: '26 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3427',
+          file: 'malta/malta-dscf3427',
+          w: 1333, h: 2000,
+          caption: 'Misraħ l-Arċisqof, Mdina',
+          alt: 'Photograph taken at Misraħ l-Arċisqof, Mdina',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.8864, lon: 14.404131, place: 'Misraħ l-Arċisqof, Mdina' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 35mm f/2 R WR', focal: '35 mm', aperture: 'f/2.8', shutter: '1/120 s', iso: 'ISO 160', date: '26 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3457',
+          file: 'malta/malta-dscf3457',
+          w: 2000, h: 1333,
+          caption: 'Mdina',
+          alt: 'Photograph taken at Mdina',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.884672, lon: 14.403417, place: 'Mdina' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 35mm f/2 R WR', focal: '35 mm', aperture: 'f/7.1', shutter: '1/1500 s', iso: 'ISO 160', date: '26 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3463',
+          file: 'malta/malta-dscf3463',
+          w: 2000, h: 1333,
+          caption: 'Mdina',
+          alt: 'Photograph taken at Mdina',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.884672, lon: 14.403417, place: 'Mdina' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 35mm f/2 R WR', focal: '35 mm', aperture: 'f/7.1', shutter: '1/2000 s', iso: 'ISO 160', date: '26 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3547',
+          file: 'malta/malta-dscf3547',
+          w: 1333, h: 2000,
+          caption: 'Misraħ il-Parroċċa, Rabat',
+          alt: 'Photograph taken at Misraħ il-Parroċċa, Rabat',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.882031, lon: 14.398817, place: 'Misraħ il-Parroċċa, Rabat' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 35mm f/2 R WR', focal: '35 mm', aperture: 'f/5', shutter: '1/400 s', iso: 'ISO 160', date: '26 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3560',
+          file: 'malta/malta-dscf3560',
+          w: 1333, h: 2000,
+          caption: 'Misraħ il-Parroċċa, Rabat',
+          alt: 'Photograph taken at Misraħ il-Parroċċa, Rabat',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.882031, lon: 14.398817, place: 'Misraħ il-Parroċċa, Rabat' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 35mm f/2 R WR', focal: '35 mm', aperture: 'f/5.6', shutter: '1/1250 s', iso: 'ISO 160', date: '26 Sep 2026' }
+        },
+        {
+          id: 'malta-dscf3572',
+          file: 'malta/malta-dscf3572',
+          w: 1333, h: 2000,
+          caption: 'Misraħ il-Parroċċa, Rabat',
+          alt: 'Photograph taken at Misraħ il-Parroċċa, Rabat',   /* TODO(JOE): describe the photo */
+          coords: { lat: 35.882031, lon: 14.398817, place: 'Misraħ il-Parroċċa, Rabat' },
+          exif: { camera: 'Fujifilm X-T3', lens: 'XF 35mm f/2 R WR', focal: '35 mm', aperture: 'f/5', shutter: '1/340 s', iso: 'ISO 160', date: '26 Sep 2026' }
+        }
+      ]
+    },
+    {
       slug: 'london',
       name: 'London',
       blurb: 'I visited London in August 2026, on the way to my semester abroad in Brussels. Despite the ninety-six\u2014 er I mean thirty-five degree weather, I managed to take some of my favorite photos. Hope you enjoy :)',

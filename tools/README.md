@@ -10,8 +10,9 @@ gitignored so its 135 MB never reaches GitHub Pages.
 
     python3 tools/build-gallery.py <cache-dir>
 
-For each photo it applies EXIF orientation, writes a 900px `-thumb.webp` and a
-2000px `-large.webp`, and reads out the real camera settings and GPS. Place
+For each photo it applies EXIF orientation, converts wide-gamut (Display P3)
+masters to sRGB, writes a 900px `-thumb.webp`, a 1400px `-mid.webp` and a 2000px
+`-large.webp`, and reads out the real camera settings and GPS. Place
 names come from a one-time reverse geocode cached in `<cache-dir>/geocache.json`
 — rerunning with the cache present makes no network calls.
 

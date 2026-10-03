@@ -1,8 +1,8 @@
 """Build web derivatives + gallery-data.js from assets/gallery/Originals.
 Originals are READ ONLY — nothing is written inside that folder."""
-from PIL import Image, ImageOps, ExifTags
+from PIL import Image, ImageOps, ExifTags, ImageCms
 from fractions import Fraction
-import glob, os, json, re, subprocess, sys, tempfile
+import glob, io, os, json, re, subprocess, sys, tempfile
 
 Image.MAX_IMAGE_PIXELS = None
 ROOT = '/Users/joeanderson/Desktop/JKA-Site.nosync'
@@ -11,7 +11,8 @@ OUT  = os.path.join(ROOT, 'assets/gallery/web')
 CACHE = json.load(open(sys.argv[1] + '/geocache.json'))
 
 # display order; folder name -> (slug, display name)
-ORDER = [('London', 'london', 'London'),
+ORDER = [('Malta', 'malta', 'Malta'),
+         ('London', 'london', 'London'),
          ('Edinburgh', 'edinburgh', 'Edinburgh'),
          ('Brussels', 'brussels', 'Brussels'),
          ('Nature & Creatures', 'nature-creatures', 'Nature & Creatures'),
@@ -73,6 +74,22 @@ def exif_of(path):
            'date': date or None}
     return {k: v for k, v in out.items() if v}
 
+SRGB = ImageCms.createProfile('sRGB')
+
+def to_srgb(im):
+    # cwebp -metadata none drops the colour profile, so pixels must already be
+    # sRGB. A Display P3 master (iPhones, some Lightroom exports) left as-is
+    # would read as sRGB and look flat; convert it. No profile means sRGB, and
+    # a non-RGB (CMYK, grey) profile keeps the old plain conversion.
+    icc = im.info.get('icc_profile')
+    im = im.convert('RGB')
+    if not icc: return im
+    src = ImageCms.ImageCmsProfile(io.BytesIO(icc))
+    if (src.profile.xcolor_space.strip() != 'RGB' or
+            'sRGB' in ImageCms.getProfileDescription(src)): return im
+    return ImageCms.profileToProfile(im, src, SRGB,
+                                     renderingIntent=ImageCms.Intent.RELATIVE_COLORIMETRIC)
+
 def encode(im, longest, dst, q):
     w, h = im.size
     s = longest / max(w, h)
@@ -96,7 +113,7 @@ for folder, slug, name in ORDER:
     for f in files:
         base = os.path.splitext(os.path.basename(f))[0].lower()
         pid = '%s-%s' % (slug, base)
-        im = ImageOps.exif_transpose(Image.open(f)).convert('RGB')   # honour orientation
+        im = to_srgb(ImageOps.exif_transpose(Image.open(f)))   # honour orientation
         tw = encode(im, 900,  os.path.join(OUT, slug, pid + '-thumb.webp'), 82)
         mw = encode(im, 1400, os.path.join(OUT, slug, pid + '-mid.webp'),   84)
         lw = encode(im, 2000, os.path.join(OUT, slug, pid + '-large.webp'), 86)

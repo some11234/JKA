@@ -161,6 +161,45 @@
 
   /* -------------------------------------------------------- collection --- */
 
+  /* A masonry that reads across: each tile goes into whichever column is
+     shortest (the leftmost on a tie), so the first photos run along the top
+     in data order and the next ones fill in beneath. The tiles stay in DOM
+     order, so Tab and screen readers follow the same sequence. Column count
+     and gutter come from gallery.css; until this runs, CSS columns stand in. */
+  function layoutStack(stack) {
+    var tiles = stack.children;
+    /* A second pass only if the first changed the stack's width — growing the
+       page can bring in a scrollbar. */
+    for (var pass = 0; pass < 2; pass++) {
+      var cs = getComputedStyle(stack);
+      var cols = Math.max(1, parseInt(cs.getPropertyValue('--gal-cols'), 10) || 1);
+      var gap = parseFloat(cs.columnGap) || 0;
+      stack.classList.add('is-laid');
+      var width = stack.clientWidth;
+      var colW = (width - gap * (cols - 1)) / cols;
+
+      var i, c, heights = [], tops = [];
+      for (c = 0; c < cols; c++) heights.push(0);
+      /* All widths first, then all heights, then all positions: one layout
+         pass instead of one per tile. */
+      for (i = 0; i < tiles.length; i++) tiles[i].style.width = colW + 'px';
+      var h = [];
+      for (i = 0; i < tiles.length; i++) h.push(tiles[i].getBoundingClientRect().height);
+      for (i = 0; i < tiles.length; i++) {
+        var col = 0;
+        for (c = 1; c < cols; c++) if (heights[c] < heights[col] - 0.5) col = c;
+        tops.push([col, heights[col]]);
+        heights[col] += h[i] + gap;
+      }
+      for (i = 0; i < tiles.length; i++) {
+        tiles[i].style.left = tops[i][0] * (colW + gap) + 'px';
+        tiles[i].style.top = tops[i][1] + 'px';
+      }
+      stack.style.height = Math.max.apply(null, heights) + 'px';
+      if (stack.clientWidth === width) break;
+    }
+  }
+
   function buildCollection(city) {
     var stack = document.createElement('div');
     stack.className = 'gal-stack';
@@ -168,6 +207,14 @@
       stack.appendChild(buildTile(p, city, i, false, true)); // no captions, fits the screen
     });
     main.querySelector('.gal-collection').appendChild(stack);
+    layoutStack(stack);
+
+    var queued = false;
+    window.addEventListener('resize', function () {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () { queued = false; layoutStack(stack); });
+    });
   }
 
   /* ---------------------------------------------------------- lightbox --- */

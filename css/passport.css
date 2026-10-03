@@ -4,13 +4,14 @@
 
    The book is CSS 3D. js/passport.js sizes and places every face (it knows
    the measurements); this file only says what each surface is made of —
-   leather-grain navy boards, cream page edges, the two Flighty pages — and
-   carries the overlays the script dims and brightens to light it.
+   leather-grain navy boards, cream page edges, the Flighty and visa pages —
+   and carries the overlays the script dims and brightens to light it.
 
    Two rules keep the 3D intact, in every browser:
-     - Only .pp-book and .pp-flap are preserve-3d containers. Nothing that
-       flattens (overflow, opacity < 1, filter, mask, blend modes) is ever set
-       on them — all of that lives on the faces, which are flat leaves.
+     - Only .pp-book, .pp-flap and .pp-group are preserve-3d containers.
+       Nothing that flattens (overflow, opacity < 1, filter, mask, blend
+       modes) is ever set on them — all of that lives on the faces, which are
+       flat leaves.
      - Every face hides its back, so a face turned away is simply not drawn.
    ========================================================================== */
 
@@ -37,7 +38,9 @@
   position: relative;
   height: 100vh;
   height: 100svh;
-  min-height: 520px;
+  /* Never taller than the screen: on a landscape phone the book has to fit
+     in what's there, or the stats and MRZ end up below the fold. */
+  min-height: 320px;
   overflow: hidden;
   /* A soft pool of light for the passport to sit in. */
   background:
@@ -45,18 +48,26 @@
     var(--bg);
 }
 
-/* The box the book is framed in: under the header, above the hint. The script
-   fits the book to it at every moment of the animation. */
+/* The box the book is framed in: under the header, above the controls. The
+   script fits the book's projected outline to it at every moment. Longhand
+   offsets, not `inset`, so older engines size it too. */
 .pp-scene {
   position: absolute;
-  inset: calc(var(--header-h) + 8px) 0 56px;
+  top: calc(var(--header-h) + 8px);
+  right: 0;
+  bottom: 64px;
+  left: 0;
   perspective: 2400px; /* rewritten by the script relative to the book's size */
   perspective-origin: 50% 50%;
   pointer-events: none;
 }
 
-/* Hidden until the script has measured and placed everything — no flash of
-   unpositioned faces. */
+@media (max-height: 540px) {
+  .pp-scene { top: calc(var(--header-h) + 2px); bottom: 46px; }
+  .pp-controls { bottom: 4px; }
+}
+
+/* Hidden until the script has measured and placed everything. */
 .js .pp-scene { visibility: hidden; opacity: 0; }
 .pp.is-ready .pp-scene {
   visibility: visible;
@@ -64,13 +75,14 @@
   transition: opacity 700ms ease;
 }
 
-/* The reduced-motion open/close: a quick fade instead of the flip. */
+/* The reduced-motion page turn: a quick fade instead of the flip. */
 .pp.is-fading .pp-scene { opacity: 0; transition: opacity 160ms ease; }
 
 /* ----------------------------------------------------------------- book --- */
 
 .pp-book,
-.pp-flap {
+.pp-flap,
+.pp-group {
   position: absolute;
   left: 0;
   top: 0;
@@ -92,9 +104,11 @@
   backface-visibility: hidden;
 }
 
-.pp-face img {
+.pp-face img,
+.pp-sheet img {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -103,12 +117,11 @@
   -webkit-user-drag: none;
 }
 
-/* Lighting. The script sets each face's opacity from the angle between its
-   surface and the light, every frame — so a face darkens as it turns away,
-   and the page edges change shade as the book turns. */
+/* Lighting: the script sets each face's opacity from the angle between its
+   surface and the light, every frame. */
 .pp-shade {
   position: absolute;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   display: block;
   background: #000;
   opacity: 0;
@@ -120,7 +133,7 @@
    foil pick the texture up too, like real stamping does. */
 .pp-grain {
   position: absolute;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   display: block;
   background: url('/assets/passport/web/grain.webp') 0 0 / var(--grain, 180px) repeat;
   mix-blend-mode: overlay;
@@ -156,7 +169,7 @@
    script as the cover tilts toward or away from the light. */
 .pp-foil {
   position: absolute;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   display: block;
   overflow: hidden;
   -webkit-mask: url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
@@ -184,7 +197,7 @@
    wrap into the spine, and a faint rounded edge. */
 .pp-relief {
   position: absolute;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   display: block;
   border-radius: inherit;
   background:
@@ -210,6 +223,22 @@
   background: #0F1730;
 }
 
+/* ----------------------------------------------------------- back cover --- */
+
+.pp-back {
+  border-radius: 0 var(--rc) var(--rc) 0;
+  background: #0E1530;
+}
+
+/* Its outside: plain navy leather, seen when the book closes from the back. */
+.pp-back--out {
+  overflow: hidden;
+  border-radius: var(--rc) 0 0 var(--rc);
+  background: #111A34;
+}
+
+.pp-back--out .pp-relief { transform: scaleX(-1); }
+
 /* ---------------------------------------------------------------- pages --- */
 
 .pp-page {
@@ -217,7 +246,10 @@
   background: #B4C7EC;
 }
 
-.pp-page--data { border-radius: 0 var(--rp) var(--rp) 0; }
+/* A page on the right of the spine is rounded on its right; on the left, its
+   left. */
+.pp-page--recto { border-radius: 0 var(--rp) var(--rp) 0; }
+.pp-page--verso { border-radius: var(--rp) 0 0 var(--rp); }
 
 .pp-page--map {
   position: absolute;
@@ -225,11 +257,21 @@
   border-radius: var(--rp) 0 0 var(--rp);
 }
 
-/* Where each page curls down into the spine. The band the build script added
-   at the fold sits under this, which is what turns it into a gutter. */
+.pp-slot,
+.pp-sheet {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: block;
+}
+
+.pp-sheets { display: none; }
+
+/* Where each page curls down into the spine. On the Flighty pages, the band
+   the build script added at the fold sits under this, which is what turns it
+   into a gutter. */
 .pp-gutter {
   position: absolute;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   display: block;
   background:
     linear-gradient(to right,
@@ -242,7 +284,8 @@
       rgba(255, 255, 255, 0) 6%);
 }
 
-.pp-page--map .pp-gutter { transform: scaleX(-1); }
+.pp-page--map .pp-gutter,
+.pp-sheet--verso .pp-gutter { transform: scaleX(-1); }
 
 /* Flighty's dashed fold line, redrawn as the passport's stitching, exactly on
    the fold. 12 on, 6 off, 3 thick — its own rhythm, in art pixels, scaled. */
@@ -258,24 +301,141 @@
     rgba(0, 0, 0, 0) var(--stitch-on) var(--stitch-period));
 }
 
-/* The front cover's shadow on the first page while it swings over. */
+/* A swinging cover or leaf's shadow on the page beneath it. */
 .pp-cast {
   position: absolute;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   display: block;
   background: linear-gradient(to right, rgba(6, 8, 24, 0.95), rgba(6, 8, 24, 0.55) 38%, rgba(6, 8, 24, 0) 100%);
   transform-origin: 0 50%;
   opacity: 0;
 }
 
-/* ---------------------------------------------------------------- edges --- */
-
-.pp-back {
-  border-radius: 0 var(--rc) var(--rc) 0;
-  background: #0E1530;
+.pp-cast--verso {
+  background: linear-gradient(to left, rgba(6, 8, 24, 0.9), rgba(6, 8, 24, 0.4) 40%, rgba(6, 8, 24, 0) 100%);
+  transform-origin: 100% 50%;
 }
 
-.pp-strip { overflow: hidden; }
+/* ----------------------------------------------------------- visa pages --- */
+
+/* Type on the visa pages is sized from the page's height (--ph, set by the
+   script), so it scales with the book. 1em = 3.05% of the page. */
+.pp-visa {
+  font-size: calc(var(--ph, 600px) * 0.0305);
+  line-height: 1.2;
+  background: #F4E6E2;
+  --gutter-deep: rgba(46, 30, 90, 0.26);
+  --gutter-mid: rgba(46, 30, 90, 0.1);
+}
+
+.pp-visa--blank { background: #EFE6EC; }
+
+/* The quotation runs across the top of the spread. It's one box on both
+   pages, offset by a page so each shows its own half and the fold falls
+   through the middle of the line, as in a real passport. */
+.pp-visa__quote {
+  position: absolute;
+  top: 4.4%;
+  width: 182%;
+  display: block;
+  text-align: center;
+  color: #22307F;
+  text-shadow: 0 0 0.6em rgba(255, 250, 246, 0.6);
+}
+.pp-visa--verso .pp-visa__quote { left: 9%; }
+.pp-visa--recto .pp-visa__quote { left: -91%; }
+
+.pp-visa__q {
+  display: block;
+  font-family: 'Cormorant Garamond', 'Libre Caslon Text', Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.12em;
+  line-height: 1.24;
+  text-wrap: balance;
+}
+.pp-visa__quote--long .pp-visa__q { font-size: 0.98em; }
+
+.pp-visa__by {
+  display: block;
+  margin-top: 0.5em;
+  padding-right: 2%;
+  text-align: right;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.5em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #3A4FC9;
+}
+
+/* Bottom-left of the left page: the place, in the Wallet ID's bold blue —
+   with a soft halo, since it often sits over the corner flowers. */
+.pp-visa__cap {
+  position: absolute;
+  left: 7.5%;
+  bottom: 6.2%;
+  display: block;
+  max-width: 78%;
+  text-shadow: 0 0 0.3em rgba(255, 250, 246, 0.95), 0 0 0.8em rgba(255, 250, 246, 0.7);
+}
+
+.pp-visa__title {
+  display: block;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 1.62em;
+  letter-spacing: -0.015em;
+  line-height: 1;
+  color: #2E40B8;
+}
+
+.pp-visa__sub {
+  display: block;
+  margin-top: 0.5em;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.5em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #1E2A72;
+  opacity: 0.85;
+}
+
+/* Bottom-right of the right page: an engraved seal, like the Wallet IDs'. */
+.pp-visa__seal {
+  position: absolute;
+  right: 7%;
+  bottom: 5.4%;
+  width: 21%;
+  aspect-ratio: 1;
+  display: block;
+  color: #4C55B4;
+  opacity: 0.62;
+}
+.pp-visa__seal svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  font-family: 'Libre Caslon Text', Georgia, serif;
+}
+
+/* Page numbers, small, in the outer top corners. */
+.pp-visa__num {
+  position: absolute;
+  top: 2.4%;
+  display: block;
+  font-size: 0.42em;
+  letter-spacing: 0.08em;
+  color: #1E2A72;
+  opacity: 0.7;
+}
+.pp-visa--verso .pp-visa__num { left: 3.6%; }
+.pp-visa--recto .pp-visa__num { right: 3.6%; }
+
+/* ---------------------------------------------------------------- edges --- */
+
+.pp-strip { overflow: hidden; opacity: var(--edge-alpha, 1); }
 
 .pp-strip--board { background: #0B1128; }
 
@@ -290,10 +450,17 @@
     var(--page-edge);
 }
 
-/* Out of the 3D scene while the cover swings through mid-air — a workaround
-   for a Chrome compositing bug; see render() in js/passport.js. */
-.pp-strip--pages { opacity: var(--edge-alpha, 1); }
-.pp-book.is-swinging .pp-strip--pages { visibility: hidden; }
+/* Out of the 3D scene while a cover or leaf swings through mid-air — a
+   workaround for a Chrome compositing bug; see render() in js/passport.js. */
+.pp-book.is-swinging .pp-strip { visibility: hidden; }
+
+/* The spine, seen only while the book is shut or turning over. It faces
+   either way, since the book can be closed from either side. */
+.pp-spine {
+  background: linear-gradient(to bottom, #0E1530, #111A34 50%, #0E1530);
+  -webkit-backface-visibility: visible;
+  backface-visibility: visible;
+}
 
 /* A soft shadow on an imaginary table just beneath the book. */
 .pp-floor {
@@ -320,11 +487,12 @@
 
 .pp[data-variant='light'] .pp-page { background: #F2F3EC; }
 
-/* -------------------------------------------------------- hit area, hint --- */
+/* ------------------------------------------------- hit areas, controls --- */
 
 /* Sized and placed by the script over the book's current outline, so only
    the passport itself is clickable — not the empty stage around it. */
-.pp-hit {
+.pp-hit,
+.pp-tap {
   position: absolute;
   left: 0;
   top: 0;
@@ -335,9 +503,14 @@
   border-radius: 20px;
   background: transparent;
   cursor: pointer;
+  /* Sideways drags open the cover; vertical swipes scroll; pinches zoom. */
   touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
   -webkit-tap-highlight-color: transparent;
 }
+
+.pp-hit[hidden],
+.pp-tap[hidden] { display: none; }
 
 .pp-hit:focus-visible {
   outline: 2px solid var(--accent);
@@ -346,22 +519,66 @@
 
 .pp.is-dragging .pp-hit { cursor: grabbing; }
 
-.pp-hint {
+/* ‹  Visa pages 3–4 of 18  › under the book. */
+.pp-controls {
   position: absolute;
   left: 50%;
-  bottom: 22px;
+  bottom: 12px;
   transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pp-count {
+  min-width: 15ch;
+  text-align: center;
   color: var(--ink-45);
   font-size: 0.72rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   white-space: nowrap;
-  pointer-events: none;
-  transition: opacity 400ms ease;
+  transition: opacity 300ms ease;
 }
 
-.js .pp-hint { opacity: 0; }
-.pp.is-ready.is-settled .pp-hint { opacity: 1; }
+.pp-nav {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--ink-70);
+  cursor: pointer;
+  transition: opacity 300ms ease, border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+.pp-nav svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pp-nav:hover:not(:disabled) {
+  border-color: var(--ink-70);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink-100);
+}
+
+.pp-nav:disabled { cursor: default; }
+
+/* Closed: only the hint shows. Open: the arrows join it. */
+.pp:not(.is-open) .pp-nav { opacity: 0; visibility: hidden; }
+
+.js .pp-controls { opacity: 0; transition: opacity 400ms ease; }
+.pp.is-ready .pp-controls { opacity: 1; }
+.pp:not(.is-settled) .pp-count { opacity: 0.4; }
 
 /* ------------------------------------------------- no-JS / broken script --- */
 
@@ -373,10 +590,15 @@
   border-radius: 22px;
 }
 
+/* The fallback image is in the page all along, waiting — `hidden` alone
+   loses to the display rule above, so say it outright. */
+.pp-flat[hidden] { display: none; }
+
 .no-js .pp-stage { display: none; }
 .pp.is-broken .pp-stage { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .pp.is-ready .pp-scene { transition-duration: 160ms; }
-  .pp-hint { transition: none; }
+  .pp-count,
+  .js .pp-controls { transition: none; }
 }

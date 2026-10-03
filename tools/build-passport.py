@@ -83,6 +83,7 @@ FADE_ROWS = 18   # how far into the art the gutter band feathers
 BAND_BLUR = 22   # horizontal blur that keeps the band free of streaks
 
 COVER_SRC = 'Passport Cover.png'
+COVER_H = 2000             # output height of cover.webp
 COVER_NAVY = (17, 26, 52)   # #111A34, sampled from the cover's flat ground
 
 
@@ -101,13 +102,18 @@ def build_cover():
     # Pad top and bottom with the same navy to reach COVER_RATIO.
     target_h = round(w / COVER_RATIO)
     pad = target_h - h
+    if pad < 0:
+        sys.exit('%s is taller than 1:%.2f — it would be cropped; raise COVER_RATIO' % (COVER_SRC, COVER_RATIO))
     cover = Image.new('RGB', (w, target_h), COVER_NAVY)
     cover.paste(flat, (0, pad // 2))
+    # It's never shown taller than ~1,930 device pixels (a 2560×1440 screen at
+    # 2×), so there's no point decoding more than 2,000.
+    cover = cover.resize((round(COVER_H * COVER_RATIO), COVER_H), Image.LANCZOS)
     webp(cover, 'cover.webp', quality=88)
 
     # Foil mask: navy has a luminance of ~25, the foil ~230. Ramp between.
     lum = cover.convert('L').point(lambda v: max(0, min(255, (v - 60) * 255 // 140)))
-    lum = lum.resize((w // 2, target_h // 2), Image.LANCZOS)
+    lum = lum.resize((cover.width // 2, cover.height // 2), Image.LANCZOS)
     foil = Image.new('RGBA', lum.size, (255, 255, 255, 0))
     foil.putalpha(lum)
     webp(foil, 'cover-foil.webp', quality=80, alpha_quality=70)
@@ -158,6 +164,11 @@ def ramp(w, h, up):
 
 def build_flighty(variant, filename):
     src = Image.open(os.path.join(SRC, filename)).convert('RGB')
+    if src.size != (1179, 1572):
+        # MAP_ROWS / DATA_ROWS are pixel rows measured on a 1179×1572 export.
+        sys.exit('%s is %d×%d, not 1179×1572: re-measure MAP_ROWS and DATA_ROWS, '
+                 'then update ART_W in js/passport.js and the <img> sizes in '
+                 'passport/index.html' % (filename, src.width, src.height))
     w = src.width
     # Page heights in art pixels: the art's width spans the page head to tail.
     map_px = round(w * MAP_W / PAGE_H)

@@ -47,6 +47,38 @@ from `travel/index.html` and add `<a href="/travel/">Travel</a>` to `.site-nav`
 on every page. Its content — countries, cities, photos, links — all lives in
 `js/travel-data.js`.
 
+## build-passport.py
+
+Regenerates `assets/passport/web/` — everything the passport page loads — from
+the masters in `assets/passport/` (the uploaded PNGs, never modified).
+
+    pip install pillow
+    python3 tools/build-passport.py
+
+It flattens and pads the cover, makes the foil mask that limits the cover's
+glint to the gold, and a leather-grain tile. Then it **folds** each Flighty
+screenshot along Flighty's own dashed line: the half above it becomes the page
+glued inside the front cover (the map), the half below becomes the first page
+(stats + MRZ). Both are rotated a quarter turn, because the book opens with
+its spine upright and then turns to be read. Its geometry constants are
+mirrored in `CONFIG.BOOK` in `js/passport.js` — change one, change both.
+
+To swap in a newer Flighty passport, replace `Flighty Dark.PNG` (and/or
+`Flighty Light.PNG`) keeping the name, rerun the script, and update the
+screen-reader description in `passport/index.html` (`#pp-desc`). If the new
+screenshot's layout moved, re-measure `MAP_ROWS` / `DATA_ROWS` at the top of
+the script.
+
+## The passport page
+
+`/passport/` is live but **unlisted**, the same way the travel page is: it
+isn't in the nav on any page, and it carries `<meta name="robots"
+content="noindex">`. To launch it, delete that tag from `passport/index.html`
+and add `<a href="/passport/">Passport</a>` to `.site-nav` on every page.
+
+It shows the black-light Flighty pages. `/passport/?v=light` previews the
+daylight version without changing anything for anyone else.
+
 ## assets/ layout
 
     core/       logo, hero, favicon, og image — site furniture
@@ -54,6 +86,7 @@ on every page. Its content — countries, cities, photos, links — all lives in
     journey/    the pinned home-page sequence (city cards, title SVGs, annotation)
     gallery/    Originals/ (masters, gitignored) + web/ (generated derivatives)
     travel/     countries.json, the globe's map (generated, see above)
+    passport/   cover + Flighty masters; web/ holds what the page loads (generated)
     _originals/ masters for everything outside the gallery (gitignored)
 
 `album art` was renamed `album-art` — a space in a path means `%20` in every URL

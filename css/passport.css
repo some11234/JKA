@@ -1,0 +1,382 @@
+/* ==========================================================================
+   passport.css — the passport page. Loaded after styles.css, which owns the
+   tokens, the header/footer and the pills.
+
+   The book is CSS 3D. js/passport.js sizes and places every face (it knows
+   the measurements); this file only says what each surface is made of —
+   leather-grain navy boards, cream page edges, the two Flighty pages — and
+   carries the overlays the script dims and brightens to light it.
+
+   Two rules keep the 3D intact, in every browser:
+     - Only .pp-book and .pp-flap are preserve-3d containers. Nothing that
+       flattens (overflow, opacity < 1, filter, mask, blend modes) is ever set
+       on them — all of that lives on the faces, which are flat leaves.
+     - Every face hides its back, so a face turned away is simply not drawn.
+   ========================================================================== */
+
+/* This page has nothing scrolling under the header, so its fade only has to
+   cover the header row itself — the full-height fade would dim the top page
+   of the open passport. */
+.site-header--short::before { height: calc(var(--header-h) + 24px); }
+
+.pp-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------- stage --- */
+
+.pp-stage {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 520px;
+  overflow: hidden;
+  /* A soft pool of light for the passport to sit in. */
+  background:
+    radial-gradient(ellipse 46% 52% at 50% 54%, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0) 70%),
+    var(--bg);
+}
+
+/* The box the book is framed in: under the header, above the hint. The script
+   fits the book to it at every moment of the animation. */
+.pp-scene {
+  position: absolute;
+  inset: calc(var(--header-h) + 8px) 0 56px;
+  perspective: 2400px; /* rewritten by the script relative to the book's size */
+  perspective-origin: 50% 50%;
+  pointer-events: none;
+}
+
+/* Hidden until the script has measured and placed everything — no flash of
+   unpositioned faces. */
+.js .pp-scene { visibility: hidden; opacity: 0; }
+.pp.is-ready .pp-scene {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 700ms ease;
+}
+
+/* The reduced-motion open/close: a quick fade instead of the flip. */
+.pp.is-fading .pp-scene { opacity: 0; transition: opacity 160ms ease; }
+
+/* ----------------------------------------------------------------- book --- */
+
+.pp-book,
+.pp-flap {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform-origin: 0 0 0;
+}
+
+.pp-face,
+.pp-strip,
+.pp-floor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  transform-origin: 0 0 0;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.pp-face img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Lighting. The script sets each face's opacity from the angle between its
+   surface and the light, every frame — so a face darkens as it turns away,
+   and the page edges change shade as the book turns. */
+.pp-shade {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: #000;
+  opacity: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Grain for the leather-look boards. Overlay keeps navy navy and lets the
+   foil pick the texture up too, like real stamping does. */
+.pp-grain {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: url('/assets/passport/web/grain.webp') 0 0 / var(--grain, 180px) repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.38;
+  border-radius: inherit;
+}
+
+/* ------------------------------------------------------------ the cover --- */
+
+.pp-cover {
+  overflow: hidden;
+  border-radius: 0 var(--rc) var(--rc) 0;
+  background: #111A34;
+}
+
+/* A broad, faint sheen on the leather, moved with the glint below. */
+.pp-sheen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -100%;
+  width: 300%;
+  display: block;
+  background: linear-gradient(112deg,
+    rgba(170, 190, 255, 0) 34%,
+    rgba(170, 190, 255, 0.09) 50%,
+    rgba(170, 190, 255, 0) 66%);
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+/* Gold foil glint: a bright band masked to the foil only, slid across by the
+   script as the cover tilts toward or away from the light. */
+.pp-foil {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  -webkit-mask: url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  mask: url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  mix-blend-mode: screen;
+}
+
+.pp-foil__sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -100%;
+  width: 300%;
+  display: block;
+  background: linear-gradient(105deg,
+    rgba(255, 244, 205, 0) 41%,
+    rgba(255, 244, 205, 0.18) 46%,
+    rgba(255, 248, 225, 0.62) 50%,
+    rgba(255, 244, 205, 0.18) 54%,
+    rgba(255, 244, 205, 0) 59%);
+  will-change: transform;
+}
+
+/* The board's own shape: the hinge groove a passport cover folds along, the
+   wrap into the spine, and a faint rounded edge. */
+.pp-relief {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+  background:
+    linear-gradient(to right,
+      rgba(0, 0, 0, 0) 5.4%,
+      rgba(0, 0, 0, 0.42) 5.6%,
+      rgba(0, 0, 0, 0.42) 5.9%,
+      rgba(255, 255, 255, 0.07) 5.9%,
+      rgba(255, 255, 255, 0.07) 6.25%,
+      rgba(0, 0, 0, 0) 6.3%),
+    linear-gradient(to right, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0) 2.6%),
+    linear-gradient(to left, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 1.2%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* ------------------------------------------------- inside the front cover --- */
+
+.pp-inside {
+  overflow: hidden;
+  border-radius: var(--rc) 0 0 var(--rc);
+  background: #0F1730;
+}
+
+/* ---------------------------------------------------------------- pages --- */
+
+.pp-page {
+  overflow: hidden;
+  background: #B4C7EC;
+}
+
+.pp-page--data { border-radius: 0 var(--rp) var(--rp) 0; }
+
+.pp-page--map {
+  position: absolute;
+  display: block;
+  border-radius: var(--rp) 0 0 var(--rp);
+}
+
+/* Where each page curls down into the spine. The band the build script added
+   at the fold sits under this, which is what turns it into a gutter. */
+.pp-gutter {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background:
+    linear-gradient(to right,
+      var(--gutter-deep) 0,
+      var(--gutter-mid) 1.6%,
+      rgba(0, 0, 0, 0) 7.5%),
+    linear-gradient(to right,
+      rgba(255, 255, 255, 0) 2%,
+      rgba(255, 255, 255, 0.08) 3.4%,
+      rgba(255, 255, 255, 0) 6%);
+}
+
+.pp-page--map .pp-gutter { transform: scaleX(-1); }
+
+/* Flighty's dashed fold line, redrawn as the passport's stitching, exactly on
+   the fold. 12 on, 6 off, 3 thick — its own rhythm, in art pixels, scaled. */
+.pp-stitch {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--stitch-w);
+  display: block;
+  background: repeating-linear-gradient(to bottom,
+    var(--stitch) 0 var(--stitch-on),
+    rgba(0, 0, 0, 0) var(--stitch-on) var(--stitch-period));
+}
+
+/* The front cover's shadow on the first page while it swings over. */
+.pp-cast {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: linear-gradient(to right, rgba(6, 8, 24, 0.95), rgba(6, 8, 24, 0.55) 38%, rgba(6, 8, 24, 0) 100%);
+  transform-origin: 0 50%;
+  opacity: 0;
+}
+
+/* ---------------------------------------------------------------- edges --- */
+
+.pp-back {
+  border-radius: 0 var(--rc) var(--rc) 0;
+  background: #0E1530;
+}
+
+.pp-strip { overflow: hidden; }
+
+.pp-strip--board { background: #0B1128; }
+
+/* The page block: dozens of sheets seen edge-on, with the boards' shadow
+   gathering at top and bottom. */
+.pp-strip--pages {
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 78%, rgba(0, 0, 0, 0.30)),
+    repeating-linear-gradient(to bottom,
+      rgba(0, 0, 0, 0) 0 1px,
+      rgba(70, 60, 40, 0.13) 1px 1.6px),
+    var(--page-edge);
+}
+
+/* Out of the 3D scene while the cover swings through mid-air — a workaround
+   for a Chrome compositing bug; see render() in js/passport.js. */
+.pp-strip--pages { opacity: var(--edge-alpha, 1); }
+.pp-book.is-swinging .pp-strip--pages { visibility: hidden; }
+
+/* A soft shadow on an imaginary table just beneath the book. */
+.pp-floor {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: calc(var(--rc) * 1.5);
+  box-shadow: 0 0 var(--floor-blur) calc(var(--floor-blur) * 0.4) rgba(0, 0, 0, 0.5);
+  opacity: 0.85;
+}
+
+/* ------------------------------------------------------------- variants --- */
+
+.pp {
+  --page-edge: #ECE7DA;
+  --gutter-deep: rgba(30, 18, 84, 0.34);
+  --gutter-mid: rgba(30, 18, 84, 0.14);
+  --stitch: rgba(255, 255, 255, 0.52);
+}
+
+.pp[data-variant='light'] {
+  --gutter-deep: rgba(70, 60, 40, 0.22);
+  --gutter-mid: rgba(70, 60, 40, 0.08);
+  --stitch: rgba(60, 60, 45, 0.16);
+}
+
+.pp[data-variant='light'] .pp-page { background: #F2F3EC; }
+
+/* -------------------------------------------------------- hit area, hint --- */
+
+/* Sized and placed by the script over the book's current outline, so only
+   the passport itself is clickable — not the empty stage around it. */
+.pp-hit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pp-hit:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 10px;
+}
+
+.pp.is-dragging .pp-hit { cursor: grabbing; }
+
+.pp-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  color: var(--ink-45);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 400ms ease;
+}
+
+.js .pp-hint { opacity: 0; }
+.pp.is-ready.is-settled .pp-hint { opacity: 1; }
+
+/* ------------------------------------------------- no-JS / broken script --- */
+
+.pp-flat {
+  display: block;
+  width: min(86vw, 520px);
+  height: auto;
+  margin: calc(var(--header-h) + 24px) auto 64px;
+  border-radius: 22px;
+}
+
+.no-js .pp-stage { display: none; }
+.pp.is-broken .pp-stage { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pp.is-ready .pp-scene { transition-duration: 160ms; }
+  .pp-hint { transition: none; }
+}

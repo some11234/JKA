@@ -42,6 +42,9 @@
      in what's there, or the stats and MRZ end up below the fold. */
   min-height: 320px;
   overflow: hidden;
+  /* Its own stacking context, so the page halves (.pp-tap) can tuck under
+     the book without dropping behind this background. */
+  isolation: isolate;
   /* A soft pool of light for the passport to sit in. */
   background:
     radial-gradient(ellipse 46% 52% at 50% 54%, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0) 70%),
@@ -454,6 +457,51 @@
 .pp-visa--verso .pp-visa__num { left: 3.6%; }
 .pp-visa--recto .pp-visa__num { right: 3.6%; }
 
+/* --------------------------------------------------------------- stamps --- */
+
+/* Joe's travel stamps, stuck onto the visa pages where js/passport-data.js
+   puts them: centred on their point, at their own small tilt. They live in
+   the page's sheet, so they turn with the leaf and take its lighting. The
+   sheet keeps their stacking to itself, so a lifted stamp stays under the
+   page's shade and cast shadow. */
+.pp-visa { isolation: isolate; }
+
+.pp-stamp {
+  position: absolute;
+  width: 42%;
+  aspect-ratio: 1;
+  display: block;
+  transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
+}
+
+/* Stuck down flat: a hairline of shadow right under the perforations and a
+   faint one just beyond, both down and right, away from the light. In ems,
+   which here are a share of the page's height, so they scale with it. */
+.pp-sheet .pp-stamp__art {
+  filter:
+    drop-shadow(0.02em 0.04em 0.03em rgba(22, 26, 64, 0.42))
+    drop-shadow(0.06em 0.12em 0.14em rgba(22, 26, 64, 0.16));
+  transition: transform 320ms cubic-bezier(0.3, 0.7, 0.4, 1), filter 320ms ease;
+}
+
+/* With a mouse, a stamp lifts a little off the page under the pointer:
+   up toward the light, a touch bigger, straightening a degree or so, its
+   shadow spreading. Only while the book is at rest — once a page starts
+   to turn, the stamp settles back down onto it. The stamps sit above the
+   page halves that turn the page (see .pp-tap); a click on one still turns
+   it (js/passport.js). On touch screens they take no taps at all. */
+@media (hover: hover) and (pointer: fine) {
+  .pp.is-settled .pp-stamp { pointer-events: auto; cursor: pointer; }
+  .pp.is-settled .pp-stamp:hover { z-index: 1; }
+  .pp.is-settled .pp-stamp:hover .pp-stamp__art {
+    transform: translate(-0.6%, -2.4%) rotate(var(--nudge, 0deg)) scale(1.045);
+    filter:
+      drop-shadow(0.05em 0.1em 0.08em rgba(22, 26, 64, 0.24))
+      drop-shadow(0.28em 0.55em 0.5em rgba(22, 26, 64, 0.22));
+    transition: transform 440ms cubic-bezier(0.25, 1.5, 0.45, 1), filter 320ms ease;
+  }
+}
+
 /* ---------------------------------------------------------------- edges --- */
 
 .pp-strip { overflow: hidden; opacity: var(--edge-alpha, 1); }
@@ -532,6 +580,10 @@
 
 .pp-hit[hidden],
 .pp-tap[hidden] { display: none; }
+
+/* The page halves tuck under the book, which lets the pointer through to
+   them everywhere but the stamps — those sit on top, to be hovered. */
+.pp-tap { z-index: -1; }
 
 .pp-hit:focus-visible {
   outline: 2px solid var(--accent);
@@ -641,4 +693,6 @@
   .pp.is-ready .pp-scene { transition-duration: 160ms; }
   .pp-count,
   .js .pp-controls { transition: none; }
+  /* A hovered stamp's shadow still deepens; the stamp itself stays put. */
+  .pp.is-settled .pp-stamp:hover .pp-stamp__art { transform: none; }
 }

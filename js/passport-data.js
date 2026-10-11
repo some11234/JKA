@@ -110,3 +110,39 @@ window.PASSPORT_VISAS = [
     scan: 'A steam locomotive charging past telegraph poles on the left page; a wooden trestle in snowy hills on the right.',
   },
 ];
+
+/* --------------------------------------------------------------------------
+   PASSPORT_STAMPS — Joe's American Express travel stamps, stuck onto the
+   visa pages in the order he went, the way a real passport fills up. Each
+   is its own element on its page, so it turns with the leaf it's on.
+
+     stamp   The image: assets/passport/web/stamp-<stamp>.webp, made by
+             tools/build-passport.py from "<Country> <Year>.png" in
+             assets/passport/ (lowercased, spaces to hyphens).
+     name    The country, as it's read out.
+     year    The year on the stamp.
+     page    Which visa page, 1–18: odd on the left, even on the right.
+             (The scans print their own numbers, seven higher: page 1 is
+             printed 8, page 18 is printed 25.)
+     at      Where the stamp's centre goes: [across, down], in % of the
+             page. Keep it clear of the spine — at most ~62 across on a left
+             page, at least ~38 on a right one — and of the page numbers.
+     tilt    Degrees, clockwise. Small and never quite square: stuck down
+             by hand, not by a machine.
+
+   They're laid out for the scans; over the paintings, mind the caption and
+   seal at the foot of each spread.
+   -------------------------------------------------------------------------- */
+
+window.PASSPORT_STAMPS = [
+  { stamp: 'united-states-of-america-2006', name: 'United States', year: 2006, page: 2, at: [50, 62], tilt: -3.2 },
+  { stamp: 'mexico-2015', name: 'Mexico', year: 2015, page: 3, at: [40, 70], tilt: 2.6 },
+  { stamp: 'germany-2017', name: 'Germany', year: 2017, page: 6, at: [37, 39], tilt: -4.2 },
+  { stamp: 'iceland-2017', name: 'Iceland', year: 2017, page: 6, at: [61, 64], tilt: 3.4 },
+  { stamp: 'canada-2025', name: 'Canada', year: 2025, page: 7, at: [40, 71], tilt: -2.3 },
+  { stamp: 'united-kingdom-2026', name: 'United Kingdom', year: 2026, page: 10, at: [52, 67], tilt: 4.1 },
+  { stamp: 'belgium-2026', name: 'Belgium', year: 2026, page: 11, at: [60, 61], tilt: -3.0 },
+  { stamp: 'netherlands-2026', name: 'the Netherlands', year: 2026, page: 14, at: [50, 41], tilt: 2.2 },
+  { stamp: 'portugal-2026', name: 'Portugal', year: 2026, page: 15, at: [57, 47], tilt: -3.7 },
+  { stamp: 'malta-2026', name: 'Malta', year: 2026, page: 18, at: [47, 54], tilt: 2.8 },
+];

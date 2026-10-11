@@ -132,8 +132,9 @@
   pointer-events: none;
 }
 
-/* Grain for the leather-look boards. Overlay keeps navy navy and lets the
-   foil pick the texture up too, like real stamping does. */
+/* Grain for the leather-look boards: a tile of lit pebbles (see
+   build_grain() in tools/build-passport.py). Overlay keeps navy navy. On the
+   front cover it's kept off the foil — see .pp-sheen below. */
 .pp-grain {
   position: absolute;
   top: 0; right: 0; bottom: 0; left: 0;
@@ -146,14 +147,77 @@
 
 /* ------------------------------------------------------------ the cover --- */
 
+/* The leather, one navy family for every part of the boards. --navy is the
+   ground cover.webp is printed on (COVER_NAVY in tools/build-passport.py):
+   change one, change both, or the image's edge shows against the face. */
+.pp {
+  --navy: #0C173A;
+  --navy-inside: #0B1534;  /* the inside of the boards, under the pages */
+  --navy-edge: #080F2D;    /* the boards' cut edges */
+}
+
 .pp-cover {
   overflow: hidden;
   border-radius: 0 var(--rc) var(--rc) 0;
-  background: #111A34;
+  background: var(--navy);
 }
 
-/* A broad, faint sheen on the leather, moved with the glint below. */
+/* Stacked, bottom to top: the art (navy, the gold foil already pressed into
+   it), the key light, the leather's sheen, the foil's glint, the grain, the
+   board's relief — then the shade the script lights the face with. The grain
+   sits over the light, so the pebbling breaks up the sheen the way a real
+   cover's texture does. */
+
+/* The key light: where the light falls most strongly, a soft pool on the
+   upper left of the cover — the side it comes from. Colour-dodge with a dark
+   grey is a gain, not a wash: it brightens what's under it (by up to ~27%)
+   without greying the navy or the gold. Outside the pool it's black, which
+   colour-dodge leaves alone. It stays put: the face's shade already follows
+   the light as the cover turns, and the sheen and glint do the moving. The
+   back cover's outside gets the same pool, so it's the same leather under
+   the same light. */
+.pp-key,
+.pp-back--out::before {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: block;
+  background: radial-gradient(ellipse 68% 60% at 30% 26%,
+    rgb(54, 54, 54),
+    rgb(26, 26, 26) 45%,
+    rgb(0, 0, 0) 100%);
+  mix-blend-mode: color-dodge;
+}
+
+.pp-back--out::before { content: ''; }
+
+/* The leather's sheen: a broad, soft reflection of the light, moved with the
+   glint below but more slowly — leather is far less glossy than foil. It's
+   the light's own colour, so it stays off the foil, which reflects in gold
+   (that's the glint's job). The grain is kept off the foil too: the image
+   already carries a faint copy of it there (see build_cover() in
+   tools/build-passport.py) — at full strength the overlay turns mid-tone gold
+   to sandpaper. Both masks are the foil cut out of a solid layer. */
+.pp-sheen,
+.pp-cover .pp-grain {
+  -webkit-mask:
+    linear-gradient(#000, #000),
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000, #000),
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  mask-composite: exclude;
+}
+
 .pp-sheen {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: block;
+  overflow: hidden;
+  mix-blend-mode: screen;
+}
+
+.pp-sheen__band {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -161,15 +225,18 @@
   width: 300%;
   display: block;
   background: linear-gradient(112deg,
-    rgba(170, 190, 255, 0) 34%,
-    rgba(170, 190, 255, 0.09) 50%,
-    rgba(170, 190, 255, 0) 66%);
-  mix-blend-mode: screen;
+    rgba(160, 185, 255, 0) 32%,
+    rgba(160, 185, 255, 0.04) 42%,
+    rgba(175, 198, 255, 0.1) 50%,
+    rgba(160, 185, 255, 0.04) 58%,
+    rgba(160, 185, 255, 0) 68%);
   will-change: transform;
 }
 
-/* Gold foil glint: a bright band masked to the foil only, slid across by the
-   script as the cover tilts toward or away from the light. */
+/* Gold foil glint: masked to the foil only, slid across by the script as the
+   cover tilts toward or away from the light. A wide warm wash, so the foil
+   brightens as the light comes round, and a narrow pale core where it
+   catches the light square on. */
 .pp-foil {
   position: absolute;
   top: 0; right: 0; bottom: 0; left: 0;
@@ -188,16 +255,20 @@
   width: 300%;
   display: block;
   background: linear-gradient(105deg,
-    rgba(255, 244, 205, 0) 41%,
-    rgba(255, 244, 205, 0.18) 46%,
-    rgba(255, 248, 225, 0.62) 50%,
-    rgba(255, 244, 205, 0.18) 54%,
-    rgba(255, 244, 205, 0) 59%);
+    rgba(255, 206, 128, 0) 30%,
+    rgba(255, 206, 128, 0.1) 39%,
+    rgba(255, 220, 156, 0.32) 45.5%,
+    rgba(255, 236, 190, 0.8) 50%,
+    rgba(255, 220, 156, 0.32) 54.5%,
+    rgba(255, 206, 128, 0.1) 61%,
+    rgba(255, 206, 128, 0) 70%);
   will-change: transform;
 }
 
 /* The board's own shape: the hinge groove a passport cover folds along, the
-   wrap into the spine, and a faint rounded edge. */
+   wrap into the spine, a faint rounded edge — and the light falling off
+   across it, the far corner and the edges a little darker, like a cover
+   photographed under one soft light. */
 .pp-relief {
   position: absolute;
   top: 0; right: 0; bottom: 0; left: 0;
@@ -212,9 +283,11 @@
       rgba(255, 255, 255, 0.07) 6.25%,
       rgba(0, 0, 0, 0) 6.3%),
     linear-gradient(to right, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0) 2.6%),
-    linear-gradient(to left, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 1.2%);
+    linear-gradient(to left, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 1.2%),
+    radial-gradient(ellipse 85% 70% at 42% 40%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.22) 100%),
+    linear-gradient(160deg, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.14) 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
     inset 0 -1px 0 rgba(0, 0, 0, 0.35);
 }
 
@@ -223,21 +296,21 @@
 .pp-inside {
   overflow: hidden;
   border-radius: var(--rc) 0 0 var(--rc);
-  background: #0F1730;
+  background: var(--navy-inside);
 }
 
 /* ----------------------------------------------------------- back cover --- */
 
 .pp-back {
   border-radius: 0 var(--rc) var(--rc) 0;
-  background: #0E1530;
+  background: var(--navy-inside);
 }
 
 /* Its outside: plain navy leather, seen when the book closes from the back. */
 .pp-back--out {
   overflow: hidden;
   border-radius: var(--rc) 0 0 var(--rc);
-  background: #111A34;
+  background: var(--navy);
 }
 
 .pp-back--out .pp-relief { transform: scaleX(-1); }
@@ -506,7 +579,7 @@
 
 .pp-strip { overflow: hidden; opacity: var(--edge-alpha, 1); }
 
-.pp-strip--board { background: #0B1128; }
+.pp-strip--board { background: var(--navy-edge); }
 
 /* The page block: dozens of sheets seen edge-on, with the boards' shadow
    gathering at top and bottom. */
@@ -526,7 +599,7 @@
 /* The spine, seen only while the book is shut or turning over. It faces
    either way, since the book can be closed from either side. */
 .pp-spine {
-  background: linear-gradient(to bottom, #0E1530, #111A34 50%, #0E1530);
+  background: linear-gradient(to bottom, var(--navy-inside), var(--navy) 50%, var(--navy-inside));
   -webkit-backface-visibility: visible;
   backface-visibility: visible;
 }

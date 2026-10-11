@@ -53,17 +53,32 @@ on every page. Its content — countries, cities, photos, links — all lives in
 Regenerates the cover, Flighty and stamp images in `assets/passport/web/` from
 the masters in `assets/passport/` (the uploaded PNGs, never modified).
 
-    pip install pillow
+    pip install pillow numpy
     python3 tools/build-passport.py            # everything
     python3 tools/build-passport.py stamps     # or one part: cover, flighty, stamps
 
-It flattens and pads the cover, makes the foil mask that limits the cover's
+It re-prints and pads the cover, makes the foil mask that limits the cover's
 glint to the gold, and a leather-grain tile. Then it **folds** each Flighty
 screenshot along Flighty's own dashed line: the half above it becomes the page
 glued inside the front cover (the map), the half below becomes the first page
 (stats + MRZ). Both are rotated a quarter turn, because the book opens with
 its spine upright and then turns to be read. Its geometry constants are
 mirrored in `CONFIG.BOOK` in `js/passport.js` — change one, change both.
+
+The cover is **re-coloured**, not just copied: the script reads how much of
+each pixel of `Passport Cover.png` is foil (by where its colour falls between
+the master's flat navy and flat yellow, `SRC_NAVY` / `SRC_FOIL`), then prints
+it again on a deeper navy with the foil as metal — a gold ramp lit from the
+upper left, pressed into the leather, carrying a faint copy of the grain. A
+new master has to stay two flat colours; if its colours change, re-sample
+those two constants. Everything else that sets the look (`COVER_NAVY`,
+`GOLD_RAMP`, the `FOIL_*`, `DEBOSS*` and `GRAIN_*` values) is at the top of
+the script, and is seeded, so rebuilds are identical. Two values live in two
+places: `COVER_NAVY` is `--navy` in `css/passport.css`, and `GRAIN_TILE` is
+`--grain` in `js/passport.js`. The rest of the lighting — the key light, the
+leather's sheen, the moving glint on the foil, the falloff toward the edges —
+is CSS over the image (the `.pp-cover` rules), so it can be tuned without a
+rebuild.
 
 To swap in a newer Flighty passport, replace `Flighty Dark.PNG` (and/or
 `Flighty Light.PNG`) keeping the name and rerun the script. Then update the

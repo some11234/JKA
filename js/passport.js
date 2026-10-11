@@ -11,10 +11,10 @@
 
    Everything is driven by ONE number, `pos`, moving along a path:
 
-       0       closed
-       1       open on the Flighty pages, turned a quarter
-       2 … 10  visa spreads 1–2 … 17–18, upright
-       11      closed from the back and turned over — identical to 0
+       0          closed
+       1          open on the Flighty pages, turned a quarter
+       2 … n + 1  the n visa spreads, upright — as many as the stamps fill
+       n + 2      closed from the back and turned over — identical to 0
 
    Each frame derives every angle, the stack heights, the pose, the lighting
    and the framing from it, so opening, closing, a half-done drag, a reversal
@@ -94,10 +94,13 @@
     REVERSE_MS: 150          // how quickly a reversal swings the other way
   };
 
-  var VISAS = (window.PASSPORT_VISAS || []).slice(0, 9);
-  var PRINTED = !!window.PASSPORT_VISA_PRINTED;
   var STAMPS = window.PASSPORT_STAMPS || [];
-  var SPREADS = VISAS.length;
+  // The visa pages are blank paper, so the book only needs as many as the
+  // stamps fill, in whole spreads — none left over to leaf through empty.
+  // (A real passport has nine; tools/build-visa-paper.py counts the same way.)
+  var SPREADS = Math.min(9, Math.ceil(STAMPS.reduce(function (m, st) {
+    return Math.max(m, Math.floor(+st.page) || 0);
+  }, 0) / 2));
   var LEAVES = SPREADS + 1;   // leaf 0: Flighty page / visa 1
   var END = SPREADS + 2;      // "closed from the back"
 
@@ -193,18 +196,6 @@
     return e;
   }
 
-  // An engraved seal for the right-hand page, the way each Wallet ID carries
-  // its state seal — this one invented, not any real seal.
-  var SEAL_SVG = '<svg viewBox="0 0 200 200" aria-hidden="true">' +
-    '<defs><path id="pp-seal-arc" d="M100 100m-78 0a78 78 0 1 1 156 0a78 78 0 1 1 -156 0"/></defs>' +
-    '<circle cx="100" cy="100" r="96" fill="none" stroke="currentColor" stroke-width="2.5"/>' +
-    '<circle cx="100" cy="100" r="62" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
-    '<circle cx="100" cy="100" r="58" fill="none" stroke="currentColor" stroke-width="0.8" stroke-dasharray="2 3"/>' +
-    '<text font-size="17" letter-spacing="3.2" fill="currentColor"><textPath href="#pp-seal-arc">UNITED STATES OF AMERICA · VISAS ·</textPath></text>' +
-    '<path d="M100 60l4.3 13.2h13.9l-11.2 8.2 4.3 13.2-11.3-8.2-11.3 8.2 4.3-13.2-11.2-8.2h13.9z" fill="currentColor"/>' +
-    '<path d="M62 116c14-6 24-6 38 2c14-8 24-8 38-2M66 128c12-5 22-5 34 2c12-7 22-7 34-2M72 140c10-4 18-4 28 2c10-6 18-6 28-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
-    '</svg>';
-
   // Joe's travel stamps, stuck onto a visa page (js/passport-data.js). Each is
   // its own element in the page's sheet, so it rides the leaf through every
   // turn. The box holds the hand-placed tilt and never moves — it's what the
@@ -233,51 +224,31 @@
     });
   }
 
+  // Each visa page: its sheet of weathered paper (tools/build-visa-paper.py),
+  // the shadow into the spine, a page number, and whatever's stuck on it.
   function buildVisaSheets() {
-    VISAS.forEach(function (v, i) {
-      [0, 1].forEach(function (side) {
-        var page = i * 2 + 1 + side;
-        var s = el('span', 'pp-sheet pp-visa ' + (side ? 'pp-sheet--recto pp-visa--recto' : 'pp-sheet--verso pp-visa--verso'));
-        s.setAttribute('data-sheet', 'v' + page);
-        var img = el('img');
-        img.alt = '';
-        img.decoding = 'async';
-        img.width = 920;
-        img.height = 1391;
-        img.draggable = false;
-        img.setAttribute('data-src', '/assets/passport/web/visa-' + (page < 10 ? '0' : '') + page + '.webp');
-        // A page whose art is missing shows its paper, not a broken-image icon.
-        img.addEventListener('error', function () { img.style.visibility = 'hidden'; });
-        s.appendChild(img);
-        s.appendChild(el('span', 'pp-gutter'));
-        // Scans of a real passport carry their own quote and page number.
-        if (PRINTED) { addStamps(s, page); sheets['v' + page] = s; sheetBox.appendChild(s); return; }
-        // The quote is one box spanning the whole spread, present on both
-        // pages and offset so each shows its own half; across the fold it
-        // reads as one line of type.
-        var q = el('span', 'pp-visa__quote' + (v.quote.length > 170 ? ' pp-visa__quote--long' : ''));
-        q.appendChild(el('span', 'pp-visa__q', '“' + v.quote + '”'));
-        q.appendChild(el('span', 'pp-visa__by', v.by));
-        s.appendChild(q);
-        s.appendChild(el('span', 'pp-visa__num mono', String(page)));
-        if (!side) {
-          var cap = el('span', 'pp-visa__cap');
-          cap.appendChild(el('span', 'pp-visa__title', v.title));
-          cap.appendChild(el('span', 'pp-visa__sub', v.sub));
-          s.appendChild(cap);
-        } else {
-          var seal = el('span', 'pp-visa__seal');
-          seal.innerHTML = SEAL_SVG;
-          s.appendChild(seal);
-          // Who painted it, up the outer edge like a passport's microprint.
-          if (v.credit) s.appendChild(el('span', 'pp-visa__credit', v.credit));
-        }
-        // Last, so a stamp covers the print it's stuck over.
-        addStamps(s, page);
-        sheets['v' + page] = s;
-        sheetBox.appendChild(s);
-      });
-    });
+    for (var page = 1; page <= SPREADS * 2; page++) {
+      var recto = page % 2 === 0;
+      var s = el('span', 'pp-sheet pp-visa ' + (recto ? 'pp-sheet--recto pp-visa--recto' : 'pp-sheet--verso pp-visa--verso'));
+      s.setAttribute('data-sheet', 'v' + page);
+      var img = el('img');
+      img.alt = '';
+      img.decoding = 'async';
+      img.width = 920;
+      img.height = 1391;
+      img.draggable = false;
+      img.setAttribute('data-src', '/assets/passport/web/visa-' + (page < 10 ? '0' : '') + page + '.webp');
+      // A page whose paper is missing shows its plain colour, not a
+      // broken-image icon.
+      img.addEventListener('error', function () { this.style.visibility = 'hidden'; });
+      s.appendChild(img);
+      s.appendChild(el('span', 'pp-gutter'));
+      s.appendChild(el('span', 'pp-visa__num mono', String(page)));
+      // Last, so a stamp covers the number if it's stuck over it.
+      addStamps(s, page);
+      sheets['v' + page] = s;
+      sheetBox.appendChild(s);
+    }
     var blank = el('span', 'pp-sheet pp-sheet--verso pp-visa pp-visa--blank');
     sheets.blank = blank;
     sheetBox.appendChild(blank);
@@ -923,8 +894,6 @@
     if (p <= 0 || p >= END) return (mqFine.matches ? 'Click' : 'Tap') + ' to open';
     if (p === 1) return 'Flighty';
     var a = (p - 2) * 2 + 1;
-    // The scans carry the real passport's page numbers, 8–25.
-    if (PRINTED) return 'Pages ' + (a + 7) + '–' + (a + 8);
     return 'Visa pages ' + a + '–' + (a + 1) + ' of ' + (SPREADS * 2);
   }
 
@@ -942,14 +911,7 @@
     var p = state.pos, msg = '';
     if (p === 0) msg = 'Passport closed.';
     else if (p === 1) msg = 'Open on the Flighty passport. ' + ((document.getElementById('pp-desc') || {}).textContent || '').trim();
-    else if (VISAS[p - 2]) {
-      var v = VISAS[p - 2];
-      msg = PRINTED
-        ? labelFor(p) + ': ' + (v.scan || v.alt) + ' “' + v.quote + '” — ' + v.by + '.'
-        : labelFor(p) + ': ' + v.title + '. ' + v.alt + ' “' + v.quote + '” — ' + v.by + '.' +
-          (v.credit ? ' Painting: ' + v.credit + '.' : '');
-      msg += stampsOn(p);
-    }
+    else if (p >= 2 && p < END) msg = labelFor(p) + '.' + stampsOn(p);
     if (live) live.textContent = msg;
   }
 

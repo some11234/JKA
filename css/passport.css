@@ -321,141 +321,34 @@
 
 /* ----------------------------------------------------------- visa pages --- */
 
-/* Type on the visa pages is sized from the page's height (--ph, set by the
-   script), so it scales with the book. 1em = 3.05% of the page. */
+/* Plain, weathered paper (tools/build-visa-paper.py), nothing printed on it
+   but the page number. Sizes here are from the page's height (--ph, set by
+   the script), so they scale with the book: 1em = 3.05% of the page. The
+   background is the paper's own colour, for the moment before it loads. */
 .pp-visa {
   font-size: calc(var(--ph, 600px) * 0.0305);
   line-height: 1.2;
-  background: #F4E6E2;
-  --gutter-deep: rgba(46, 30, 90, 0.26);
-  --gutter-mid: rgba(46, 30, 90, 0.1);
+  background: #EEE3CA;
+  /* The fold shades sepia on paper, not the Flighty pages' indigo. */
+  --gutter-deep: rgba(84, 58, 26, 0.30);
+  --gutter-mid: rgba(84, 58, 26, 0.11);
 }
 
-.pp-visa--blank { background: #EFE6EC; }
+.pp-visa--blank { background: #EEE3CA; }
 
-/* The quotation runs across the top of the spread. It's one box on both
-   pages, offset by a page so each shows its own half and the fold falls
-   through the middle of the line, as in a real passport. */
-.pp-visa__quote {
-  position: absolute;
-  top: 4.4%;
-  width: 182%;
-  display: block;
-  text-align: center;
-  color: #22307F;
-  text-shadow: 0 0 0.6em rgba(255, 250, 246, 0.6);
-}
-.pp-visa--verso .pp-visa__quote { left: 9%; }
-.pp-visa--recto .pp-visa__quote { left: -91%; }
-
-.pp-visa__q {
-  display: block;
-  font-family: 'Cormorant Garamond', 'Libre Caslon Text', Georgia, 'Times New Roman', serif;
-  font-style: italic;
-  font-weight: 600;
-  font-size: 1.12em;
-  line-height: 1.24;
-  text-wrap: balance;
-}
-.pp-visa__quote--long .pp-visa__q { font-size: 0.98em; }
-
-.pp-visa__by {
-  display: block;
-  margin-top: 0.5em;
-  padding-right: 2%;
-  text-align: right;
-  font-family: var(--font-sans);
-  font-weight: 700;
-  font-size: 0.5em;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #3A4FC9;
-}
-
-/* Bottom-left of the left page: the place, in the Wallet ID's bold blue —
-   with a soft halo, since it often sits over the corner flowers. */
-.pp-visa__cap {
-  position: absolute;
-  left: 7.5%;
-  bottom: 6.2%;
-  display: block;
-  max-width: 78%;
-  text-shadow: 0 0 0.3em rgba(255, 250, 246, 0.95), 0 0 0.8em rgba(255, 250, 246, 0.7);
-}
-
-.pp-visa__title {
-  display: block;
-  font-family: var(--font-sans);
-  font-weight: 800;
-  font-size: 1.62em;
-  letter-spacing: -0.015em;
-  line-height: 1;
-  color: #2E40B8;
-}
-
-.pp-visa__sub {
-  display: block;
-  margin-top: 0.5em;
-  font-family: var(--font-sans);
-  font-weight: 700;
-  font-size: 0.5em;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #1E2A72;
-  opacity: 0.85;
-}
-
-/* Bottom-right of the right page: an engraved seal, like the Wallet IDs'. */
-.pp-visa__seal {
-  position: absolute;
-  right: 7%;
-  bottom: 5.4%;
-  width: 21%;
-  aspect-ratio: 1;
-  display: block;
-  color: #4C55B4;
-  opacity: 0.62;
-}
-.pp-visa__seal svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  font-family: 'Libre Caslon Text', Georgia, serif;
-}
-
-/* The painting's credit runs up the outer edge of the right page, small,
-   like the microprinted lines on a real passport page. */
-.pp-visa__credit {
-  position: absolute;
-  right: 2.6%;
-  bottom: 31%;
-  height: 50%;
-  display: block;
-  line-height: 1.5;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-family: var(--font-sans);
-  font-weight: 700;
-  font-size: 0.34em;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #1E2A72;
-  opacity: 0.6;
-  text-shadow: 0 0 0.5em rgba(255, 250, 246, 0.9);
-}
-
-/* Page numbers, small, in the outer top corners. */
+/* Page numbers, small, in the outer top corners — printed once in a
+   grey-blue ink that's faded along with the paper. */
 .pp-visa__num {
   position: absolute;
-  top: 2.4%;
+  top: 2.6%;
   display: block;
-  font-size: 0.42em;
+  font-size: 0.46em;
   letter-spacing: 0.08em;
-  color: #1E2A72;
-  opacity: 0.7;
+  color: #4F5A6E;
+  opacity: 0.62;
 }
-.pp-visa--verso .pp-visa__num { left: 3.6%; }
-.pp-visa--recto .pp-visa__num { right: 3.6%; }
+.pp-visa--verso .pp-visa__num { left: 5.2%; }
+.pp-visa--recto .pp-visa__num { right: 5.2%; }
 
 /* --------------------------------------------------------------- stamps --- */
 
@@ -468,19 +361,20 @@
 
 .pp-stamp {
   position: absolute;
-  width: 42%;
+  width: 38%;
   aspect-ratio: 1;
   display: block;
   transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
 }
 
 /* Stuck down flat: a hairline of shadow right under the perforations and a
-   faint one just beyond, both down and right, away from the light. In ems,
-   which here are a share of the page's height, so they scale with it. */
+   faint one just beyond, both down and right, away from the light — warm,
+   the way a shadow falls on cream paper. In ems, which here are a share of
+   the page's height, so they scale with it. */
 .pp-sheet .pp-stamp__art {
   filter:
-    drop-shadow(0.02em 0.04em 0.03em rgba(22, 26, 64, 0.42))
-    drop-shadow(0.06em 0.12em 0.14em rgba(22, 26, 64, 0.16));
+    drop-shadow(0.02em 0.04em 0.03em rgba(52, 34, 14, 0.40))
+    drop-shadow(0.06em 0.12em 0.14em rgba(52, 34, 14, 0.15));
   transition: transform 320ms cubic-bezier(0.3, 0.7, 0.4, 1), filter 320ms ease;
 }
 
@@ -496,8 +390,8 @@
   .pp.is-settled .pp-stamp:hover .pp-stamp__art {
     transform: translate(-0.6%, -2.4%) rotate(var(--nudge, 0deg)) scale(1.045);
     filter:
-      drop-shadow(0.05em 0.1em 0.08em rgba(22, 26, 64, 0.24))
-      drop-shadow(0.28em 0.55em 0.5em rgba(22, 26, 64, 0.22));
+      drop-shadow(0.05em 0.1em 0.08em rgba(52, 34, 14, 0.24))
+      drop-shadow(0.28em 0.55em 0.5em rgba(52, 34, 14, 0.22));
     transition: transform 440ms cubic-bezier(0.25, 1.5, 0.45, 1), filter 320ms ease;
   }
 }
@@ -648,25 +542,6 @@
 
 /* Closed: only the hint shows. Open: the arrows join it. */
 .pp:not(.is-open) .pp-nav { opacity: 0; visibility: hidden; }
-
-/* Credit for the visa-page scans, shown once the book is open. */
-.pp-attrib {
-  position: absolute;
-  right: 20px;
-  bottom: 22px;
-  margin: 0;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.45);
-  opacity: 0;
-  transition: opacity 400ms ease;
-  pointer-events: none;
-}
-.pp-attrib a { color: inherit; text-underline-offset: 2px; }
-.pp.is-open .pp-attrib { opacity: 1; pointer-events: auto; }
-@media (max-width: 720px) {
-  .pp-attrib { right: 0; left: 0; bottom: auto; top: calc(var(--header-h) + 2px); text-align: center; }
-}
 
 .js .pp-controls { opacity: 0; transition: opacity 400ms ease; }
 .pp.is-ready .pp-controls { opacity: 1; }

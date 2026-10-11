@@ -80,11 +80,14 @@ its perforated edge and writes `stamp-<country>-<year>.webp` (lowercased,
 spaces to hyphens — `United Kingdom 2026.png` → `stamp-united-kingdom-2026.webp`).
 
 Where each one sits is `PASSPORT_STAMPS` in `js/passport-data.js`: the page
-(1–18), the stamp's centre as a percentage of the page, and a small tilt, so
-they look stuck in by hand. They're listed in the order Joe went, front of
-the book to back, like a real passport. To add one, drop in the PNG, run
+(from 1; odd on the left, even on the right), the stamp's centre as a
+percentage of the page, and a small tilt, so they look stuck in by hand.
+They're listed in the order Joe went, front of the book to back, like a real
+passport. To add one, drop in the PNG, run
 `python3 tools/build-passport.py stamps`, and add a line to that list. To move
-one, change its line — no rebuild.
+one, change its line — no rebuild. If it goes on a page past the last one
+there is, the book grows to reach it: rerun `build-visa-paper.py` (below) so
+the new pages have paper.
 
 Each stamp is its own element inside its page, so it turns with the leaf and
 takes its lighting. With a mouse, a stamp lifts a little off the page under
@@ -92,65 +95,36 @@ the pointer; a click on it still turns the page. That's why the page-turn
 buttons (`.pp-tap`) sit under the book in `css/passport.css`: the book lets
 the pointer through to them everywhere except the stamps.
 
-## build-visas.js
+## build-visa-paper.py
 
-Renders the eighteen visa pages, `assets/passport/web/visa-01.webp` …
-`visa-18.webp`, from nine public-domain American paintings — one per spread:
+Makes the visa pages: plain, weathered paper, nothing printed on it — the
+stamps are the point. Each page is the same cream stock aged a little
+differently: blotchy tone, fibres and a fine grain, browning in from the three
+outer edges (not the spine side), and a scatter of foxing. Page 2 also has a
+dried water stain and page 3 a flattened dog-ear; the rest stay unmarked.
 
-    npm install --no-save @resvg/resvg-js@2 sharp@0.33 \
-        @expo-google-fonts/libre-caslon-text
-    node tools/build-visas.js                 # every spread
-    node tools/build-visas.js 3               # just the third spread (pages 5–6)
-    node tools/build-visas.js --preview DIR   # also write whole-spread JPEGs
+    pip install pillow numpy
+    python3 tools/build-visa-paper.py            # as many pages as the stamps fill
+    python3 tools/build-visa-paper.py --pages 6  # or a set number
 
-`tools/visas/spreads.js` lists each painting: where to download it (museum
-open-access files first, Wikimedia Commons as a fallback), how to crop a
-spread out of it (2080×1572, two pages with the spine down the middle), and
-any per-painting grade tweaks. The script downloads each one once into
-`tools/visas/.masters/` (gitignored; it can be several hundred MB), so later
-runs are offline. If a server refuses, save the painting by hand under the
-file name the error gives and run it again.
+It writes `assets/passport/web/visa-01.webp` … one per page, and deletes any
+higher-numbered ones, so the folder only holds the pages the book shows. How
+many: the book has **no blank visa pages** — it has exactly as many as the
+stamps fill, rounded up to a whole spread (at most nine spreads, like a real
+passport). The script reads the highest `page:` in `js/passport-data.js` to
+match, and `js/passport.js` counts them the same way. The randomness is
+seeded by page number, so rebuilds are byte-identical; how strong each layer
+is lives at the top of the script.
 
-`tools/visas/grade.js` turns each painting into a page of the same printed
-book: it lifts old varnish, raises the blacks to an ink blue and caps the
-whites at paper, pulls every colour part-way toward one shared palette
-(indigo, periwinkle, mauve, apricot, cream — the Apple Wallet state IDs'
-colours, borrowed rather than copied), adds a little highlight bloom, fades
-the top toward pale sky for the quote, lightens the print under the seal and
-the caption, and finishes with faint security linework (wavy microtext,
-guilloche), a gentle iridescent sheen, paper grain and mottle. Every default
-is documented at the top of that file; a spread can override any of them.
-The randomness is seeded, so rebuilds are byte-identical.
+The only print on a page is its number, small in the top outer corner, and
+that's live text (`.pp-visa__num` in `css/passport.css`), not in the image.
+The shadow down into the spine is CSS too (`.pp-gutter`).
 
-The quotes, captions, credits, page numbers and the seal are **not** in the
-images — they're live text laid over them, written in `js/passport-data.js`,
-so editing a quote never needs a rebuild. The two lists are matched by order:
-the first painting in `spreads.js` goes with the first entry in
-`passport-data.js`, and the script warns if their lengths differ. When you
-swap a painting, update that entry's `credit` and `alt` too.
-
-The `2026-10-03 at …@2x.png` screenshots in `assets/passport/` are the Wallet
-ID style references the grade was tuned against. The page never loads them.
-
-## build-visa-scans.js
-
-The page currently shows the **real passport** instead of the paintings:
-flat scans of a Next Generation US passport's visa pages (pp. 8–25) by Gabe
-Classon, released under CC0 ("The Little Blue Book",
-https://classon.onrender.com/posts/passport — he asks for credit and a link,
-which the page carries under the book).
-
-    npm install --no-save sharp@0.33
-    node tools/build-visa-scans.js
-
-It crops the two pages out of each scan either side of the spine (found per
-scan) and writes the same `visa-01.webp` … `visa-18.webp` as build-visas.js,
-so whichever ran last is what the passport shows. The scans have their
-quotes and page numbers printed on them, so `js/passport-data.js` sets
-`PASSPORT_VISA_PRINTED = true`: the page then lays no quote, caption, seal
-or credit over them, reads out each entry's `scan` description, and counts
-pages with the real numbers (8–25). To go back to the paintings, run
-build-visas.js and set it to `false`.
+Earlier versions of the visa pages — nine public-domain American paintings
+(`tools/build-visas.js`) and Gabe Classon's CC0 scans of a real passport
+(`tools/build-visa-scans.js`) — are in the git history. The
+`2026-10-03 at …@2x.png` screenshots in `assets/passport/` were the style
+references for the paintings; the page never loads them.
 
 ## The passport page
 
@@ -177,7 +151,7 @@ daylight version without changing anything for anyone else.
     travel/     countries.json, the globe's map (generated, see above)
     passport/   cover, Flighty, stamp and Wallet-reference masters; web/ holds
                 what the page loads (generated by build-passport.py and
-                build-visas.js / build-visa-scans.js)
+                build-visa-paper.py)
     _originals/ masters for everything outside the gallery (gitignored)
 
 `album art` was renamed `album-art` — a space in a path means `%20` in every URL

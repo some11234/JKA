@@ -96,6 +96,7 @@
 
   var VISAS = (window.PASSPORT_VISAS || []).slice(0, 9);
   var PRINTED = !!window.PASSPORT_VISA_PRINTED;
+  var STAMPS = window.PASSPORT_STAMPS || [];
   var SPREADS = VISAS.length;
   var LEAVES = SPREADS + 1;   // leaf 0: Flighty page / visa 1
   var END = SPREADS + 2;      // "closed from the back"
@@ -204,6 +205,34 @@
     '<path d="M62 116c14-6 24-6 38 2c14-8 24-8 38-2M66 128c12-5 22-5 34 2c12-7 22-7 34-2M72 140c10-4 18-4 28 2c10-6 18-6 28-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
     '</svg>';
 
+  // Joe's travel stamps, stuck onto a visa page (js/passport-data.js). Each is
+  // its own element in the page's sheet, so it rides the leaf through every
+  // turn. The box holds the hand-placed tilt and never moves — it's what the
+  // pointer hovers, so a lifting stamp can't slide out from under it and
+  // flicker; the image inside does the lifting.
+  function addStamps(s, page) {
+    STAMPS.forEach(function (st) {
+      if (st.page !== page) return;
+      var at = st.at || [50, 50], tilt = +st.tilt || 0;
+      var box = el('span', 'pp-stamp');
+      box.style.left = at[0] + '%';
+      box.style.top = at[1] + '%';
+      box.style.setProperty('--tilt', tilt + 'deg');
+      // Lifted, it straightens a little, as if picked up by a corner.
+      box.style.setProperty('--nudge', (tilt > 0 ? -1.5 : 1.5) + 'deg');
+      var img = el('img', 'pp-stamp__art');
+      img.alt = '';
+      img.decoding = 'async';
+      img.width = 560;
+      img.height = 560;
+      img.draggable = false;
+      img.setAttribute('data-src', '/assets/passport/web/stamp-' + st.stamp + '.webp');
+      img.addEventListener('error', function () { box.style.display = 'none'; });
+      box.appendChild(img);
+      s.appendChild(box);
+    });
+  }
+
   function buildVisaSheets() {
     VISAS.forEach(function (v, i) {
       [0, 1].forEach(function (side) {
@@ -222,7 +251,7 @@
         s.appendChild(img);
         s.appendChild(el('span', 'pp-gutter'));
         // Scans of a real passport carry their own quote and page number.
-        if (PRINTED) { sheets['v' + page] = s; sheetBox.appendChild(s); return; }
+        if (PRINTED) { addStamps(s, page); sheets['v' + page] = s; sheetBox.appendChild(s); return; }
         // The quote is one box spanning the whole spread, present on both
         // pages and offset so each shows its own half; across the fold it
         // reads as one line of type.
@@ -243,6 +272,8 @@
           // Who painted it, up the outer edge like a passport's microprint.
           if (v.credit) s.appendChild(el('span', 'pp-visa__credit', v.credit));
         }
+        // Last, so a stamp covers the print it's stuck over.
+        addStamps(s, page);
         sheets['v' + page] = s;
         sheetBox.appendChild(s);
       });
@@ -274,13 +305,14 @@
     if (img.hasAttribute('data-variant-src')) src = src.replace('-blacklight-', '-' + variant + '-');
     img.src = src;
   }
-  function sheetImg(id) { return sheets[id] ? sheets[id].querySelector('img') : null; }
+  // A sheet's images: the page, then any stamps stuck on it.
+  function sheetImgs(id) { return sheets[id] ? Array.prototype.slice.call(sheets[id].querySelectorAll('img')) : []; }
   function preloadAround(p) {
     // The pages within a spread of where the book is (or is heading).
     var ids = [];
     var nL = clamp(Math.round(p) - 1, 0, LEAVES - 1);
     for (var j = Math.max(0, nL - 1); j <= Math.min(LEAVES - 1, nL + 2); j++) ids.push(leafFrontId(j), leafBackId(j));
-    ids.forEach(function (id) { loadImg(sheetImg(id)); });
+    ids.forEach(function (id) { sheetImgs(id).forEach(loadImg); });
   }
   function drainQueue() {
     // Then everything else, one at a time, while idle.
@@ -916,8 +948,17 @@
         ? labelFor(p) + ': ' + (v.scan || v.alt) + ' “' + v.quote + '” — ' + v.by + '.'
         : labelFor(p) + ': ' + v.title + '. ' + v.alt + ' “' + v.quote + '” — ' + v.by + '.' +
           (v.credit ? ' Painting: ' + v.credit + '.' : '');
+      msg += stampsOn(p);
     }
     if (live) live.textContent = msg;
+  }
+
+  // " Stamped: Germany, 2017; Iceland, 2017." for the spread at p.
+  function stampsOn(p) {
+    var a = (p - 2) * 2 + 1;
+    var on = STAMPS.filter(function (st) { return st.page === a || st.page === a + 1; });
+    if (!on.length) return '';
+    return ' Stamped: ' + on.map(function (st) { return st.name + ', ' + st.year; }).join('; ') + '.';
   }
 
   var fadeTimer = 0;
@@ -1044,15 +1085,25 @@
   });
 
   // Page halves: a tap that wanders (text selection, a stray drag) is not a
-  // turn; nor is the second click of a double-click.
-  [[tapPrev, -1], [tapNext, 1]].forEach(function (pair) {
+  // turn; nor is the second click of a double-click. The stamps sit above
+  // the page halves so they can be hovered (see .pp-stamp), and a click on
+  // one turns its page just the same.
+  function turnOnTap(target, dirOf) {
     var down = null;
-    pair[0].addEventListener('pointerdown', function (e) { down = { x: e.clientX, y: e.clientY }; });
-    pair[0].addEventListener('click', function (e) {
-      if (e.detail > 1) return;
+    target.addEventListener('pointerdown', function (e) { down = { x: e.clientX, y: e.clientY }; });
+    target.addEventListener('click', function (e) {
+      var dir = dirOf(e);
+      if (!dir || e.detail > 1) return;
       if (down && Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) > CONFIG.TAP_SLOP * 1.5) return;
-      if (pair[1] > 0) next(); else prev();
+      if (dir > 0) next(); else prev();
     });
+  }
+  turnOnTap(tapPrev, function () { return -1; });
+  turnOnTap(tapNext, function () { return 1; });
+  // Nothing else in the scene takes the pointer, so these come from stamps.
+  turnOnTap(scene, function (e) {
+    var face = e.target.closest ? e.target.closest('.pp-face') : null;
+    return face === rTop ? 1 : face === lTop ? -1 : 0;
   });
   navPrev.addEventListener('click', prev);
   navNext.addEventListener('click', next);
@@ -1118,10 +1169,12 @@
     wake();
     // Now the cover is up, fetch the inside: the Flighty pages first, then
     // the visa pages nearest the front, then the rest while idle.
-    loadImg(sheetImg('data'));
+    sheetImgs('data').forEach(loadImg);
     loadImg(mapPage.querySelector('img'));
     preloadAround(1);
-    Object.keys(sheets).forEach(function (id) { var im = sheetImg(id); if (im && !im.getAttribute('src')) queue.push(im); });
+    Object.keys(sheets).forEach(function (id) {
+      sheetImgs(id).forEach(function (im) { if (!im.getAttribute('src')) queue.push(im); });
+    });
     setTimeout(drainQueue, 1500);
     if (motionOK()) {
       setTimeout(function () {

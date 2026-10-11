@@ -4,7 +4,8 @@ build-passport.py — regenerates assets/passport/web/ from the masters in
 assets/passport/ (the uploaded PNGs, which are never modified).
 
     pip install pillow
-    python3 tools/build-passport.py
+    python3 tools/build-passport.py            # everything
+    python3 tools/build-passport.py stamps     # just one part: cover, flighty, stamps
 
 What it makes, and why each one exists:
 
@@ -24,6 +25,12 @@ What it makes, and why each one exists:
                         turns a quarter clockwise to be read — the same way you
                         turn a real passport to read its data page.
   flighty-<v>.webp      The whole screenshot, flat — the no-JS fallback.
+  stamp-<slug>.webp     Each Amex travel stamp ("<Country> <Year>.png"),
+                        trimmed to its perforated edge so the image's box is
+                        the stamp's box, and kept transparent outside it — the
+                        page stands them on the visa pages at a tilt and casts
+                        their shadow from that edge. Where each one goes is
+                        PASSPORT_STAMPS in js/passport-data.js.
 
 The geometry constants are mirrored in js/passport.js (CONFIG.BOOK). Change
 one, change both: the page images are cut to exactly the shape the 3D pages are
@@ -32,6 +39,7 @@ built at, so a mismatch shows up as a stretched or cropped page.
 
 import os
 import random
+import re
 import sys
 
 from PIL import Image, ImageFilter
@@ -85,6 +93,13 @@ BAND_BLUR = 22   # horizontal blur that keeps the band free of streaks
 COVER_SRC = 'Passport Cover.png'
 COVER_H = 2000             # output height of cover.webp
 COVER_NAVY = (17, 26, 52)   # #111A34, sampled from the cover's flat ground
+
+# ------------------------------------------------------------- the stamps --
+# Any master named "<Country> <Year>.png" is a stamp. They're shown at about
+# 42% of a page's width — ~195 CSS px on a laptop, ~390 device px at 2× — so
+# 560 leaves room for big screens and the hover lift.
+STAMP_RE = re.compile(r'^(.+) (\d{4})\.png$', re.IGNORECASE)
+STAMP_PX = 560
 
 
 def webp(img, name, **kw):
@@ -206,13 +221,45 @@ def build_flighty(variant, filename):
           % (map_band, band_h, map_px, data_px))
 
 
+def stamp_slug(name):
+    """'United States of America 2006.png' → 'united-states-of-america-2006'."""
+    return re.sub(r'[^a-z0-9]+', '-', os.path.splitext(name)[0].lower()).strip('-')
+
+
+def build_stamps():
+    names = sorted(n for n in os.listdir(SRC) if STAMP_RE.match(n))
+    if not names:
+        sys.exit('no stamps in %s — they are named "<Country> <Year>.png"' % SRC)
+    for name in names:
+        src = Image.open(os.path.join(SRC, name)).convert('RGBA')
+        # Trim the transparent margin, so the box CSS places is the stamp.
+        box = src.getchannel('A').getbbox()
+        stamp = src.crop(box)
+        if abs(stamp.width - stamp.height) > 0.02 * stamp.width:
+            sys.exit('%s is %d×%d once trimmed — the page lays stamps out as squares'
+                     % (name, stamp.width, stamp.height))
+        stamp = stamp.resize((STAMP_PX, STAMP_PX), Image.LANCZOS)
+        webp(stamp, 'stamp-%s.webp' % stamp_slug(name), quality=90, alpha_quality=90)
+
+
+PARTS = ('cover', 'flighty', 'stamps')
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
-    print('pages: map %.4f, data %.4f × %.4f of the cover height' % (MAP_W, DATA_W, PAGE_H))
-    build_cover()
-    build_grain()
-    for variant, filename in VARIANTS.items():
-        build_flighty(variant, filename)
+    parts = sys.argv[1:] or PARTS
+    for part in parts:
+        if part not in PARTS:
+            sys.exit('unknown part %r — choose from: %s' % (part, ', '.join(PARTS)))
+    if 'cover' in parts:
+        build_cover()
+        build_grain()
+    if 'flighty' in parts:
+        print('pages: map %.4f, data %.4f × %.4f of the cover height' % (MAP_W, DATA_W, PAGE_H))
+        for variant, filename in VARIANTS.items():
+            build_flighty(variant, filename)
+    if 'stamps' in parts:
+        build_stamps()
 
 
 if __name__ == '__main__':

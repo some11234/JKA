@@ -256,8 +256,11 @@
   function leafBackId(j) { return j === LEAVES - 1 ? 'blank' : 'v' + (j * 2 + 1); }
 
   function mount(face, id) {
-    if (face._sheet === id) return;
-    var slot = face.querySelector('.pp-slot');
+    var slot = face._slot || (face._slot = face.querySelector('.pp-slot'));
+    // Another face can take a sheet while this one is hidden (the top page
+    // takes the leaf's back when a turn lands), so check it's still here —
+    // or turning straight back shows the leaf blank.
+    if (face._sheet === id && (!id || !sheets[id] || sheets[id].parentNode === slot)) return;
     if (face._sheet && sheets[face._sheet] && sheets[face._sheet].parentNode === slot) sheetBox.appendChild(sheets[face._sheet]);
     face._sheet = id || null;
     if (id && sheets[id]) slot.appendChild(sheets[id]);

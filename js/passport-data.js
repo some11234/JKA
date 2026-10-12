@@ -1,148 +1,56 @@
 /* ==========================================================================
-   passport-data.js — what's printed on the passport's visa pages.
+   passport-data.js — Joe's travel stamps, and where they're stuck in.
 
-   One entry per SPREAD (two facing visa pages), in book order. The nine
-   follow the visa pages of the current US passport (the Next Generation
-   book, 2021–, pages 8–25): the same quotations, word for word and in the
-   same order, each over a public-domain American painting of that page's
-   subject. The paintings are listed in tools/visas/spreads.js and rendered
-   by tools/build-visas.js into assets/passport/web/visa-NN.webp; everything
-   here is live text laid over them by js/passport.js, so it can be edited
-   without rebuilding the art.
-
-     title   Big caption, bottom-left of the left page (the Wallet-ID "name").
-     sub     Small line under it.
-     quote   Runs across the top of the spread, as in the real passport.
-     by      Attribution under the quote, as the passport prints it.
-     credit  The painting, up the outer edge of the right page.
-     alt     What the painting shows, for screen readers.
-     scan    What the real passport page shows, read out instead of alt
-             while the pages are the scans (below).
-
-   PASSPORT_VISA_PRINTED says which pages are in assets/: true when they are
-   the scans of a real passport from tools/build-visa-scans.js, which have
-   the quotes and page numbers printed on them, so the page lays no text of
-   its own over them; false for the paintings from tools/build-visas.js.
+   The visa pages themselves are weathered paper (made by
+   tools/build-visa-paper.py into assets/passport/web/visa-NN.webp) with the
+   passport's blue printing on them — the VISAS heading, a frame, the page
+   number, guide marks quartering the page, microprint — laid over, worn,
+   by js/passport.js. The book has exactly as many
+   of them as the stamps below fill, in whole spreads, so there are never
+   blank pages to leaf through: put a stamp on a later page and the book
+   grows to reach it (then rerun the paper build — see tools/README.md).
    ========================================================================== */
-
-window.PASSPORT_VISA_PRINTED = true;
-
-window.PASSPORT_VISAS = [
-  {
-    title: 'Philadelphia',
-    sub: 'Independence Hall',
-    quote: 'We have a great dream. It started way back in 1776, and God grant that America will be true to her dream.',
-    by: 'Martin Luther King, Jr.',
-    credit: 'Ferdinand Richardt · Independence Hall in Philadelphia · 1858–63 · The White House',
-    alt: 'A painting of Independence Hall’s white clock tower and the red-brick Congress Hall beside it, with crowds, carriages and children on Chestnut Street under a cloudy sky.',
-    scan: 'The Liberty Bell beside the brick tower of Independence Hall, over the engrossed heading of the Declaration of Independence.',
-  },
-  {
-    title: 'Penobscot Bay',
-    sub: 'Owl’s Head Light · Maine',
-    quote: 'Let every nation know, whether it wishes us well or ill, that we shall pay any price, bear any burden, meet any hardship, support any friend, oppose any foe, in order to assure the survival and the success of liberty.',
-    by: 'John F. Kennedy',
-    credit: 'Fitz Henry Lane · Owl’s Head, Penobscot Bay, Maine · 1862 · Museum of Fine Arts, Boston',
-    alt: 'A painting of a square-rigged ship riding at anchor on a glassy bay at dawn, beside a wooded island with a white lighthouse and keeper’s house, a man standing on the rocky shore in front.',
-    scan: 'A clipper ship under full sail on the left page; a gull over a lighthouse and keeper’s houses on the right.',
-  },
-  {
-    title: 'The Ohio River',
-    sub: 'Near Wheeling',
-    quote: 'This is a new nation, based on a mighty continent, of boundless possibilities.',
-    by: 'Theodore Roosevelt',
-    credit: 'Lefevre James Cranstone · The Ohio River near Wheeling, West Virginia · 1859–60 · The Metropolitan Museum of Art',
-    alt: 'A watercolor of a broad river winding between hazy hills, a white twin-stacked steamboat trailing smoke along the right bank.',
-    scan: 'A V of geese over a broad river and wooded hills, with a twin-stacked sternwheel steamboat on the right page.',
-  },
-  {
-    title: 'Washington',
-    sub: 'Crossing the Delaware · 1776',
-    quote: 'Let us raise a standard to which the wise and honest can repair…',
-    by: 'George Washington',
-    credit: 'Emanuel Leutze · Washington Crossing the Delaware · 1851 · The Metropolitan Museum of Art',
-    alt: 'A painting of George Washington standing in the bow of a crowded rowboat, soldiers poling it through the ice of the Delaware at dawn as the flag streams behind him.',
-    scan: 'The four carved faces of Mount Rushmore, Washington and Jefferson on the left page, Roosevelt and Lincoln on the right.',
-  },
-  {
-    title: 'Sierra Nevada',
-    sub: 'California',
-    quote: 'The principle of free governments adheres to the American soil. It is bedded in it, immovable as its mountains.',
-    by: 'Daniel Webster',
-    credit: 'Albert Bierstadt · Among the Sierra Nevada, California · 1868 · Smithsonian American Art Museum',
-    alt: 'A painting of snowy peaks breaking through storm clouds above a still mountain lake, a waterfall pouring down a granite cliff on the left and deer at the water’s edge.',
-    scan: 'A jagged range of snowy peaks mirrored in a still mountain lake.',
-  },
-  {
-    title: 'Delaware Valley',
-    sub: 'Harvest',
-    quote: 'Whatever America hopes to bring to pass in the world must first come to pass in the heart of America.',
-    by: 'Dwight D. Eisenhower',
-    credit: 'George Inness · Harvest Scene in the Delaware Valley · 1867 · National Gallery of Art',
-    alt: 'A painting of sunbeams breaking through clouds over a wide valley, a stand of trees and a farmhouse beyond fields where harvested grain stands in shocks.',
-    scan: 'Ripe wheat in the foreground of the left page; a farmer ploughing with a team of oxen before a farmstead on the right.',
-  },
-  {
-    title: 'The Plains',
-    sub: 'Texas longhorns',
-    quote: 'For this is what America is all about. It is the uncrossed desert and the unclimbed ridge. It is the star that is not reached and the harvest sleeping in the unplowed ground. Is our world gone? We say ‘Farewell.’ Is a new world coming? We welcome it—and we will bend it to the hopes of man.',
-    by: 'Lyndon B. Johnson',
-    credit: 'Frank Reaugh · The Approaching Herd · 1902 · Panhandle–Plains Historical Museum',
-    alt: 'A painting of longhorn cattle walking toward the viewer through tall dry prairie grass, a white steer in the lead, under a pale hazy sky.',
-    scan: 'A cowboy driving a herd of longhorn cattle on the left page; a rider and a windmill before distant mountains on the right.',
-  },
-  {
-    title: 'Waikīkī',
-    sub: 'Diamond Head · Oʻahu',
-    quote: 'Every generation has the obligation to free men’s minds for a look at new worlds… to look out from a higher plateau than the last generation.',
-    by: 'Ellison S. Onizuka',
-    credit: 'Gideon Jacques Denny · Diamond Head from Waikiki · 1882 · Bishop Museum',
-    alt: 'A painting of tall coconut palms on the flats of Waikīkī, the long ridge of Diamond Head beyond a grove and a sliver of surf, under a soft grey sky.',
-    scan: 'A leaning coconut palm, and Diamond Head across the water of Oʻahu.',
-  },
-  {
-    title: 'Starrucca Viaduct',
-    sub: 'Susquehanna Valley · Pennsylvania',
-    quote: 'May God continue the unity of our country as this railroad unites the two great oceans of the world.',
-    by: 'Inscribed on the Golden Spike, Promontory, Utah, 1869',
-    credit: 'Jasper Francis Cropsey · Starrucca Viaduct, Pennsylvania · 1865 · Toledo Museum of Art',
-    alt: 'A painting of an autumn valley seen from a rocky outcrop, a steam train crossing a long stone viaduct below wooded hills, a lake and village in the valley.',
-    scan: 'A steam locomotive charging past telegraph poles on the left page; a wooden trestle in snowy hills on the right.',
-  },
-];
 
 /* --------------------------------------------------------------------------
    PASSPORT_STAMPS — Joe's American Express travel stamps, stuck onto the
    visa pages in the order he went, the way a real passport fills up. Each
-   is its own element on its page, so it turns with the leaf it's on.
+   is its own element on its page, so it turns with the leaf it's on, and
+   each has its country and year rubber-stamped in blue ink just under it.
 
      stamp   The image: assets/passport/web/stamp-<stamp>.webp, made by
              tools/build-passport.py from "<Country> <Year>.png" in
              assets/passport/ (lowercased, spaces to hyphens).
-     name    The country, as it's read out.
-     year    The year on the stamp.
-     page    Which visa page, 1–18: odd on the left, even on the right.
-             (The scans print their own numbers, seven higher: page 1 is
-             printed 8, page 18 is printed 25.)
+     name    The country, as it's read out and inked under the stamp (in
+             capitals, without a leading "the").
+     year    The year on the stamp, inked after the name.
+     page    Which visa page, from 1: odd on the left, even on the right.
      at      Where the stamp's centre goes: [across, down], in % of the
-             page. Keep it clear of the spine — at most ~62 across on a left
-             page, at least ~38 on a right one — and of the page numbers.
+             page. A stamp is 36% of the page wide and about 24% tall, with
+             its ink mark another ~3% below. Keep it below the VISAS heading
+             and the page number's ring (its top edge under ~10 down, so
+             centres from ~23), above the
+             microprint at the foot (ink ending above ~92), and clear of the
+             spine (centres at most ~70 across on a left page, at least ~30
+             on a right one).
      tilt    Degrees, clockwise. Small and never quite square: stuck down
              by hand, not by a machine.
+     ink     Optional: 'left' or 'right' lines the ink mark up with that
+             edge of the stamp instead of centring it — for when another
+             stamp covers the middle.
 
-   They're laid out for the scans; over the paintings, mind the caption and
-   seal at the foot of each spread.
+   Germany and Iceland were one trip, so they're stuck in together,
+   overlapping a little; the rest each have room of their own.
    -------------------------------------------------------------------------- */
 
 window.PASSPORT_STAMPS = [
-  { stamp: 'united-states-of-america-2006', name: 'United States', year: 2006, page: 2, at: [50, 62], tilt: -3.2 },
-  { stamp: 'mexico-2015', name: 'Mexico', year: 2015, page: 3, at: [40, 70], tilt: 2.6 },
-  { stamp: 'germany-2017', name: 'Germany', year: 2017, page: 6, at: [37, 39], tilt: -4.2 },
-  { stamp: 'iceland-2017', name: 'Iceland', year: 2017, page: 6, at: [61, 64], tilt: 3.4 },
-  { stamp: 'canada-2025', name: 'Canada', year: 2025, page: 7, at: [40, 71], tilt: -2.3 },
-  { stamp: 'united-kingdom-2026', name: 'United Kingdom', year: 2026, page: 10, at: [52, 67], tilt: 4.1 },
-  { stamp: 'belgium-2026', name: 'Belgium', year: 2026, page: 11, at: [60, 61], tilt: -3.0 },
-  { stamp: 'netherlands-2026', name: 'the Netherlands', year: 2026, page: 14, at: [50, 41], tilt: 2.2 },
-  { stamp: 'portugal-2026', name: 'Portugal', year: 2026, page: 15, at: [57, 47], tilt: -3.7 },
-  { stamp: 'malta-2026', name: 'Malta', year: 2026, page: 18, at: [47, 54], tilt: 2.8 },
+  { stamp: 'united-states-of-america-2006', name: 'United States', year: 2006, page: 1, at: [37, 29], tilt: -3.2 },
+  { stamp: 'mexico-2015', name: 'Mexico', year: 2015, page: 1, at: [58, 68], tilt: 2.6 },
+  { stamp: 'germany-2017', name: 'Germany', year: 2017, page: 2, at: [38, 31], tilt: -4.2, ink: 'left' },
+  { stamp: 'iceland-2017', name: 'Iceland', year: 2017, page: 2, at: [62.5, 53.5], tilt: 3.4 },
+  { stamp: 'canada-2025', name: 'Canada', year: 2025, page: 3, at: [28, 25], tilt: -2.3 },
+  { stamp: 'united-kingdom-2026', name: 'United Kingdom', year: 2026, page: 3, at: [70, 32], tilt: 4.1 },
+  { stamp: 'belgium-2026', name: 'Belgium', year: 2026, page: 3, at: [45, 71], tilt: -3.0 },
+  { stamp: 'netherlands-2026', name: 'the Netherlands', year: 2026, page: 4, at: [52, 26], tilt: 2.2 },
+  { stamp: 'portugal-2026', name: 'Portugal', year: 2026, page: 4, at: [30, 65], tilt: -3.7 },
+  { stamp: 'malta-2026', name: 'Malta', year: 2026, page: 4, at: [72, 72], tilt: 2.8 },
 ];

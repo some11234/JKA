@@ -132,8 +132,9 @@
   pointer-events: none;
 }
 
-/* Grain for the leather-look boards. Overlay keeps navy navy and lets the
-   foil pick the texture up too, like real stamping does. */
+/* Grain for the leather-look boards: a tile of lit pebbles (see
+   build_grain() in tools/build-passport.py). Overlay keeps navy navy. On the
+   front cover it's kept off the foil — see .pp-sheen below. */
 .pp-grain {
   position: absolute;
   top: 0; right: 0; bottom: 0; left: 0;
@@ -146,14 +147,77 @@
 
 /* ------------------------------------------------------------ the cover --- */
 
+/* The leather, one navy family for every part of the boards. --navy is the
+   ground cover.webp is printed on (COVER_NAVY in tools/build-passport.py):
+   change one, change both, or the image's edge shows against the face. */
+.pp {
+  --navy: #0C173A;
+  --navy-inside: #0B1534;  /* the inside of the boards, under the pages */
+  --navy-edge: #080F2D;    /* the boards' cut edges */
+}
+
 .pp-cover {
   overflow: hidden;
   border-radius: 0 var(--rc) var(--rc) 0;
-  background: #111A34;
+  background: var(--navy);
 }
 
-/* A broad, faint sheen on the leather, moved with the glint below. */
+/* Stacked, bottom to top: the art (navy, the gold foil already pressed into
+   it), the key light, the leather's sheen, the foil's glint, the grain, the
+   board's relief — then the shade the script lights the face with. The grain
+   sits over the light, so the pebbling breaks up the sheen the way a real
+   cover's texture does. */
+
+/* The key light: where the light falls most strongly, a soft pool on the
+   upper left of the cover — the side it comes from. Colour-dodge with a dark
+   grey is a gain, not a wash: it brightens what's under it (by up to ~27%)
+   without greying the navy or the gold. Outside the pool it's black, which
+   colour-dodge leaves alone. It stays put: the face's shade already follows
+   the light as the cover turns, and the sheen and glint do the moving. The
+   back cover's outside gets the same pool, so it's the same leather under
+   the same light. */
+.pp-key,
+.pp-back--out::before {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: block;
+  background: radial-gradient(ellipse 68% 60% at 30% 26%,
+    rgb(54, 54, 54),
+    rgb(26, 26, 26) 45%,
+    rgb(0, 0, 0) 100%);
+  mix-blend-mode: color-dodge;
+}
+
+.pp-back--out::before { content: ''; }
+
+/* The leather's sheen: a broad, soft reflection of the light, moved with the
+   glint below but more slowly — leather is far less glossy than foil. It's
+   the light's own colour, so it stays off the foil, which reflects in gold
+   (that's the glint's job). The grain is kept off the foil too: the image
+   already carries a faint copy of it there (see build_cover() in
+   tools/build-passport.py) — at full strength the overlay turns mid-tone gold
+   to sandpaper. Both masks are the foil cut out of a solid layer. */
+.pp-sheen,
+.pp-cover .pp-grain {
+  -webkit-mask:
+    linear-gradient(#000, #000),
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000, #000),
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  mask-composite: exclude;
+}
+
 .pp-sheen {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: block;
+  overflow: hidden;
+  mix-blend-mode: screen;
+}
+
+.pp-sheen__band {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -161,15 +225,18 @@
   width: 300%;
   display: block;
   background: linear-gradient(112deg,
-    rgba(170, 190, 255, 0) 34%,
-    rgba(170, 190, 255, 0.09) 50%,
-    rgba(170, 190, 255, 0) 66%);
-  mix-blend-mode: screen;
+    rgba(160, 185, 255, 0) 32%,
+    rgba(160, 185, 255, 0.04) 42%,
+    rgba(175, 198, 255, 0.1) 50%,
+    rgba(160, 185, 255, 0.04) 58%,
+    rgba(160, 185, 255, 0) 68%);
   will-change: transform;
 }
 
-/* Gold foil glint: a bright band masked to the foil only, slid across by the
-   script as the cover tilts toward or away from the light. */
+/* Gold foil glint: masked to the foil only, slid across by the script as the
+   cover tilts toward or away from the light. A wide warm wash, so the foil
+   brightens as the light comes round, and a narrow pale core where it
+   catches the light square on. */
 .pp-foil {
   position: absolute;
   top: 0; right: 0; bottom: 0; left: 0;
@@ -188,16 +255,20 @@
   width: 300%;
   display: block;
   background: linear-gradient(105deg,
-    rgba(255, 244, 205, 0) 41%,
-    rgba(255, 244, 205, 0.18) 46%,
-    rgba(255, 248, 225, 0.62) 50%,
-    rgba(255, 244, 205, 0.18) 54%,
-    rgba(255, 244, 205, 0) 59%);
+    rgba(255, 206, 128, 0) 30%,
+    rgba(255, 206, 128, 0.1) 39%,
+    rgba(255, 220, 156, 0.32) 45.5%,
+    rgba(255, 236, 190, 0.8) 50%,
+    rgba(255, 220, 156, 0.32) 54.5%,
+    rgba(255, 206, 128, 0.1) 61%,
+    rgba(255, 206, 128, 0) 70%);
   will-change: transform;
 }
 
 /* The board's own shape: the hinge groove a passport cover folds along, the
-   wrap into the spine, and a faint rounded edge. */
+   wrap into the spine, a faint rounded edge — and the light falling off
+   across it, the far corner and the edges a little darker, like a cover
+   photographed under one soft light. */
 .pp-relief {
   position: absolute;
   top: 0; right: 0; bottom: 0; left: 0;
@@ -212,9 +283,11 @@
       rgba(255, 255, 255, 0.07) 6.25%,
       rgba(0, 0, 0, 0) 6.3%),
     linear-gradient(to right, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0) 2.6%),
-    linear-gradient(to left, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 1.2%);
+    linear-gradient(to left, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 1.2%),
+    radial-gradient(ellipse 85% 70% at 42% 40%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.22) 100%),
+    linear-gradient(160deg, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.14) 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
     inset 0 -1px 0 rgba(0, 0, 0, 0.35);
 }
 
@@ -223,21 +296,21 @@
 .pp-inside {
   overflow: hidden;
   border-radius: var(--rc) 0 0 var(--rc);
-  background: #0F1730;
+  background: var(--navy-inside);
 }
 
 /* ----------------------------------------------------------- back cover --- */
 
 .pp-back {
   border-radius: 0 var(--rc) var(--rc) 0;
-  background: #0E1530;
+  background: var(--navy-inside);
 }
 
 /* Its outside: plain navy leather, seen when the book closes from the back. */
 .pp-back--out {
   overflow: hidden;
   border-radius: var(--rc) 0 0 var(--rc);
-  background: #111A34;
+  background: var(--navy);
 }
 
 .pp-back--out .pp-relief { transform: scaleX(-1); }
@@ -321,141 +394,238 @@
 
 /* ----------------------------------------------------------- visa pages --- */
 
-/* Type on the visa pages is sized from the page's height (--ph, set by the
-   script), so it scales with the book. 1em = 3.05% of the page. */
+/* Weathered paper (tools/build-visa-paper.py) with the passport's blue
+   printing on it. Sizes here are from the page's height (--ph, set by the
+   script), so they scale with the book: 1em = 3.05% of the page. The
+   background is the paper's own colour, for the moment before it loads. */
 .pp-visa {
   font-size: calc(var(--ph, 600px) * 0.0305);
   line-height: 1.2;
-  background: #F4E6E2;
-  --gutter-deep: rgba(46, 30, 90, 0.26);
-  --gutter-mid: rgba(46, 30, 90, 0.1);
+  background: #EEE3CA;
+  /* The fold shades sepia on paper, not the Flighty pages' indigo. */
+  --gutter-deep: rgba(84, 58, 26, 0.30);
+  --gutter-mid: rgba(84, 58, 26, 0.11);
+  /* Two blues: the printer's, even and a little grey; and the stamp pad's,
+     deeper, laid on by hand. */
+  --print-ink: #34498A;
+  --stamp-ink: #1A3BB0;
+  /* How wide a stamp is, as a share of the page. The ink under each one
+     shares it, so the mark always sits just below its stamp. */
+  --stamp-w: 36%;
 }
 
-.pp-visa--blank { background: #EFE6EC; }
+.pp-visa--blank { background: #EEE3CA; }
 
-/* The quotation runs across the top of the spread. It's one box on both
-   pages, offset by a page so each shows its own half and the fold falls
-   through the middle of the line, as in a real passport. */
-.pp-visa__quote {
+/* ------------------------------------------------------------- the print --- */
+
+/* Printed ink sits in the paper rather than on it: multiply lets the grain,
+   the foxing and the browning show through, and the blue darkens where the
+   paper has. And it's as old as the paper: the mask is a tile of what's left
+   of a print after years in a pocket (print-wear.webp, from
+   tools/build-visa-paper.py) — broad faded patches, a few rubbed streaks,
+   flecks where the ink has lifted — at a different spot on every page. */
+.pp-print {
   position: absolute;
-  top: 4.4%;
-  width: 182%;
+  top: 0; right: 0; bottom: 0; left: 0;
   display: block;
-  text-align: center;
-  color: #22307F;
-  text-shadow: 0 0 0.6em rgba(255, 250, 246, 0.6);
+  color: var(--print-ink);
+  mix-blend-mode: multiply;
+  opacity: 0.8;
+  pointer-events: none;
+  /* Softened a hair, as if it soaked into the fibres. */
+  filter: blur(0.016em);
+  -webkit-mask: url('/assets/passport/web/print-wear.webp') var(--wear-at, 0 0) / 24em 24em repeat;
+  mask: url('/assets/passport/web/print-wear.webp') var(--wear-at, 0 0) / 24em 24em repeat;
 }
-.pp-visa--verso .pp-visa__quote { left: 9%; }
-.pp-visa--recto .pp-visa__quote { left: -91%; }
 
-.pp-visa__q {
+/* A double rule round the page, inside its edges, with rounded corners. */
+.pp-print__frame {
+  position: absolute;
+  top: 0.82em; right: 0.82em; bottom: 0.82em; left: 0.82em;
+  display: block;
+  border: 0.06em solid currentColor;
+  border-radius: 0.42em;
+}
+.pp-print__frame::before {
+  content: '';
+  position: absolute;
+  top: 0.16em; right: 0.16em; bottom: 0.16em; left: 0.16em;
+  border: 0.03em solid currentColor;
+  border-radius: 0.3em;
+}
+
+/* A small star tucked into three corners of the frame; the page number
+   takes the fourth. */
+.pp-print__star {
+  position: absolute;
+  width: 0.42em;
+  height: 0.42em;
+  display: block;
+}
+.pp-print__star svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+.pp-print__star--tl { top: 0.36em; left: 0.36em; }
+.pp-print__star--tr { top: 0.36em; right: 0.36em; }
+.pp-print__star--bl { bottom: 0.36em; left: 0.36em; }
+.pp-print__star--br { bottom: 0.36em; right: 0.36em; }
+
+/* VISAS across the top, between two short double rules, level with the
+   centre of the page number's ring. */
+.pp-print__head {
+  position: absolute;
+  top: 4.6%;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+  font-size: 0.8em;
+  line-height: 1;
+}
+.pp-print__title {
   display: block;
   font-family: 'Cormorant Garamond', 'Libre Caslon Text', Georgia, 'Times New Roman', serif;
-  font-style: italic;
   font-weight: 600;
-  font-size: 1.12em;
-  line-height: 1.24;
-  text-wrap: balance;
-}
-.pp-visa__quote--long .pp-visa__q { font-size: 0.98em; }
-
-.pp-visa__by {
-  display: block;
-  margin-top: 0.5em;
-  padding-right: 2%;
-  text-align: right;
-  font-family: var(--font-sans);
-  font-weight: 700;
-  font-size: 0.5em;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.42em;
+  /* Letter-spacing trails the last letter too; take it back, so the word is
+     centred on what's visible. */
+  margin-right: -0.42em;
   text-transform: uppercase;
-  color: #3A4FC9;
+  /* A hair of spread, where the ink soaked into the fibres. */
+  text-shadow: 0 0 0.04em currentColor;
+}
+.pp-print__rule {
+  width: 3.4em;
+  height: 0.2em;
+  display: block;
+  border-top: 0.06em solid currentColor;
+  border-bottom: 0.035em solid currentColor;
 }
 
-/* Bottom-left of the left page: the place, in the Wallet ID's bold blue —
-   with a soft halo, since it often sits over the corner flowers. */
-.pp-visa__cap {
+/* The page number, in a double ring in the top outer corner, where the
+frame's fourth star would be. */
+.pp-print__num {
   position: absolute;
-  left: 7.5%;
-  bottom: 6.2%;
-  display: block;
-  max-width: 78%;
-  text-shadow: 0 0 0.3em rgba(255, 250, 246, 0.95), 0 0 0.8em rgba(255, 250, 246, 0.7);
+  top: 1.12em;
+  width: 1.6em;
+  height: 1.6em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0.06em solid currentColor;
+  border-radius: 50%;
 }
-
-.pp-visa__title {
+.pp-print__num::before {
+  content: '';
+  position: absolute;
+  top: 0.1em; right: 0.1em; bottom: 0.1em; left: 0.1em;
+  border: 0.03em solid currentColor;
+  border-radius: 50%;
+}
+.pp-visa--verso .pp-print__num { left: 1.12em; }
+.pp-visa--recto .pp-print__num { right: 1.12em; }
+.pp-print__digits {
   display: block;
-  font-family: var(--font-sans);
-  font-weight: 800;
-  font-size: 1.62em;
-  letter-spacing: -0.015em;
+  font-family: 'Cormorant Garamond', 'Libre Caslon Text', Georgia, 'Times New Roman', serif;
+  font-weight: 600;
+  font-size: 0.92em;
   line-height: 1;
-  color: #2E40B8;
+  /* Cormorant's old-style 1 reads as a small capital I. */
+  font-variant-numeric: lining-nums;
+  /* Its figures sit a touch high in the line box; settle them in the ring. */
+  margin-top: 0.06em;
+  text-shadow: 0 0 0.04em currentColor;
 }
 
-.pp-visa__sub {
+/* Guide marks: four short, faint ticks on the lines that quarter the page —
+   two down the middle, two across it — the way a real visa page shows an
+   officer where four stamps can go. Stamps cover them where they fall. */
+.pp-print__guide {
+  position: absolute;
   display: block;
-  margin-top: 0.5em;
+  opacity: 0.55;
+}
+.pp-print__guide--v1,
+.pp-print__guide--v2 {
+  left: 50%;
+  width: 0;
+  height: 5.5%;
+  border-left: 0.04em solid currentColor;
+}
+.pp-print__guide--v1 { top: 25.5%; }
+.pp-print__guide--v2 { top: 74%; }
+.pp-print__guide--h1,
+.pp-print__guide--h2 {
+  top: 52%;
+  width: 9%;
+  height: 0;
+  border-top: 0.04em dashed currentColor;
+}
+.pp-print__guide--h1 { left: 21%; }
+.pp-print__guide--h2 { left: 70%; }
+
+/* Microprint along the foot: UNITED STATES OF AMERICA, over and over, so
+   small it reads as a rule until you look closely. */
+.pp-print__micro {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  bottom: 2.9%;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
   font-family: var(--font-sans);
   font-weight: 700;
-  font-size: 0.5em;
+  font-size: 0.19em;
+  line-height: 1;
   letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #1E2A72;
-  opacity: 0.85;
+  text-align: center;
 }
 
-/* Bottom-right of the right page: an engraved seal, like the Wallet IDs'. */
-.pp-visa__seal {
+/* --------------------------------------------------------------- the ink --- */
+
+/* The country and year, rubber-stamped under each stamp (js/passport.js).
+   The box is the stamp's own box, so the mark hangs off its bottom edge
+   however the stamp is tilted; multiply lays it into the paper like the
+   print. */
+.pp-ink {
   position: absolute;
-  right: 7%;
-  bottom: 5.4%;
-  width: 21%;
+  width: var(--stamp-w);
   aspect-ratio: 1;
   display: block;
-  color: #4C55B4;
-  opacity: 0.62;
-}
-.pp-visa__seal svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  font-family: 'Libre Caslon Text', Georgia, serif;
+  transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
+  color: var(--stamp-ink);
+  mix-blend-mode: multiply;
+  opacity: 0.86;
+  pointer-events: none;
 }
 
-/* The painting's credit runs up the outer edge of the right page, small,
-   like the microprinted lines on a real passport page. */
-.pp-visa__credit {
+/* A one-line entry stamp: bold capitals in a ruled box. Its top tucks just
+   under the stamp's perforations. Inked unevenly — the mask is a tile of
+   ink coverage, at a different spot for every mark — with a hair of bleed. */
+.pp-ink__mark {
   position: absolute;
-  right: 2.6%;
-  bottom: 31%;
-  height: 50%;
+  top: calc(100% - 0.12em);
+  left: 50%;
   display: block;
-  line-height: 1.5;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-family: var(--font-sans);
+  padding: 0.34em 0.62em 0.28em;
+  border: 0.16em solid currentColor;
+  border-radius: 0.3em;
+  font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 0.34em;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #1E2A72;
-  opacity: 0.6;
-  text-shadow: 0 0 0.5em rgba(255, 250, 246, 0.9);
+  font-size: 0.44em;
+  line-height: 1.1;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  text-shadow: 0 0 0.05em currentColor;
+  transform: translateX(-50%) rotate(var(--ink-tilt, 0deg));
+  -webkit-mask: url('/assets/passport/web/ink.webp') var(--ink-at, 0 0) / 21em 21em repeat;
+  mask: url('/assets/passport/web/ink.webp') var(--ink-at, 0 0) / 21em 21em repeat;
 }
-
-/* Page numbers, small, in the outer top corners. */
-.pp-visa__num {
-  position: absolute;
-  top: 2.4%;
-  display: block;
-  font-size: 0.42em;
-  letter-spacing: 0.08em;
-  color: #1E2A72;
-  opacity: 0.7;
-}
-.pp-visa--verso .pp-visa__num { left: 3.6%; }
-.pp-visa--recto .pp-visa__num { right: 3.6%; }
+/* Lined up with one edge of the stamp instead, where its neighbour would
+   cover the middle (data: ink: 'left' or 'right'). */
+.pp-ink__mark--left { left: 0.4em; transform: rotate(var(--ink-tilt, 0deg)); transform-origin: 0 0; }
+.pp-ink__mark--right { left: auto; right: 0.4em; transform: rotate(var(--ink-tilt, 0deg)); transform-origin: 100% 0; }
 
 /* --------------------------------------------------------------- stamps --- */
 
@@ -468,19 +638,20 @@
 
 .pp-stamp {
   position: absolute;
-  width: 42%;
+  width: var(--stamp-w);
   aspect-ratio: 1;
   display: block;
   transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
 }
 
 /* Stuck down flat: a hairline of shadow right under the perforations and a
-   faint one just beyond, both down and right, away from the light. In ems,
-   which here are a share of the page's height, so they scale with it. */
+   faint one just beyond, both down and right, away from the light — warm,
+   the way a shadow falls on cream paper. In ems, which here are a share of
+   the page's height, so they scale with it. */
 .pp-sheet .pp-stamp__art {
   filter:
-    drop-shadow(0.02em 0.04em 0.03em rgba(22, 26, 64, 0.42))
-    drop-shadow(0.06em 0.12em 0.14em rgba(22, 26, 64, 0.16));
+    drop-shadow(0.02em 0.04em 0.03em rgba(52, 34, 14, 0.40))
+    drop-shadow(0.06em 0.12em 0.14em rgba(52, 34, 14, 0.15));
   transition: transform 320ms cubic-bezier(0.3, 0.7, 0.4, 1), filter 320ms ease;
 }
 
@@ -496,8 +667,8 @@
   .pp.is-settled .pp-stamp:hover .pp-stamp__art {
     transform: translate(-0.6%, -2.4%) rotate(var(--nudge, 0deg)) scale(1.045);
     filter:
-      drop-shadow(0.05em 0.1em 0.08em rgba(22, 26, 64, 0.24))
-      drop-shadow(0.28em 0.55em 0.5em rgba(22, 26, 64, 0.22));
+      drop-shadow(0.05em 0.1em 0.08em rgba(52, 34, 14, 0.24))
+      drop-shadow(0.28em 0.55em 0.5em rgba(52, 34, 14, 0.22));
     transition: transform 440ms cubic-bezier(0.25, 1.5, 0.45, 1), filter 320ms ease;
   }
 }
@@ -506,7 +677,7 @@
 
 .pp-strip { overflow: hidden; opacity: var(--edge-alpha, 1); }
 
-.pp-strip--board { background: #0B1128; }
+.pp-strip--board { background: var(--navy-edge); }
 
 /* The page block: dozens of sheets seen edge-on, with the boards' shadow
    gathering at top and bottom. */
@@ -526,7 +697,7 @@
 /* The spine, seen only while the book is shut or turning over. It faces
    either way, since the book can be closed from either side. */
 .pp-spine {
-  background: linear-gradient(to bottom, #0E1530, #111A34 50%, #0E1530);
+  background: linear-gradient(to bottom, var(--navy-inside), var(--navy) 50%, var(--navy-inside));
   -webkit-backface-visibility: visible;
   backface-visibility: visible;
 }
@@ -648,25 +819,6 @@
 
 /* Closed: only the hint shows. Open: the arrows join it. */
 .pp:not(.is-open) .pp-nav { opacity: 0; visibility: hidden; }
-
-/* Credit for the visa-page scans, shown once the book is open. */
-.pp-attrib {
-  position: absolute;
-  right: 20px;
-  bottom: 22px;
-  margin: 0;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.45);
-  opacity: 0;
-  transition: opacity 400ms ease;
-  pointer-events: none;
-}
-.pp-attrib a { color: inherit; text-underline-offset: 2px; }
-.pp.is-open .pp-attrib { opacity: 1; pointer-events: auto; }
-@media (max-width: 720px) {
-  .pp-attrib { right: 0; left: 0; bottom: auto; top: calc(var(--header-h) + 2px); text-align: center; }
-}
 
 .js .pp-controls { opacity: 0; transition: opacity 400ms ease; }
 .pp.is-ready .pp-controls { opacity: 1; }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Passport — Joseph Kerby Anderson</title>
-<meta name="description" content="Joe's passport — the Flighty pages and eighteen visa pages to leaf through.">
+<meta name="description" content="Joe's passport — the Flighty pages, and the visa pages his travel stamps are stuck in.">
 <meta name="theme-color" content="#0B0B0B">
 <meta name="color-scheme" content="dark">
 
@@ -18,11 +18,11 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://josephkerby.com/passport/">
 <meta property="og:title" content="Passport — Joseph Kerby Anderson">
-<meta property="og:description" content="Joe's passport — the Flighty pages and eighteen visa pages to leaf through.">
+<meta property="og:description" content="Joe's passport — the Flighty pages, and the visa pages his travel stamps are stuck in.">
 <meta property="og:image" content="https://josephkerby.com/assets/core/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Passport — Joseph Kerby Anderson">
-<meta name="twitter:description" content="Joe's passport — the Flighty pages and eighteen visa pages to leaf through.">
+<meta name="twitter:description" content="Joe's passport — the Flighty pages, and the visa pages his travel stamps are stuck in.">
 <meta name="twitter:image" content="https://josephkerby.com/assets/core/og.jpg">
 
 <link rel="icon" href="/assets/core/favicon.png" type="image/png" sizes="500x500">
@@ -32,8 +32,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=satoshi@1,2&display=swap">
-<!-- Cormorant Garamond (italic) sets the quotations on the visa pages. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600&family=JetBrains+Mono:wght@400..700&display=swap">
+<!-- Cormorant Garamond sets the blue print on the visa pages: VISAS and the
+     page numbers. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=JetBrains+Mono:wght@400..700&display=swap">
 
 <link rel="stylesheet" href="/css/styles.css">
 <link rel="stylesheet" href="/css/passport.css">
@@ -62,8 +63,8 @@
      leaves turn — the visa sheets are built from js/passport-data.js.
 
      Every image lives in assets/passport/web/, made by tools/build-passport.py
-     (cover, Flighty pages) and tools/build-visas.js (visa pages) from the
-     masters in assets/passport/ and the art in tools/visas/. -->
+     (cover, Flighty pages, stamps) from the masters in assets/passport/, and
+     by tools/build-visa-paper.py (the visa pages' paper). -->
 <main class="pp" data-passport>
   <h1 class="pp-sr">Passport</h1>
 
@@ -101,9 +102,10 @@
           <span class="pp-face pp-cover" data-pp-cover>
             <img src="/assets/passport/web/cover.webp" width="1320" height="2000"
                  alt="" decoding="async" fetchpriority="high" draggable="false" data-pp-cover-img>
-            <span class="pp-grain"></span>
-            <span class="pp-sheen" data-pp-sheen></span>
+            <span class="pp-key"></span>
+            <span class="pp-sheen"><span class="pp-sheen__band" data-pp-sheen></span></span>
             <span class="pp-foil"><span class="pp-foil__sweep" data-pp-sweep></span></span>
+            <span class="pp-grain"></span>
             <span class="pp-relief"></span>
           </span>
           <span class="pp-face pp-inside" data-pp-inside>
@@ -137,9 +139,6 @@
       </button>
     </div>
     <p class="pp-sr" aria-live="polite" data-pp-live></p>
-    <!-- The visa pages are Gabe Classon's CC0 scans of a real passport; he
-         asks for credit and a link (see tools/build-visa-scans.js). -->
-    <p class="pp-attrib">Visa pages scanned by <a href="https://classon.onrender.com/posts/passport" rel="noopener">Gabe Classon</a></p>
   </div>
 
   <!-- Page contents not on show right now. The Flighty page is here; the

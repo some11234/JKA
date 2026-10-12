@@ -34,8 +34,9 @@ What it makes, and why each one exists:
                         trimmed to its perforated edge so the image's box is
                         the stamp's box, and kept transparent outside it — the
                         page stands them on the visa pages at a tilt and casts
-                        their shadow from that edge. Where each one goes is
-                        PASSPORT_STAMPS in js/passport-data.js.
+                        their shadow from that edge. Each is aged a little to
+                        sit on the weathered pages (see age_stamp()). Where
+                        each one goes is PASSPORT_STAMPS in js/passport-data.js.
 
 The geometry constants are mirrored in js/passport.js (CONFIG.BOOK). Change
 one, change both: the page images are cut to exactly the shape the 3D pages are
@@ -45,6 +46,7 @@ built at, so a mismatch shows up as a stretched or cropped page.
 import os
 import re
 import sys
+import zlib
 
 import numpy as np
 from PIL import Image, ImageFilter
@@ -141,10 +143,23 @@ FOIL_GRAIN = 0.14      # how strongly the foil takes the grain (the leather: 0.3
 
 # ------------------------------------------------------------- the stamps --
 # Any master named "<Country> <Year>.png" is a stamp. They're shown at about
-# 42% of a page's width — ~195 CSS px on a laptop, ~390 device px at 2× — so
+# 36% of a page's width — ~170 CSS px on a laptop, ~340 device px at 2× — so
 # 560 leaves room for big screens and the hover lift.
 STAMP_RE = re.compile(r'^(.+) (\d{4})\.png$', re.IGNORECASE)
 STAMP_PX = 560
+
+# How the stamps are aged: only slightly — carried around for a while, not
+# found in an attic. Each is a share of the effect, 0 → none.
+STAMP_AGE = {
+    'desat': 0.13,             # colour that's faded out of the inks
+    'fade': 0.04,              # contrast lost toward a warm mid-tone
+    'black': (0.13, 0.10, 0.08),  # blacks worn up to a warm, brown-black ink
+    'warm': (1.0, 0.972, 0.905),  # whites yellowed toward old cream
+    'mottle': 0.035,           # uneven toning, soft and broad
+    'grain': 0.014,            # the stamp paper's tooth
+    'grime': 0.13,             # dirt gathered in the perforations
+    'specks': (1, 4),          # min, max foxing specks
+}
 
 
 def webp(img, name, **kw):
@@ -358,6 +373,54 @@ def stamp_slug(name):
     return re.sub(r'[^a-z0-9]+', '-', os.path.splitext(name)[0].lower()).strip('-')
 
 
+def age_stamp(stamp, seed):
+    """A stamp, slightly aged: inks faded and a little desaturated, whites
+    yellowed to cream, blacks worn to brown-black, a soft uneven toning and a
+    fine grain, a little grime caught in the perforations and a speck or two
+    of foxing. Seeded per stamp, so every rebuild is the same."""
+    A = STAMP_AGE
+    rng = np.random.default_rng(seed)
+    a = np.asarray(stamp, np.float32) / 255
+    rgb, alpha = a[..., :3], a[..., 3]
+    h, w = alpha.shape
+
+    lum = (rgb @ np.array([0.299, 0.587, 0.114], np.float32))[..., None]
+    rgb = rgb + (lum - rgb) * A['desat']
+    rgb = rgb * (1 - A['fade']) + np.array([0.62, 0.56, 0.47], np.float32) * A['fade']
+    black = np.array(A['black'], np.float32)
+    rgb = black + rgb * (1 - black)
+    rgb = rgb * np.array(A['warm'], np.float32)
+
+    # Uneven toning: a few blotches, a few percent, from upscaled noise.
+    g = 9
+    coarse = Image.fromarray(rng.standard_normal((g, g)).astype(np.float32), 'F')
+    mottle = np.array(coarse.resize((w, h), Image.BICUBIC), np.float32)
+    mottle /= max(1e-6, float(np.abs(mottle).max()))
+    rgb = rgb * (1 + A['mottle'] * mottle)[..., None]
+    grain = blur(rng.standard_normal((h, w)).astype(np.float32), 0.6)
+    rgb = rgb * (1 + A['grain'] * grain / grain.std())[..., None]
+
+    # Grime in the perforations: darker just inside the stamp's edge, by
+    # more in some places than others.
+    edge = np.clip((1 - blur(alpha, 5)) * 2.2, 0, 1) * alpha
+    rgb = rgb * (1 - A['grime'] * edge * np.clip(0.6 + 0.6 * mottle, 0, 1))[..., None]
+
+    # Foxing: a speck or two, soft-edged, rust.
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    rust = np.array([0.55, 0.36, 0.2], np.float32)
+    for _ in range(int(rng.integers(A['specks'][0], A['specks'][1] + 1))):
+        # Mostly on the white border, where they show — toward an edge.
+        side = rng.integers(0, 4)
+        t, d = rng.uniform(0.08, 0.92), rng.uniform(0.03, 0.11)
+        x, y = [(t, d), (t, 1 - d), (d, t), (1 - d, t)][side]
+        r = rng.uniform(1.2, 3.2)
+        k = rng.uniform(0.18, 0.4) * np.exp(-((xx - x * w) ** 2 + (yy - y * h) ** 2) / (2 * r * r))
+        rgb = rgb * (1 - k[..., None]) + rust * k[..., None]
+
+    out = np.dstack([np.clip(rgb, 0, 1), alpha])
+    return Image.fromarray((out * 255 + 0.5).astype(np.uint8), 'RGBA')
+
+
 def build_stamps():
     names = sorted(n for n in os.listdir(SRC) if STAMP_RE.match(n))
     if not names:
@@ -371,7 +434,9 @@ def build_stamps():
             sys.exit('%s is %d×%d once trimmed — the page lays stamps out as squares'
                      % (name, stamp.width, stamp.height))
         stamp = stamp.resize((STAMP_PX, STAMP_PX), Image.LANCZOS)
-        webp(stamp, 'stamp-%s.webp' % stamp_slug(name), quality=90, alpha_quality=90)
+        slug = stamp_slug(name)
+        stamp = age_stamp(stamp, zlib.crc32(slug.encode()))
+        webp(stamp, 'stamp-%s.webp' % slug, quality=90, alpha_quality=90)
 
 
 PARTS = ('cover', 'flighty', 'stamps')

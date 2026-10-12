@@ -37,7 +37,14 @@ same numpy and Pillow).
 
 Odd pages are left-hand pages (fore-edge on the left), even pages right-hand.
 The shadow down the spine is not in the image: CSS draws it (.pp-gutter), so
-it stays put whatever the art.
+it stays put whatever the art. Neither is the blue ink printed on the page —
+the VISAS heading, the frame, the microprint — nor the rubber-stamped country
+and year under each stamp: those are live text and SVG (js/passport.js), laid
+on with multiply so the paper shows through them.
+
+It also writes ink.webp: a tile of uneven ink coverage (alpha only) that the
+page masks the rubber-stamped marks with, so they look inked by hand — heavier
+in places, starved in others, flecked where the paper's tooth didn't take it.
 """
 
 import math
@@ -236,6 +243,40 @@ def dogear(recto):
     return line, lip, tri
 
 
+def wrap_blur(a, sigma):
+    """A Gaussian blur that wraps round the edges, for a seamless tile."""
+    r = max(1, int(3 * sigma + 0.5))
+    k = np.exp(-np.arange(-r, r + 1, dtype=np.float32) ** 2 / (2 * sigma * sigma))
+    k /= k.sum()
+    for axis in (0, 1):
+        a = sum(w * np.roll(a, i - r, axis=axis) for i, w in enumerate(k))
+    return a.astype(np.float32)
+
+
+def ink_tile(size=256):
+    """Alpha = how much ink took. Mostly solid, with the pressure wandering
+    across the stamp, a few broad starved patches, and fine flecks of bare
+    paper. Seamless, so the page can tile it at any offset."""
+    rng = np.random.default_rng(1871)
+
+    def field(sigma):
+        f = wrap_blur(rng.standard_normal((size, size)).astype(np.float32), sigma)
+        return f / f.std()
+
+    pressure = 0.5 * field(22) + 0.3 * field(9) + 0.2 * field(4)
+    a = np.clip(0.86 + 0.14 * pressure, 0, 1)
+    # Starved patches: where the pressure is lowest, the ink thins out.
+    a *= 1 - 0.6 * np.clip((-pressure - 0.45) * 1.2, 0, 1)
+    # Flecks of bare paper, and a softer mottle around them.
+    flecks = field(1.3)
+    a *= 1 - 0.9 * np.clip((flecks - 1.45) * 1.8, 0, 1)
+    a *= 1 - 0.22 * np.clip(field(2.2) - 0.5, 0, 1)
+    alpha = Image.fromarray((np.clip(a, 0, 1) * 255 + 0.5).astype(np.uint8), 'L')
+    tile = Image.new('RGBA', (size, size), (255, 255, 255, 0))
+    tile.putalpha(alpha)
+    return tile
+
+
 def make_page(page):
     rng = np.random.default_rng(7340 + page)
     recto = page % 2 == 0
@@ -296,6 +337,9 @@ def main():
         make_page(page).save(path, 'WEBP', quality=QUALITY, method=6)
         print('  %-16s %d×%d %4d KB  (%s page)' % (name, W, H, os.path.getsize(path) // 1024,
                                                   'right' if page % 2 == 0 else 'left'))
+    path = os.path.join(OUT, 'ink.webp')
+    ink_tile().save(path, 'WEBP', quality=75, alpha_quality=75, method=6)
+    print('  %-16s %d×%d %4d KB  (ink coverage)' % ('ink.webp', 256, 256, os.path.getsize(path) // 1024))
     # Anything past the last page is from a longer book: it would never be
     # shown, so it goes.
     for name in sorted(os.listdir(OUT)):

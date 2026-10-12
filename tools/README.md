@@ -93,10 +93,18 @@ The visa pages carry Joe's American Express travel stamps. Every master named
 `<Country> <Year>.png` in `assets/passport/` is one: the script trims it to
 its perforated edge and writes `stamp-<country>-<year>.webp` (lowercased,
 spaces to hyphens — `United Kingdom 2026.png` → `stamp-united-kingdom-2026.webp`).
+On the way it ages each one slightly, to sit on the weathered pages: inks a
+little faded, whites yellowed to cream, blacks worn to brown-black, a soft
+uneven toning, grime in the perforations and a speck or two of foxing. How
+much of each is `STAMP_AGE` at the top of the script; it's seeded per stamp,
+so rebuilds are byte-identical. The masters are never touched.
 
 Where each one sits is `PASSPORT_STAMPS` in `js/passport-data.js`: the page
 (from 1; odd on the left, even on the right), the stamp's centre as a
-percentage of the page, and a small tilt, so they look stuck in by hand.
+percentage of the page, and a small tilt, so they look stuck in by hand. Under
+each, the country and year are rubber-stamped in blue ink, from the same
+`name` and `year`; where a neighbouring stamp would cover the middle of that
+mark, `ink: 'left'` (or `'right'`) lines it up with one edge instead.
 They're listed in the order Joe went, front of the book to back, like a real
 passport. To add one, drop in the PNG, run
 `python3 tools/build-passport.py stamps`, and add a line to that list. To move
@@ -112,8 +120,8 @@ the pointer through to them everywhere except the stamps.
 
 ## build-visa-paper.py
 
-Makes the visa pages: plain, weathered paper, nothing printed on it — the
-stamps are the point. Each page is the same cream stock aged a little
+Makes the visa pages' paper: plain and weathered, kept quiet — the stamps
+are the point. Each page is the same cream stock aged a little
 differently: blotchy tone, fibres and a fine grain, browning in from the three
 outer edges (not the spine side), and a scatter of foxing. Page 2 also has a
 dried water stain and page 3 a flattened dog-ear; the rest stay unmarked.
@@ -131,9 +139,16 @@ match, and `js/passport.js` counts them the same way. The randomness is
 seeded by page number, so rebuilds are byte-identical; how strong each layer
 is lives at the top of the script.
 
-The only print on a page is its number, small in the top outer corner, and
-that's live text (`.pp-visa__num` in `css/passport.css`), not in the image.
-The shadow down into the spine is CSS too (`.pp-gutter`).
+None of the blue ink is in the images. The printing on every page — a
+double-rule frame with a star in each corner, the VISAS heading between
+rules, the page number, a line of microprint along the foot — and the
+rubber-stamped country and year under each stamp are live type and SVG,
+built in `js/passport.js` and styled in `css/passport.css` (`.pp-print`,
+`.pp-ink`). Both are laid on with multiply, so the paper's grain and foxing
+show through the ink. The script also writes `ink.webp`, a seamless tile of
+uneven ink coverage that masks the rubber-stamped marks, so each looks inked
+by hand — at a different spot on the tile for every mark. The shadow down
+into the spine is CSS too (`.pp-gutter`).
 
 Earlier versions of the visa pages — nine public-domain American paintings
 (`tools/build-visas.js`) and Gabe Classon's CC0 scans of a real passport

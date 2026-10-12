@@ -394,9 +394,9 @@
 
 /* ----------------------------------------------------------- visa pages --- */
 
-/* Plain, weathered paper (tools/build-visa-paper.py), nothing printed on it
-   but the page number. Sizes here are from the page's height (--ph, set by
-   the script), so they scale with the book: 1em = 3.05% of the page. The
+/* Weathered paper (tools/build-visa-paper.py) with the passport's blue
+   printing on it. Sizes here are from the page's height (--ph, set by the
+   script), so they scale with the book: 1em = 3.05% of the page. The
    background is the paper's own colour, for the moment before it loads. */
 .pp-visa {
   font-size: calc(var(--ph, 600px) * 0.0305);
@@ -405,23 +405,170 @@
   /* The fold shades sepia on paper, not the Flighty pages' indigo. */
   --gutter-deep: rgba(84, 58, 26, 0.30);
   --gutter-mid: rgba(84, 58, 26, 0.11);
+  /* Two blues: the printer's, even and a little grey; and the stamp pad's,
+     deeper, laid on by hand. */
+  --print-ink: #2C4894;
+  --stamp-ink: #1A3BB0;
+  /* How wide a stamp is, as a share of the page. The ink under each one
+     shares it, so the mark always sits just below its stamp. */
+  --stamp-w: 36%;
 }
 
 .pp-visa--blank { background: #EEE3CA; }
 
-/* Page numbers, small, in the outer top corners — printed once in a
-   grey-blue ink that's faded along with the paper. */
-.pp-visa__num {
+/* ------------------------------------------------------------- the print --- */
+
+/* Printed ink sits in the paper rather than on it: multiply lets the grain,
+   the foxing and the browning show through, and the blue darkens where the
+   paper has. Faded a little, like everything else on the page. */
+.pp-print {
   position: absolute;
-  top: 2.6%;
+  top: 0; right: 0; bottom: 0; left: 0;
   display: block;
-  font-size: 0.46em;
-  letter-spacing: 0.08em;
-  color: #4F5A6E;
+  color: var(--print-ink);
+  mix-blend-mode: multiply;
   opacity: 0.62;
+  pointer-events: none;
 }
-.pp-visa--verso .pp-visa__num { left: 5.2%; }
-.pp-visa--recto .pp-visa__num { right: 5.2%; }
+
+/* A double rule round the page, inside its edges, with rounded corners. */
+.pp-print__frame {
+  position: absolute;
+  top: 0.82em; right: 0.82em; bottom: 0.82em; left: 0.82em;
+  display: block;
+  border: 0.06em solid currentColor;
+  border-radius: 0.42em;
+}
+.pp-print__frame::before {
+  content: '';
+  position: absolute;
+  top: 0.16em; right: 0.16em; bottom: 0.16em; left: 0.16em;
+  border: 0.03em solid currentColor;
+  border-radius: 0.3em;
+}
+
+/* A small star tucked into each corner of the frame. */
+.pp-print__star {
+  position: absolute;
+  width: 0.42em;
+  height: 0.42em;
+  display: block;
+}
+.pp-print__star svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+.pp-print__star--tl { top: 0.36em; left: 0.36em; }
+.pp-print__star--tr { top: 0.36em; right: 0.36em; }
+.pp-print__star--bl { bottom: 0.36em; left: 0.36em; }
+.pp-print__star--br { bottom: 0.36em; right: 0.36em; }
+
+/* VISAS across the top, between two short double rules. The heading and the
+   page number share a top and a size, so they sit on one line. */
+.pp-print__head {
+  position: absolute;
+  top: 3.3%;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+  font-size: 0.8em;
+  line-height: 1;
+}
+.pp-print__title {
+  display: block;
+  font-family: 'Cormorant Garamond', 'Libre Caslon Text', Georgia, 'Times New Roman', serif;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  /* Letter-spacing trails the last letter too; take it back, so the word is
+     centred on what's visible. */
+  margin-right: -0.42em;
+  text-transform: uppercase;
+}
+.pp-print__rule {
+  width: 3.4em;
+  height: 0.2em;
+  display: block;
+  border-top: 0.06em solid currentColor;
+  border-bottom: 0.035em solid currentColor;
+}
+
+.pp-print__num {
+  position: absolute;
+  top: 3.3%;
+  display: block;
+  font-family: 'Cormorant Garamond', 'Libre Caslon Text', Georgia, 'Times New Roman', serif;
+  font-weight: 600;
+  font-size: 0.8em;
+  line-height: 1;
+  /* Cormorant's old-style 1 reads as a small capital I. */
+  font-variant-numeric: lining-nums;
+}
+/* Just inside the corner star. */
+.pp-visa--verso .pp-print__num { left: 9.6%; }
+.pp-visa--recto .pp-print__num { right: 9.6%; }
+
+/* Microprint along the foot: UNITED STATES OF AMERICA, over and over, so
+   small it reads as a rule until you look closely. */
+.pp-print__micro {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  bottom: 2.9%;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.19em;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-align: center;
+}
+
+/* --------------------------------------------------------------- the ink --- */
+
+/* The country and year, rubber-stamped under each stamp (js/passport.js).
+   The box is the stamp's own box, so the mark hangs off its bottom edge
+   however the stamp is tilted; multiply lays it into the paper like the
+   print. */
+.pp-ink {
+  position: absolute;
+  width: var(--stamp-w);
+  aspect-ratio: 1;
+  display: block;
+  transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
+  color: var(--stamp-ink);
+  mix-blend-mode: multiply;
+  opacity: 0.86;
+  pointer-events: none;
+}
+
+/* A one-line entry stamp: bold capitals in a ruled box. Its top tucks just
+   under the stamp's perforations. Inked unevenly — the mask is a tile of
+   ink coverage, at a different spot for every mark — with a hair of bleed. */
+.pp-ink__mark {
+  position: absolute;
+  top: calc(100% - 0.12em);
+  left: 50%;
+  display: block;
+  padding: 0.34em 0.62em 0.28em;
+  border: 0.16em solid currentColor;
+  border-radius: 0.3em;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.44em;
+  line-height: 1.1;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  text-shadow: 0 0 0.05em currentColor;
+  transform: translateX(-50%) rotate(var(--ink-tilt, 0deg));
+  -webkit-mask: url('/assets/passport/web/ink.webp') var(--ink-at, 0 0) / 21em 21em repeat;
+  mask: url('/assets/passport/web/ink.webp') var(--ink-at, 0 0) / 21em 21em repeat;
+}
+/* Lined up with one edge of the stamp instead, where its neighbour would
+   cover the middle (data: ink: 'left' or 'right'). */
+.pp-ink__mark--left { left: 0.4em; transform: rotate(var(--ink-tilt, 0deg)); transform-origin: 0 0; }
+.pp-ink__mark--right { left: auto; right: 0.4em; transform: rotate(var(--ink-tilt, 0deg)); transform-origin: 100% 0; }
 
 /* --------------------------------------------------------------- stamps --- */
 
@@ -434,7 +581,7 @@
 
 .pp-stamp {
   position: absolute;
-  width: 38%;
+  width: var(--stamp-w);
   aspect-ratio: 1;
   display: block;
   transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));

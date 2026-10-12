@@ -196,6 +196,66 @@
     return e;
   }
 
+  // What's printed on every visa page, in the passport's blue: a double-rule
+  // frame with a star in each corner, the VISAS heading between rules, the
+  // page number in the outer corner, and a line of microprint along the foot
+  // — the security printing a real visa page carries, kept quiet. It's live
+  // type laid on with multiply (see .pp-print), so the paper shows through.
+  var STAR = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.2l2.5 5.7 6.2.6-4.7 4.1 1.4 6.1L10 14.6l-5.4 3.1 1.4-6.1-4.7-4.1 6.2-.6z"/></svg>';
+  var MICRO = new Array(9).join('UNITED STATES OF AMERICA ★ ');
+
+  function printLayer(page) {
+    var p = el('span', 'pp-print');
+    var frame = el('span', 'pp-print__frame');
+    ['tl', 'tr', 'bl', 'br'].forEach(function (c) {
+      var star = el('span', 'pp-print__star pp-print__star--' + c);
+      star.innerHTML = STAR;
+      frame.appendChild(star);
+    });
+    p.appendChild(frame);
+    var head = el('span', 'pp-print__head');
+    head.appendChild(el('span', 'pp-print__rule'));
+    head.appendChild(el('span', 'pp-print__title', 'Visas'));
+    head.appendChild(el('span', 'pp-print__rule'));
+    p.appendChild(head);
+    p.appendChild(el('span', 'pp-print__num', String(page)));
+    p.appendChild(el('span', 'pp-print__micro', MICRO));
+    return p;
+  }
+
+  // A small, steady number from a string, so each stamp's ink lands the same
+  // way on every visit without anyone having to choose it.
+  function hash(str) {
+    var h = 5381;
+    for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+    return h;
+  }
+
+  // Under each stamp, the country and year rubber-stamped in blue ink, the
+  // way an entry stamp records a crossing. It's on the paper, under the
+  // sticker — its top edge tucks under the perforations — so it's laid
+  // first and stays put when the stamp above it lifts. Its box is the
+  // stamp's box, tilted the same, so the mark always sits just below it;
+  // the mark itself is a degree or two off again, as a hand-held stamp is.
+  function addInk(s, page) {
+    STAMPS.forEach(function (st) {
+      if (st.page !== page) return;
+      var at = st.at || [50, 50], h = hash(st.stamp || st.name || '');
+      var box = el('span', 'pp-ink');
+      box.style.left = at[0] + '%';
+      box.style.top = at[1] + '%';
+      box.style.setProperty('--tilt', (+st.tilt || 0) + 'deg');
+      var name = String(st.name || '').replace(/^the\s+/i, '').toUpperCase();
+      var mark = el('span', 'pp-ink__mark' + (st.ink === 'left' || st.ink === 'right' ? ' pp-ink__mark--' + st.ink : ''),
+        name + (st.year ? ' · ' + st.year : ''));
+      mark.style.setProperty('--ink-tilt', ((h % 9) - 4) * 0.5 + 'deg');
+      // Where on the ink tile this mark falls, so no two are inked alike.
+      mark.style.setProperty('--ink-at', (h % 101) + '% ' + ((h >>> 7) % 101) + '%');
+      box.appendChild(mark);
+      s.appendChild(box);
+    });
+  }
+
   // Joe's travel stamps, stuck onto a visa page (js/passport-data.js). Each is
   // its own element in the page's sheet, so it rides the leaf through every
   // turn. The box holds the hand-placed tilt and never moves — it's what the
@@ -225,7 +285,8 @@
   }
 
   // Each visa page: its sheet of weathered paper (tools/build-visa-paper.py),
-  // the shadow into the spine, a page number, and whatever's stuck on it.
+  // the shadow into the spine, the blue printing, then the ink marks and the
+  // stamps stuck over them.
   function buildVisaSheets() {
     for (var page = 1; page <= SPREADS * 2; page++) {
       var recto = page % 2 === 0;
@@ -243,8 +304,9 @@
       img.addEventListener('error', function () { this.style.visibility = 'hidden'; });
       s.appendChild(img);
       s.appendChild(el('span', 'pp-gutter'));
-      s.appendChild(el('span', 'pp-visa__num mono', String(page)));
-      // Last, so a stamp covers the number if it's stuck over it.
+      s.appendChild(printLayer(page));
+      // In the order they'd have gone on: print, ink, stickers on top.
+      addInk(s, page);
       addStamps(s, page);
       sheets['v' + page] = s;
       sheetBox.appendChild(s);

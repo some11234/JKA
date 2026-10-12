@@ -196,39 +196,48 @@
     return e;
   }
 
+  // A small, steady number from a string, so each page's wear and each
+  // stamp's ink land the same way on every visit without anyone choosing.
+  function hash(str) {
+    var h = 5381;
+    for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+    return h;
+  }
+
   // What's printed on every visa page, in the passport's blue: a double-rule
-  // frame with a star in each corner, the VISAS heading between rules, the
-  // page number in the outer corner, and a line of microprint along the foot
-  // — the security printing a real visa page carries, kept quiet. It's live
-  // type laid on with multiply (see .pp-print), so the paper shows through.
+  // frame with a star in three corners, the page number in a ring in the
+  // fourth (the top outer one), the VISAS heading between rules, four faint
+  // guide marks that quarter the page for the stamps, as a real visa page
+  // has, and a line of microprint along the foot. It's live type laid on
+  // with multiply (see .pp-print), so the paper shows through — and worn
+  // like the paper, through a mask that's at a different spot on each page.
   var STAR = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.2l2.5 5.7 6.2.6-4.7 4.1 1.4 6.1L10 14.6l-5.4 3.1 1.4-6.1-4.7-4.1 6.2-.6z"/></svg>';
   var MICRO = new Array(9).join('UNITED STATES OF AMERICA ★ ');
 
   function printLayer(page) {
     var p = el('span', 'pp-print');
+    var h = hash('visa page ' + page);
+    p.style.setProperty('--wear-at', (h % 101) + '% ' + ((h >>> 7) % 101) + '%');
+    var outer = page % 2 === 0 ? 'tr' : 'tl';
     var frame = el('span', 'pp-print__frame');
     ['tl', 'tr', 'bl', 'br'].forEach(function (c) {
+      if (c === outer) return;
       var star = el('span', 'pp-print__star pp-print__star--' + c);
       star.innerHTML = STAR;
       frame.appendChild(star);
     });
     p.appendChild(frame);
+    ['v1', 'v2', 'h1', 'h2'].forEach(function (g) { p.appendChild(el('span', 'pp-print__guide pp-print__guide--' + g)); });
     var head = el('span', 'pp-print__head');
     head.appendChild(el('span', 'pp-print__rule'));
     head.appendChild(el('span', 'pp-print__title', 'Visas'));
     head.appendChild(el('span', 'pp-print__rule'));
     p.appendChild(head);
-    p.appendChild(el('span', 'pp-print__num', String(page)));
+    var num = el('span', 'pp-print__num');
+    num.appendChild(el('span', 'pp-print__digits', String(page)));
+    p.appendChild(num);
     p.appendChild(el('span', 'pp-print__micro', MICRO));
     return p;
-  }
-
-  // A small, steady number from a string, so each stamp's ink lands the same
-  // way on every visit without anyone having to choose it.
-  function hash(str) {
-    var h = 5381;
-    for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
-    return h;
   }
 
   // Under each stamp, the country and year rubber-stamped in blue ink, the

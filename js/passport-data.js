@@ -4,7 +4,8 @@
    The visa pages themselves are weathered paper (made by
    tools/build-visa-paper.py into assets/passport/web/visa-NN.webp) with the
    passport's blue printing on them — the VISAS heading, a frame, the page
-   number, microprint — laid over by js/passport.js. The book has exactly as many
+   number, guide marks quartering the page, microprint — laid over, worn,
+   by js/passport.js. The book has exactly as many
    of them as the stamps below fill, in whole spreads, so there are never
    blank pages to leaf through: put a stamp on a later page and the book
    grows to reach it (then rerun the paper build — see tools/README.md).
@@ -26,7 +27,8 @@
      at      Where the stamp's centre goes: [across, down], in % of the
              page. A stamp is 36% of the page wide and about 24% tall, with
              its ink mark another ~3% below. Keep it below the VISAS heading
-             (its top edge under ~10 down, so centres from ~23), above the
+             and the page number's ring (its top edge under ~10 down, so
+             centres from ~23), above the
              microprint at the foot (ink ending above ~92), and clear of the
              spine (centres at most ~70 across on a left page, at least ~30
              on a right one).

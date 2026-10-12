@@ -140,15 +140,18 @@ seeded by page number, so rebuilds are byte-identical; how strong each layer
 is lives at the top of the script.
 
 None of the blue ink is in the images. The printing on every page — a
-double-rule frame with a star in each corner, the VISAS heading between
-rules, the page number, a line of microprint along the foot — and the
-rubber-stamped country and year under each stamp are live type and SVG,
-built in `js/passport.js` and styled in `css/passport.css` (`.pp-print`,
-`.pp-ink`). Both are laid on with multiply, so the paper's grain and foxing
-show through the ink. The script also writes `ink.webp`, a seamless tile of
-uneven ink coverage that masks the rubber-stamped marks, so each looks inked
-by hand — at a different spot on the tile for every mark. The shadow down
-into the spine is CSS too (`.pp-gutter`).
+double-rule frame with stars in three corners and the page number in a ring
+in the fourth, the VISAS heading between rules, four faint guide marks that
+quarter the page (as a real visa page has), and a line of microprint along
+the foot — and the rubber-stamped country and year under each stamp are live
+type and SVG, built in `js/passport.js` and styled in `css/passport.css`
+(`.pp-print`, `.pp-ink`). Both are laid on with multiply, so the paper's
+grain and foxing show through the ink. The script also writes two seamless
+tiles that age the ink, each masked at a different spot per page or mark:
+`print-wear.webp`, what's left of the printing after years in a pocket
+(broad faded patches, a few rubbed streaks, flecks where it lifted), and
+`ink.webp`, the uneven coverage of a hand-inked rubber stamp. The shadow
+down into the spine is CSS too (`.pp-gutter`).
 
 Earlier versions of the visa pages — nine public-domain American paintings
 (`tools/build-visas.js`) and Gabe Classon's CC0 scans of a real passport

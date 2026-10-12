@@ -407,7 +407,7 @@
   --gutter-mid: rgba(84, 58, 26, 0.11);
   /* Two blues: the printer's, even and a little grey; and the stamp pad's,
      deeper, laid on by hand. */
-  --print-ink: #2C4894;
+  --print-ink: #34498A;
   --stamp-ink: #1A3BB0;
   /* How wide a stamp is, as a share of the page. The ink under each one
      shares it, so the mark always sits just below its stamp. */
@@ -420,15 +420,22 @@
 
 /* Printed ink sits in the paper rather than on it: multiply lets the grain,
    the foxing and the browning show through, and the blue darkens where the
-   paper has. Faded a little, like everything else on the page. */
+   paper has. And it's as old as the paper: the mask is a tile of what's left
+   of a print after years in a pocket (print-wear.webp, from
+   tools/build-visa-paper.py) — broad faded patches, a few rubbed streaks,
+   flecks where the ink has lifted — at a different spot on every page. */
 .pp-print {
   position: absolute;
   top: 0; right: 0; bottom: 0; left: 0;
   display: block;
   color: var(--print-ink);
   mix-blend-mode: multiply;
-  opacity: 0.62;
+  opacity: 0.8;
   pointer-events: none;
+  /* Softened a hair, as if it soaked into the fibres. */
+  filter: blur(0.016em);
+  -webkit-mask: url('/assets/passport/web/print-wear.webp') var(--wear-at, 0 0) / 24em 24em repeat;
+  mask: url('/assets/passport/web/print-wear.webp') var(--wear-at, 0 0) / 24em 24em repeat;
 }
 
 /* A double rule round the page, inside its edges, with rounded corners. */
@@ -447,7 +454,8 @@
   border-radius: 0.3em;
 }
 
-/* A small star tucked into each corner of the frame. */
+/* A small star tucked into three corners of the frame; the page number
+   takes the fourth. */
 .pp-print__star {
   position: absolute;
   width: 0.42em;
@@ -460,11 +468,11 @@
 .pp-print__star--bl { bottom: 0.36em; left: 0.36em; }
 .pp-print__star--br { bottom: 0.36em; right: 0.36em; }
 
-/* VISAS across the top, between two short double rules. The heading and the
-   page number share a top and a size, so they sit on one line. */
+/* VISAS across the top, between two short double rules, level with the
+   centre of the page number's ring. */
 .pp-print__head {
   position: absolute;
-  top: 3.3%;
+  top: 4.6%;
   left: 0;
   right: 0;
   display: flex;
@@ -483,6 +491,8 @@
      centred on what's visible. */
   margin-right: -0.42em;
   text-transform: uppercase;
+  /* A hair of spread, where the ink soaked into the fibres. */
+  text-shadow: 0 0 0.04em currentColor;
 }
 .pp-print__rule {
   width: 3.4em;
@@ -492,20 +502,67 @@
   border-bottom: 0.035em solid currentColor;
 }
 
+/* The page number, in a double ring in the top outer corner, where the
+frame's fourth star would be. */
 .pp-print__num {
   position: absolute;
-  top: 3.3%;
+  top: 1.12em;
+  width: 1.6em;
+  height: 1.6em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0.06em solid currentColor;
+  border-radius: 50%;
+}
+.pp-print__num::before {
+  content: '';
+  position: absolute;
+  top: 0.1em; right: 0.1em; bottom: 0.1em; left: 0.1em;
+  border: 0.03em solid currentColor;
+  border-radius: 50%;
+}
+.pp-visa--verso .pp-print__num { left: 1.12em; }
+.pp-visa--recto .pp-print__num { right: 1.12em; }
+.pp-print__digits {
   display: block;
   font-family: 'Cormorant Garamond', 'Libre Caslon Text', Georgia, 'Times New Roman', serif;
   font-weight: 600;
-  font-size: 0.8em;
+  font-size: 0.92em;
   line-height: 1;
   /* Cormorant's old-style 1 reads as a small capital I. */
   font-variant-numeric: lining-nums;
+  /* Its figures sit a touch high in the line box; settle them in the ring. */
+  margin-top: 0.06em;
+  text-shadow: 0 0 0.04em currentColor;
 }
-/* Just inside the corner star. */
-.pp-visa--verso .pp-print__num { left: 9.6%; }
-.pp-visa--recto .pp-print__num { right: 9.6%; }
+
+/* Guide marks: four short, faint ticks on the lines that quarter the page —
+   two down the middle, two across it — the way a real visa page shows an
+   officer where four stamps can go. Stamps cover them where they fall. */
+.pp-print__guide {
+  position: absolute;
+  display: block;
+  opacity: 0.55;
+}
+.pp-print__guide--v1,
+.pp-print__guide--v2 {
+  left: 50%;
+  width: 0;
+  height: 5.5%;
+  border-left: 0.04em solid currentColor;
+}
+.pp-print__guide--v1 { top: 25.5%; }
+.pp-print__guide--v2 { top: 74%; }
+.pp-print__guide--h1,
+.pp-print__guide--h2 {
+  top: 52%;
+  width: 9%;
+  height: 0;
+  border-top: 0.04em dashed currentColor;
+}
+.pp-print__guide--h1 { left: 21%; }
+.pp-print__guide--h2 { left: 70%; }
 
 /* Microprint along the foot: UNITED STATES OF AMERICA, over and over, so
    small it reads as a rule until you look closely. */

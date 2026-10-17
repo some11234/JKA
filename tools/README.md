@@ -106,8 +106,10 @@ each, the country and year are rubber-stamped in blue ink, from the same
 `name` and `year`; where a neighbouring stamp would cover the middle of that
 mark, `ink: 'left'` (or `'right'`) lines it up with one edge instead.
 They're listed in the order Joe went, front of the book to back, like a real
-passport. To add one, drop in the PNG, run
-`python3 tools/build-passport.py stamps`, and add a line to that list. To move
+passport, four to a page: two rows of two, one in each quarter the page's
+guide marks show (the comment above the list gives the numbers). To add one,
+drop in the PNG, run `python3 tools/build-passport.py stamps`, and add a line
+to that list, in the next free quarter. To move
 one, change its line — no rebuild. If it goes on a page past the last one
 there is, the book grows to reach it: rerun `build-visa-paper.py` (below) so
 the new pages have paper.

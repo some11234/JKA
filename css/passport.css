@@ -432,8 +432,10 @@
   mix-blend-mode: multiply;
   opacity: 0.8;
   pointer-events: none;
-  /* Softened a hair, as if it soaked into the fibres. */
-  filter: blur(0.016em);
+  /* No `filter` here, not even a hair of blur to soak the print into the
+     fibres: Safari, drawing a filter together with this mask and blend
+     inside a 3D page, paints a stripe of magenta across the top of the
+     print. The text's own text-shadow does the soaking instead. */
   -webkit-mask: url('/assets/passport/web/print-wear.webp') var(--wear-at, 0 0) / 24em 24em repeat;
   mask: url('/assets/passport/web/print-wear.webp') var(--wear-at, 0 0) / 24em 24em repeat;
 }

@@ -878,19 +878,11 @@
 .pp-visited__frame { fill: none; stroke: rgba(28, 38, 49, 0.8); stroke-width: 1.1px; }
 .pp-visited__frame-in { fill: none; stroke: rgba(28, 38, 49, 0.45); stroke-width: 0.5px; }
 
-/* The visits: hatched in violet; the smallest get a ring so they can be
-   found at all. */
+/* The visits: hatched in violet, nothing more. */
 .pp-visited__marks { opacity: 0.92; }
 .pp-visited__mark {
   stroke: none;
   transition: opacity 250ms ease;
-}
-.pp-visited__ring-mark {
-  fill: none;
-  stroke: var(--visit-ink);
-  stroke-width: 1.1px;
-  opacity: 0.8;
-  transition: opacity 250ms ease, stroke-width 250ms ease;
 }
 
 /* Under each globe, the flags of the visits it's nearest to. They sit over
@@ -954,23 +946,19 @@
   .pp.is-settled .pp-visited__flag,
   .pp.is-settled .pp-visited__mark { pointer-events: auto; cursor: pointer; }
 }
-.pp-visited[data-active] .pp-visited__mark:not(.is-on),
-.pp-visited[data-active] .pp-visited__ring-mark:not(.is-on) { opacity: 0.28; }
+.pp-visited[data-active] .pp-visited__mark:not(.is-on) { opacity: 0.28; }
 .pp-visited[data-active] .pp-visited__flag:not(.is-on) { opacity: 0.55; }
-.pp-visited__ring-mark.is-on { stroke-width: 1.6px; opacity: 1; }
 .pp-visited__flag.is-on .pp-visited__name { color: var(--visit-ink); }
 
 /* The first time the book opens, the flags press in one by one, each
    country inking in just ahead of its flag. */
 .pp-visited.is-unstamped .pp-visited__flag,
-.pp-visited.is-unstamped .pp-visited__mark,
-.pp-visited.is-unstamped .pp-visited__ring-mark { opacity: 0; }
+.pp-visited.is-unstamped .pp-visited__mark { opacity: 0; }
 .pp-visited.is-stamping .pp-visited__flag {
   animation: pp-stamp 600ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   animation-delay: var(--d, 0ms);
 }
-.pp-visited.is-stamping .pp-visited__mark,
-.pp-visited.is-stamping .pp-visited__ring-mark {
+.pp-visited.is-stamping .pp-visited__mark {
   animation: pp-ink-in 900ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   animation-delay: var(--d, 0ms);
 }
@@ -1436,6 +1424,5 @@ frame's fourth star would be. */
   .pp.is-settled .pp-stamp:hover .pp-stamp__art { transform: none; }
   /* The flags are simply there. */
   .pp-visited.is-stamping .pp-visited__flag,
-  .pp-visited.is-stamping .pp-visited__mark,
-  .pp-visited.is-stamping .pp-visited__ring-mark { animation: none; }
+  .pp-visited.is-stamping .pp-visited__mark { animation: none; }
 }

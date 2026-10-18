@@ -368,7 +368,7 @@
   // hoist with its folds shaded across it. In the data page's guilloche
   // units (the page less its MRZ band); proportions are the flag's own
   // (1.9 : 1, canton 0.76 × 7/13, stars at 0.054 and 0.063 of the hoist).
-  var FLAG = { x: 52, y: 150, h: 268, wave: 3.4, lift: 22 };
+  var FLAG = { x: 52, y: 150, h: 268, wave: 2.4, lift: 10 };
   function drawFlag(svg) {
     var F = FLAG, W = F.h * 1.9;
     function at(t, v) {
@@ -388,21 +388,21 @@
       var gr = svgEl('linearGradient', { id: 'pp-flag-' + c[0], gradientUnits: 'userSpaceOnUse', x1: F.x, y1: 0, x2: F.x + W, y2: 0 });
       for (var i = 0; i <= 24; i++) {
         var t = i / 24, shade = 0.5 + 0.5 * Math.cos(2 * Math.PI * F.wave * t - 0.9 + 0.8);
-        gr.appendChild(svgEl('stop', { offset: t, 'stop-color': c[1], 'stop-opacity': (0.3 + 0.34 * shade).toFixed(3) }));
+        gr.appendChild(svgEl('stop', { offset: t, 'stop-color': c[1], 'stop-opacity': (0.15 + 0.12 * shade).toFixed(3) }));
       }
       defs.appendChild(gr);
     });
     svg.appendChild(defs);
-    var red = svgEl('g', { fill: 'none', stroke: 'url(#pp-flag-red)', 'stroke-width': 0.8 });
-    var blue = svgEl('g', { fill: 'none', stroke: 'url(#pp-flag-blue)', 'stroke-width': 0.8 });
+    var red = svgEl('g', { fill: 'none', stroke: 'url(#pp-flag-red)', 'stroke-width': 0.55 });
+    var blue = svgEl('g', { fill: 'none', stroke: 'url(#pp-flag-blue)', 'stroke-width': 0.55 });
     var CANTON = 0.76 / 1.9;
     for (var s = 0; s < 13; s += 2) {
-      for (var k = 0; k < 6; k++) {
-        var v = (s + (k + 0.5) / 6) / 13;
+      for (var k = 0; k < 4; k++) {
+        var v = (s + (k + 0.5) / 4) / 13;
         red.appendChild(svgEl('path', { d: rule(v, s < 7 ? CANTON : 0, 1) }));
       }
     }
-    for (var j = 0; j < 42; j++) blue.appendChild(svgEl('path', { d: rule((j + 0.5) / 42 * 7 / 13, 0, CANTON) }));
+    for (var j = 0; j < 28; j++) blue.appendChild(svgEl('path', { d: rule((j + 0.5) / 28 * 7 / 13, 0, CANTON) }));
     svg.appendChild(red);
     svg.appendChild(blue);
     // Fifty stars, nine rows of six and five, knocked out of the canton.
@@ -594,14 +594,6 @@
     svg.appendChild(svgEl('ellipse', { cx: fcx, cy: fcy, rx: frx, ry: fry, 'class': 'pp-visited__frame' }));
     svg.appendChild(svgEl('ellipse', { cx: fcx, cy: fcy, rx: frx - 9, ry: fry - 9, 'class': 'pp-visited__frame-in' }));
     host.appendChild(svg);
-
-    // The smallest visits get a ring of ink round them, or they'd vanish.
-    Object.keys(found).forEach(function (code) {
-      var m = found[code];
-      if (m.area >= 520) return;
-      var rr = Math.max(m.w, m.h) / 2 + 13;
-      mbody.appendChild(svgEl('ellipse', { cx: m.x, cy: m.y, rx: rr, ry: rr * 1.1, 'class': 'pp-visited__ring-mark', 'data-code': code, 'data-globe': key }));
-    });
     marks.appendChild(mbody);
     var stamp = el('span', 'pp-visited__marks pp-front__stamp');
     stamp.style.setProperty('--ink-at', spotOf('globe ' + key));
@@ -663,12 +655,6 @@
           if (c.globe ? g.key === c.globe : (!best || m.dist < best.dist)) best = { key: g.key, dist: m.dist, x: m.x };
         });
         if (best) home[c.code] = best;
-      });
-      // A ring only where the flag is: on the other globe the country is a
-      // sliver at the rim, and its hatching is enough.
-      Array.prototype.forEach.call(sheets.visited.querySelectorAll('.pp-visited__ring-mark'), function (n) {
-        var h = home[n.getAttribute('data-code')];
-        if (!h || h.key !== n.getAttribute('data-globe')) n.parentNode.removeChild(n);
       });
       var order = 0;
       globes.forEach(function (g) {

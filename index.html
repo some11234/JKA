@@ -170,6 +170,30 @@
     </div>
   </section>
 
+  <!-- ============================================== Passport — an interlude -->
+  <!-- The closed passport, its travel stamps fanned out from under its
+       fore-edge as if spilling from the pages, and a way in. The stamps are
+       laid out by js/passport-teaser.js from PASSPORT_STAMPS
+       (js/passport-data.js); the section reads whole without them. -->
+  <section id="passport" class="ppt" aria-labelledby="passport-heading">
+    <div class="ppt__divider" aria-hidden="true"></div>
+
+    <h2 class="ppt__heading" id="passport-heading">Passport</h2>
+
+    <div class="ppt__body">
+      <a class="ppt__book" href="/passport/" aria-label="Open the passport">
+        <img class="ppt__cover" src="/assets/passport/web/cover.webp" alt=""
+             width="1320" height="2000" loading="lazy" decoding="async">
+      </a>
+      <div class="ppt__stamps" data-ppt-stamps aria-hidden="true"></div>
+      <p class="ppt__sr" data-ppt-list></p>
+      <div class="ppt__foot">
+        <p class="ppt__caption mono" data-ppt-caption>11 countries · since 2006</p>
+        <a class="pill pill--ghost mono" href="/passport/">Open the passport</a>
+      </div>
+    </div>
+  </section>
+
   <!-- ================================ Frames 5–6 — falling headshot + about -->
   <section id="about" class="about" aria-labelledby="about-heading">
     <div class="about__divider" aria-hidden="true"></div>
@@ -247,6 +271,8 @@
 <script defer src="/js/vendor/ScrollTrigger.min.js"></script>
 <script defer src="/js/media-data.js"></script>
 <script defer src="/js/coverflow.js"></script>
+<script defer src="/js/passport-data.js"></script>
+<script defer src="/js/passport-teaser.js"></script>
 <script defer src="/js/main.js"></script>
 </body>
 </html>

@@ -3,17 +3,16 @@
 
    A closed US passport, built in CSS 3D: two cover boards and a page block
    with real edges. Tap it (or drag the cover sideways) and it swings open on
-   its spine, then turns a quarter clockwise so the Flighty passport inside —
-   folded across the two pages along its own dashed line — reads the right
-   way up, the way you turn a real passport to read its data page. Turn the
-   page and the book stands back upright for the visa pages; turn past the
-   last one and the back cover closes and the book turns over, ready again.
+   its spine, onto the data page glued inside the front cover and, facing
+   it, the countries Joe has been to, stamped on two globes. Turn the page
+   for the visa pages; turn past the last one and the back cover closes and
+   the book turns over, ready again.
 
    Everything is driven by ONE number, `pos`, moving along a path:
 
        0          closed
-       1          open on the Flighty pages, turned a quarter
-       2 … n + 1  the n visa spreads, upright — as many as the stamps fill
+       1          open on the front spread: data page, countries visited
+       2 … n + 1  the n visa spreads — as many as the stamps fill
        n + 2      closed from the back and turned over — identical to 0
 
    Each frame derives every angle, the stack heights, the pose, the lighting
@@ -30,7 +29,8 @@
    outline is fitted to the stage every frame, at any viewport size.
 
    Geometry is in units of the cover's height. CONFIG.BOOK mirrors
-   tools/build-passport.py, which cuts the page images to the same shape.
+   tools/build-passport.py and tools/build-visa-paper.py, which cut the
+   cover and the paper to the same shape.
    ========================================================================== */
 
 (function () {
@@ -44,19 +44,19 @@
       RATIO: 0.66,           // cover width / height (a real one is 0.704 — see the build script)
       INSET_HT: 0.006,       // board showing above and below the pages
       INSET_FORE: 0.006,     // board showing past the page block's outer edge
-      MAP_INSET_FORE: 0.022, // navy rim past the outer edge of the page inside the cover
+      MAP_INSET_FORE: 0.022, // navy rim past the outer edge of the data page, inside the cover
       THICK: 0.04,           // closed thickness, boards included (~5 mm on 125)
       BOARD: 0.0045,         // one cover board
       COVER_RADIUS: 0.0378,  // the cover art's rounded corners (100px on 1746)
-      PAGE_RADIUS: 0.0365,   // Flighty's page corners (~42px on 1179), a hair over
-      ART_W: 1179            // Flighty art width in px: the page's head-to-tail length
+      PAGE_RADIUS: 0.0365,   // the pages' outer corners (~42 units of ART_W)
+      ART_W: 1179            // a page's head-to-tail length, in the units the stitch is
+                             // measured in (the art the book was first cut to)
     },
     FACETS: 5,               // flat segments per rounded corner of a page stack
     FACETS_BOARD: 3,         // ... of a cover board
 
     // The legs of the path. ms is the time for the whole leg at normal speed.
-    OPEN: { ms: 2700, back: 2100, flipEnd: 0.62, turnStart: 0.34 },  // 0 → 1
-    TO_VISAS: { ms: 1500, turnEnd: 0.6, leafStart: 0.2 },             // 1 → 2
+    OPEN: { ms: 2700, back: 2100, flipEnd: 0.62, settleStart: 0.34 }, // 0 → 1
     PAGE: { ms: 950 },                                               // k → k+1
     CLOSE_BACK: { ms: 2600, closeEnd: 0.46, flipStart: 0.4 },         // last → closed
     RIFFLE: 6,               // speed-up when riffling back to the cover (Esc)
@@ -67,11 +67,10 @@
     POSE: {
       closed: { tx: 16, ty: -25 },
       mid: { tx: 10, ty: -7 },
-      flighty: { tx: 2, ty: 0 },
       read: { tx: 2, ty: 0 },
       turning: { tx: 6, ty: -9 } // mid-way through the back cover closing
     },
-    FILL: { closed: 0.62, flighty: 0.95, read: 0.95 }, // share of the stage
+    FILL: { closed: 0.62, read: 0.95 }, // share of the stage
     FIT_MARGIN: 0.97,        // mid-move, the outline never gets closer to the edge than this
     PERSPECTIVE: 3.4,        // × the book's largest on-screen height
 
@@ -101,7 +100,7 @@
   var SPREADS = Math.min(9, Math.ceil(STAMPS.reduce(function (m, st) {
     return Math.max(m, Math.floor(+st.page) || 0);
   }, 0) / 2));
-  var LEAVES = SPREADS + 1;   // leaf 0: Flighty page / visa 1
+  var LEAVES = SPREADS + 1;   // leaf 0: countries visited / visa 1
   var END = SPREADS + 2;      // "closed from the back"
 
   var $ = function (sel) { return root.querySelector(sel); };
@@ -112,7 +111,7 @@
   var coverFace = $('[data-pp-cover]');
   var coverImg = $('[data-pp-cover-img]');
   var insideFace = $('[data-pp-inside]');
-  var mapPage = $('[data-pp-map]');
+  var bioPage = $('[data-pp-bio]');
   var backGroup = $('[data-pp-backgroup]');
   var backBoard = $('[data-pp-backboard]');
   var backIn = $('[data-pp-back]');
@@ -143,12 +142,6 @@
   var mqFine = window.matchMedia('(hover: hover) and (pointer: fine)');
   function motionOK() { return !mqReduce.matches; }
 
-  var variant = 'blacklight';
-  try {
-    if (new URLSearchParams(location.search).get('v') === 'light') variant = 'light';
-  } catch (e) { /* no URLSearchParams: stay on the default */ }
-  if (variant !== 'blacklight') root.setAttribute('data-variant', variant);
-
   // ---------------------------------------------------------------- math ---
   var DEG = Math.PI / 180;
   function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
@@ -164,7 +157,6 @@
   // The same rotations CSS applies (y points down, z toward the viewer).
   function rotX(v, a) { var c = Math.cos(a), s = Math.sin(a); return [v[0], v[1] * c - v[2] * s, v[1] * s + v[2] * c]; }
   function rotY(v, a) { var c = Math.cos(a), s = Math.sin(a); return [v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c]; }
-  function rotZ(v, a) { var c = Math.cos(a), s = Math.sin(a); return [v[0] * c - v[1] * s, v[0] * s + v[1] * c, v[2]]; }
 
   var LIGHT = (function (v) {
     var m = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
@@ -187,7 +179,7 @@
   // The contents of every page, built once. A sheet is mounted into whichever
   // face shows it right now and parked in the hidden box otherwise.
   var sheets = {};
-  sheets.data = $('[data-sheet="data"]');
+  sheets.visited = $('[data-sheet="visited"]');
 
   function el(tag, cls, text) {
     var e = document.createElement(tag);
@@ -325,7 +317,406 @@
     sheetBox.appendChild(blank);
   }
 
-  function leafFrontId(j) { return j === 0 ? 'data' : 'v' + (j * 2); }
+  // -------------------------------------------------------- front spread ---
+  // The data page (inside the front cover) and Countries visited (leaf 0's
+  // front). Their print is in the page; what's drawn from numbers is drawn
+  // here, once: the guilloche, the stars, the passport number punched
+  // through the paper, and the globes with the visits stamped on them and
+  // their flags beneath. Each layer of print or ink is worn at its own spot
+  // on the same tiles the visa pages use.
+  var COUNTRIES = window.PASSPORT_COUNTRIES || [];
+  var NS = 'http://www.w3.org/2000/svg';
+  var PRINT_INK = '#34498A', PRINT_RED = '#A8423D', VISIT_INK = '#563889';
+
+  function svgEl(tag, attrs) {
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) if (Object.prototype.hasOwnProperty.call(attrs, k)) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+  function pathOf(pts, closed) {
+    return 'M' + pts.map(function (q) { return q[0].toFixed(2) + ',' + q[1].toFixed(2); }).join('L') + (closed ? 'Z' : '');
+  }
+  function spotOf(key) {
+    var h = hash(key);
+    return (h % 101) + '% ' + ((h >>> 7) % 101) + '%';
+  }
+  function bare(name) { return String(name || '').replace(/^the\s+/i, ''); }
+
+  // Security printing's woven ribbons: a band of wavy rings, each strand a
+  // little out of phase with the next (and, crossed, running the other way).
+  function rosetteBand(g, o) {
+    var sx = o.sx || 1, sy = o.sy || 1, amp2 = o.amp2 || 0, lobes2 = o.lobes2 || 0;
+    for (var s = 0; s < o.strands * (o.cross ? 2 : 1); s++) {
+      var dir = s < o.strands ? 1 : -1;
+      var ph = dir * ((s % o.strands) / o.strands) * 2 * Math.PI;
+      var pts = [];
+      for (var i = 0; i <= 900; i++) {
+        var a = (i / 900) * 2 * Math.PI;
+        var r = o.r + o.amp * Math.sin(o.lobes * a + ph) + amp2 * Math.sin(lobes2 * a - ph * 2);
+        pts.push([o.cx + r * Math.cos(a) * sx, o.cy + r * Math.sin(a) * sy]);
+      }
+      g.appendChild(svgEl('path', { d: pathOf(pts, true) }));
+    }
+  }
+  // ... and the same across the page as waves. `shift` offsets every strand's
+  // phase, so two bands in two inks interleave like a flag's stripes.
+  function waveBand(g, o) {
+    var amp2 = o.amp2 || 0, wl2 = o.wl2 || 1, shift = o.shift || 0;
+    for (var s = 0; s < o.strands; s++) {
+      var ph = ((s + shift) / o.strands) * Math.PI * 2;
+      var pts = [];
+      for (var x = o.x0; x <= o.x1; x += 2) {
+        pts.push([x, o.y + o.amp * Math.sin((x / o.wl) * 2 * Math.PI + ph) + amp2 * Math.sin((x / wl2) * 2 * Math.PI - ph)]);
+      }
+      g.appendChild(svgEl('path', { d: pathOf(pts, false) }));
+    }
+  }
+  function inks(opacity) {
+    return [PRINT_INK, PRINT_RED].map(function (c) {
+      return svgEl('g', { fill: 'none', stroke: c, 'stroke-opacity': opacity, 'stroke-width': 0.45 });
+    });
+  }
+
+  function drawGuilloche() {
+    // The data page: rosettes behind the photo, ribbons through the data.
+    var svg = bioPage.querySelector('[data-pp-guilloche]');
+    var g = inks(0.13), blue = g[0], red = g[1];
+    rosetteBand(blue, { cx: 305, cy: 275, r: 252, amp: 7, lobes: 46, strands: 10, cross: true });
+    rosetteBand(red, { cx: 305, cy: 275, r: 206, amp: 14, lobes: 28, strands: 12, cross: true });
+    rosetteBand(blue, { cx: 305, cy: 275, r: 150, amp: 11, lobes: 20, strands: 12, amp2: 5, lobes2: 5, cross: true });
+    rosetteBand(red, { cx: 305, cy: 275, r: 86, amp: 9, lobes: 14, strands: 10, cross: true });
+    waveBand(blue, { x0: 0, x1: 626, y: 776, amp: 60, wl: 420, strands: 26, amp2: 9, wl2: 90 });
+    waveBand(red, { x0: 0, x1: 626, y: 930, amp: 34, wl: 300, strands: 18, amp2: 6, wl2: 70 });
+    svg.appendChild(red);
+    svg.appendChild(blue);
+
+    // Countries visited: stripe-waves behind each globe, red and blue
+    // strands interleaved, and a band of stars along the foot.
+    svg = sheets.visited.querySelector('[data-pp-guilloche]');
+    g = inks(0.1);
+    [284, 698].forEach(function (y, i) {
+      waveBand(g[0], { x0: 0, x1: 704, y: y, amp: 46, wl: 390, strands: 13, amp2: 7, wl2: 84, shift: i * 0.25 });
+      waveBand(g[1], { x0: 0, x1: 704, y: y, amp: 46, wl: 390, strands: 13, amp2: 7, wl2: 84, shift: 0.5 + i * 0.25 });
+    });
+    svg.appendChild(g[1]);
+    svg.appendChild(g[0]);
+    var stars = svgEl('g', { fill: PRINT_INK, 'fill-opacity': 0.22 });
+    for (var i = 0; i < 25; i++) stars.appendChild(svgEl('path', { d: starPath(64 + i * 24, 1040, 3.2) }));
+    svg.appendChild(stars);
+  }
+
+  // A five-pointed star of outer radius r at (cx, cy), point up.
+  function starPath(cx, cy, r) {
+    var pts = [];
+    for (var i = 0; i < 10; i++) {
+      var a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.4 : r;
+      pts.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a)]);
+    }
+    return pathOf(pts, true);
+  }
+
+  function drawStars() {
+    // Thirteen in a shallow arc over the title, highest in the middle.
+    var svg = bioPage.querySelector('[data-pp-stars]');
+    for (var i = 0; i < 13; i++) {
+      var dx = (i - 6) * 26;
+      svg.appendChild(svgEl('path', { d: starPath(282 + dx, 7 + dx * dx * 0.00058 + 4.2, 4.6) }));
+    }
+  }
+
+  function drawWaves() {
+    // Under the signature: the flag's stripes, as guilloche.
+    var svg = bioPage.querySelector('[data-pp-waves]');
+    var g = inks(0.24);
+    waveBand(g[0], { x0: 0, x1: 626, y: 40, amp: 16, wl: 120, strands: 10, amp2: 4, wl2: 37 });
+    waveBand(g[1], { x0: 0, x1: 626, y: 40, amp: 16, wl: 120, strands: 10, amp2: 4, wl2: 37, shift: 0.5 });
+    svg.appendChild(g[1]);
+    svg.appendChild(g[0]);
+  }
+
+  // The passport number, punched through the top of the page as a real one
+  // is: dark where the board shows through, with the lit lower lip of each
+  // hole.
+  var PERF_FONT = {
+    '0': ['01110', '10001', '10011', '10101', '11001', '10001', '01110'],
+    '1': ['00100', '01100', '00100', '00100', '00100', '00100', '01110'],
+    '2': ['01110', '10001', '00001', '00010', '00100', '01000', '11111'],
+    '3': ['11110', '00001', '00001', '01110', '00001', '00001', '11110'],
+    '4': ['00010', '00110', '01010', '10010', '11111', '00010', '00010'],
+    '5': ['11111', '10000', '11110', '00001', '00001', '10001', '01110'],
+    '6': ['00110', '01000', '10000', '11110', '10001', '10001', '01110'],
+    '7': ['11111', '00001', '00010', '00100', '01000', '01000', '01000'],
+    '8': ['01110', '10001', '10001', '01110', '10001', '10001', '01110'],
+    '9': ['01110', '10001', '10001', '01111', '00001', '00010', '01100']
+  };
+  function perforate() {
+    var svg = sheets.visited.querySelector('[data-pp-perf]');
+    var num = (bioPage.querySelector('[data-pp-number]') || {}).textContent || '';
+    var pitch = 2.8, gap = 3.6, r = 0.95, x = 0;
+    num.trim().split('').forEach(function (ch) {
+      var rows = PERF_FONT[ch];
+      if (!rows) return;
+      rows.forEach(function (row, ry) {
+        row.split('').forEach(function (bit, rx) {
+          if (bit !== '1') return;
+          var cx = x + rx * pitch + r, cy = ry * pitch + r + 0.5;
+          svg.appendChild(svgEl('circle', { cx: cx + 0.28, cy: cy + 0.34, r: r, fill: '#fffaf0', 'fill-opacity': 0.85 }));
+          svg.appendChild(svgEl('circle', { cx: cx, cy: cy, r: r, fill: '#241b12', 'fill-opacity': 0.72 }));
+        });
+      });
+      x += 4 * pitch + gap + r * 2;
+    });
+    var w = Math.max(1, x - gap), h = 6 * pitch + 2 * r + 1;
+    svg.setAttribute('viewBox', '0 0 ' + w.toFixed(2) + ' ' + h.toFixed(2));
+    svg.style.width = 'calc(var(--u) * ' + w.toFixed(2) + ')';
+    svg.style.height = 'calc(var(--u) * ' + h.toFixed(2) + ')';
+  }
+
+  // ------------------------------------------------------------- globes ---
+  // The globe art (tools/build-globes.py) is one <path> per country, its id
+  // the ISO code, in absolute M/L/Z only — so each outline is a list of
+  // rings, and its mainland is the ring with the largest area.
+  function ringsOf(d) {
+    return d.split('M').slice(1).map(function (sub) {
+      return (sub.match(/-?[\d.]+,-?[\d.]+/g) || []).map(function (q) { return q.split(',').map(Number); });
+    }).filter(function (r) { return r.length >= 3; });
+  }
+  function mainland(d) {
+    var best = null;
+    ringsOf(d).forEach(function (r) {
+      var a = 0, cx = 0, cy = 0, x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (var i = 0; i < r.length; i++) {
+        var p = r[i], q = r[(i + 1) % r.length], c = p[0] * q[1] - q[0] * p[1];
+        a += c; cx += (p[0] + q[0]) * c; cy += (p[1] + q[1]) * c;
+        x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]);
+      }
+      if (Math.abs(a) < 1e-9) return;
+      var area = Math.abs(a / 2);
+      if (!best || area > best.area) best = { area: area, x: cx / (3 * a), y: cy / (3 * a), w: x1 - x0, h: y1 - y0 };
+    });
+    return best;
+  }
+
+  // Draws one globe: the printed one in its slot, and over it a second
+  // drawing of the same art holding only the visits, in stamp ink.
+  function drawGlobe(host, text) {
+    var key = host.getAttribute('data-pp-globe');
+    var src = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement;
+    var frame = src.querySelector('#frame');
+    var fcx = +frame.getAttribute('cx'), fcy = +frame.getAttribute('cy');
+    var frx = +frame.getAttribute('rx'), fry = +frame.getAttribute('ry');
+    var view = src.getAttribute('viewBox');
+    var vb = view.split(/[\s,]+/).map(Number);
+    var id = 'pp-' + key;
+    var ellipse = { cx: fcx, cy: fcy, rx: frx, ry: fry };
+
+    var svg = svgEl('svg', { viewBox: view, preserveAspectRatio: 'none' });
+    var defs = svgEl('defs', {});
+    var sea = svgEl('pattern', { id: id + '-sea', width: vb[2], height: 7, patternUnits: 'userSpaceOnUse' });
+    sea.appendChild(svgEl('rect', { width: vb[2], height: 1.5, fill: PRINT_INK, 'fill-opacity': 0.26 }));
+    var shade = svgEl('radialGradient', { id: id + '-shade', cx: 0.42, cy: 0.38, r: 0.66 });
+    shade.appendChild(svgEl('stop', { offset: 0.55, 'stop-color': PRINT_INK, 'stop-opacity': 0 }));
+    shade.appendChild(svgEl('stop', { offset: 1, 'stop-color': PRINT_INK, 'stop-opacity': 0.16 }));
+    var clip = svgEl('clipPath', { id: id + '-clip' });
+    clip.appendChild(svgEl('ellipse', ellipse));
+    defs.appendChild(sea);
+    defs.appendChild(shade);
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+    var body = svgEl('g', { 'clip-path': 'url(#' + id + '-clip)' });
+    body.appendChild(svgEl('ellipse', { cx: fcx, cy: fcy, rx: frx, ry: fry, fill: 'rgba(200, 211, 230, 0.3)' }));
+    body.appendChild(svgEl('rect', { x: vb[0], y: vb[1], width: vb[2], height: vb[3], fill: 'url(#' + id + '-sea)' }));
+
+    var marks = svgEl('svg', { viewBox: view, preserveAspectRatio: 'none' });
+    var mdefs = svgEl('defs', {});
+    var hatch = svgEl('pattern', { id: id + '-hatch', width: 13, height: 13, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(-38)' });
+    hatch.appendChild(svgEl('rect', { width: 13, height: 13, fill: VISIT_INK, 'fill-opacity': 0.16 }));
+    hatch.appendChild(svgEl('rect', { width: 5.4, height: 13, fill: VISIT_INK, 'fill-opacity': 0.82 }));
+    var mclip = svgEl('clipPath', { id: id + '-mclip' });
+    mclip.appendChild(svgEl('ellipse', ellipse));
+    mdefs.appendChild(hatch);
+    mdefs.appendChild(mclip);
+    marks.appendChild(mdefs);
+    var mbody = svgEl('g', { 'clip-path': 'url(#' + id + '-mclip)' });
+
+    var land = svgEl('g', {}), found = {};
+    Array.prototype.forEach.call(src.querySelectorAll('#countries path'), function (p) {
+      var d = p.getAttribute('d'), code = p.id;
+      land.appendChild(svgEl('path', { d: d, 'class': 'pp-visited__land' }));
+      if (!code || !COUNTRIES.some(function (c) { return c.code === code; })) return;
+      mbody.appendChild(svgEl('path', { d: d, fill: 'url(#' + id + '-hatch)', 'class': 'pp-visited__mark', 'data-code': code }));
+      var m = mainland(d);
+      if (m) {
+        m.dist = Math.sqrt(Math.pow((m.x - fcx) / frx, 2) + Math.pow((m.y - fcy) / fry, 2));
+        found[code] = m;
+      }
+    });
+    body.appendChild(land);
+    body.appendChild(svgEl('ellipse', { cx: fcx, cy: fcy, rx: frx, ry: fry, fill: 'url(#' + id + '-shade)' }));
+    svg.appendChild(body);
+    svg.appendChild(svgEl('ellipse', { cx: fcx, cy: fcy, rx: frx, ry: fry, 'class': 'pp-visited__frame' }));
+    svg.appendChild(svgEl('ellipse', { cx: fcx, cy: fcy, rx: frx - 9, ry: fry - 9, 'class': 'pp-visited__frame-in' }));
+    host.appendChild(svg);
+
+    // The smallest visits get a ring of ink round them, or they'd vanish.
+    Object.keys(found).forEach(function (code) {
+      var m = found[code];
+      if (m.area >= 520) return;
+      var rr = Math.max(m.w, m.h) / 2 + 13;
+      mbody.appendChild(svgEl('ellipse', { cx: m.x, cy: m.y, rx: rr, ry: rr * 1.1, 'class': 'pp-visited__ring-mark', 'data-code': code, 'data-globe': key }));
+    });
+    marks.appendChild(mbody);
+    var stamp = el('span', 'pp-visited__marks pp-front__stamp');
+    stamp.style.setProperty('--ink-at', spotOf('globe ' + key));
+    stamp.appendChild(marks);
+    host.parentNode.insertBefore(stamp, host.nextSibling);
+    return { key: key, host: host, found: found };
+  }
+
+  // Each flag's ring lands a little differently: its own ink load, and the
+  // side the hand leaned on turned to its own angle.
+  var STAMP_LEAN = [-35, 150, 70, 235, -110, 15];
+  var STAMP_INK = [0.9, 0.8, 0.94, 0.84, 0.92, 0.78];
+
+  function flagItem(c, i) {
+    var f = el('span', 'pp-visited__flag');
+    f.setAttribute('data-code', c.code);
+    f.style.setProperty('--d', (i * 170) + 'ms');
+    var disc = el('span', 'pp-visited__disc');
+    var art = el('span', 'pp-visited__art');
+    var img = el('img');
+    img.alt = '';
+    img.decoding = 'async';
+    img.draggable = false;
+    img.width = 44;
+    img.height = 44;
+    img.src = '/assets/passport/flags/' + c.code.toLowerCase() + '.svg';
+    art.appendChild(img);
+    disc.appendChild(art);
+    var ring = el('span', 'pp-visited__ring pp-front__stamp');
+    ring.style.setProperty('--rot', STAMP_LEAN[i % 6] + 'deg');
+    ring.style.setProperty('--ink-load', STAMP_INK[i % 6]);
+    ring.style.setProperty('--ink-at', spotOf('flag ' + c.code));
+    var g = 'pp-press-' + c.code;
+    ring.innerHTML = '<svg viewBox="0 0 100 100">' +
+      '<linearGradient id="' + g + '" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="currentColor"/><stop offset=".5" stop-color="currentColor" stop-opacity=".7"/>' +
+      '<stop offset="1" stop-color="currentColor" stop-opacity=".2"/></linearGradient>' +
+      '<g stroke="url(#' + g + ')">' +
+      '<circle class="outer" cx="50" cy="50" r="45" stroke-width="3.6" pathLength="100" stroke-dasharray="57 2.5 40.5 0" stroke-dashoffset="-9"/>' +
+      '<circle cx="50" cy="50" r="45.4" stroke-width="2.4" pathLength="100" stroke-dasharray="34 66" stroke-dashoffset="-56" stroke-linecap="round"/>' +
+      '<circle cx="50" cy="50" r="40.5" stroke-width="1.3" pathLength="100" stroke-dasharray="62 4 34 0" stroke-dashoffset="-14"/>' +
+      '</g></svg>';
+    disc.appendChild(ring);
+    f.appendChild(disc);
+    var name = el('span', 'pp-visited__name');
+    bare(c.name).split(/\s+/).forEach(function (word, k) {
+      if (k) name.appendChild(document.createElement('br'));
+      name.appendChild(document.createTextNode(word));
+    });
+    f.appendChild(name);
+    return f;
+  }
+
+  // One visit lit at a time, from its flag or from the globe.
+  function setActive(code) {
+    var s = sheets.visited;
+    if (code) s.setAttribute('data-active', code); else s.removeAttribute('data-active');
+    Array.prototype.forEach.call(s.querySelectorAll('[data-code]'), function (n) {
+      n.classList.toggle('is-on', !!code && n.getAttribute('data-code') === code);
+    });
+  }
+
+  function drawGlobes() {
+    var hosts = Array.prototype.slice.call(sheets.visited.querySelectorAll('[data-pp-globe]'));
+    return Promise.all(hosts.map(function (host) {
+      return fetch(host.getAttribute('data-src')).then(function (r) {
+        if (!r.ok) throw new Error('passport: ' + r.status + ' for ' + host.getAttribute('data-src'));
+        return r.text();
+      }).then(function (text) { return drawGlobe(host, text); });
+    })).then(function (globes) {
+      // Each flag goes under the globe where its country sits nearest the
+      // centre, unless the list says which; west to east under each.
+      var home = {};
+      COUNTRIES.forEach(function (c) {
+        var best = null;
+        globes.forEach(function (g) {
+          var m = g.found[c.code];
+          if (!m) return;
+          if (c.globe ? g.key === c.globe : (!best || m.dist < best.dist)) best = { key: g.key, dist: m.dist, x: m.x };
+        });
+        if (best) home[c.code] = best;
+      });
+      // A ring only where the flag is: on the other globe the country is a
+      // sliver at the rim, and its hatching is enough.
+      Array.prototype.forEach.call(sheets.visited.querySelectorAll('.pp-visited__ring-mark'), function (n) {
+        var h = home[n.getAttribute('data-code')];
+        if (!h || h.key !== n.getAttribute('data-globe')) n.parentNode.removeChild(n);
+      });
+      var order = 0;
+      globes.forEach(function (g) {
+        var mine = COUNTRIES.filter(function (c) { return home[c.code] && home[c.code].key === g.key; })
+          .sort(function (a, b) { return home[a.code].x - home[b.code].x; });
+        if (!mine.length) return;
+        var list = el('span', 'pp-visited__flags');
+        // Up to six in a row; more go in two even rows.
+        list.style.setProperty('--per-row', mine.length <= 6 ? mine.length : Math.ceil(mine.length / 2));
+        mine.forEach(function (c) {
+          var d = order * 170;
+          list.appendChild(flagItem(c, order));
+          Array.prototype.forEach.call(sheets.visited.querySelectorAll('.pp-visited__marks [data-code="' + c.code + '"]'), function (n) {
+            n.style.setProperty('--d', Math.max(0, d - 120) + 'ms');
+          });
+          order++;
+        });
+        g.host.parentNode.appendChild(list);
+      });
+      Array.prototype.forEach.call(sheets.visited.querySelectorAll('.pp-visited__flag, .pp-visited__mark'), function (n) {
+        n.addEventListener('mouseenter', function () { setActive(n.getAttribute('data-code')); });
+        n.addEventListener('mouseleave', function () { setActive(null); });
+      });
+    });
+  }
+
+  // The first time the book opens, the flags are stamped in (see render()).
+  // Once they're down, the animation comes off: the sheet moves between
+  // faces as leaves turn, and moving it would play the stamping again.
+  var stampPending = false;
+  function stampIn() {
+    stampPending = false;
+    sheets.visited.classList.remove('is-unstamped');
+    sheets.visited.classList.add('is-stamping');
+    setTimeout(function () { sheets.visited.classList.remove('is-stamping'); }, COUNTRIES.length * 170 + 900);
+  }
+
+  function buildFront() {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-pp-micro]'), function (n) {
+      n.textContent = new Array(40).join('UNITED STATES OF AMERICA ★ ');
+    });
+    bioPage.style.setProperty('--wear-at', spotOf('front bio'));
+    sheets.visited.style.setProperty('--wear-at', spotOf('front visited'));
+    bioPage.querySelector('.pp-bio__seal').style.setProperty('--ink-at', spotOf('seal'));
+    drawGuilloche();
+    drawStars();
+    drawWaves();
+    perforate();
+    // Read out with the open button: who's been where.
+    var names = COUNTRIES.map(function (c) { return c.name; });
+    var list = names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names.join('');
+    var say = document.querySelector('[data-pp-desc-countries]');
+    if (say && list) say.textContent = list;
+    if (motionOK()) {
+      sheets.visited.classList.add('is-unstamped');
+      stampPending = true;
+    }
+    drawGlobes().catch(function (err) {
+      // No globes is a plainer page, not a broken book.
+      if (window.console) console.error(err);
+      stampIn();
+    });
+  }
+
+  function leafFrontId(j) { return j === 0 ? 'visited' : 'v' + (j * 2); }
   function leafBackId(j) { return j === LEAVES - 1 ? 'blank' : 'v' + (j * 2 + 1); }
 
   function mount(face, id) {
@@ -343,9 +734,7 @@
   var queue = [];
   function loadImg(img) {
     if (!img || img.getAttribute('src') || !img.getAttribute('data-src')) return;
-    var src = img.getAttribute('data-src');
-    if (img.hasAttribute('data-variant-src')) src = src.replace('-blacklight-', '-' + variant + '-');
-    img.src = src;
+    img.src = img.getAttribute('data-src');
   }
   // A sheet's images: the page, then any stamps stuck on it.
   function sheetImgs(id) { return sheets[id] ? Array.prototype.slice.call(sheets[id].querySelectorAll('img')) : []; }
@@ -460,10 +849,15 @@
     // Front cover, in the flap's own space (origin on the hinge).
     place(coverFace, W, H, t3(0, 0, tb / 2));
     place(insideFace, W, H, t3(W, 0, -tb / 2) + ' rotateY(180deg)'); // content fore-edge → spine once open
-    mapPage.style.left = px(B.MAP_INSET_FORE * U);
-    mapPage.style.top = px(py);
-    mapPage.style.width = px((B.RATIO - B.MAP_INSET_FORE) * U);
-    mapPage.style.height = px(ph);
+    var bw = (B.RATIO - B.MAP_INSET_FORE) * U;
+    bioPage.style.left = px(B.MAP_INSET_FORE * U);
+    bioPage.style.top = px(py);
+    bioPage.style.width = px(bw);
+    bioPage.style.height = px(ph);
+    // The front spread's print is laid out in page units: 1/704 of the
+    // page's width (unrounded, or the layout creeps).
+    bioPage.style.setProperty('--u', (bw / 704).toFixed(4) + 'px');
+    sheets.visited.style.setProperty('--u', (pw / 704).toFixed(4) + 'px');
 
     // Back cover: inside face on top (z = 0 of its group), outside face below.
     place(backIn, W, H, t3(0, 0, 0));
@@ -491,43 +885,36 @@
   function evaluate(p, rewind) {
     var P = CONFIG.POSE, f, a, b;
     var S = {
-      flap: 0, leaf: -1, leafA: 0, nL: 0, back: 0, flip: 0, turn: 0,
+      flap: 0, leaf: -1, leafA: 0, nL: 0, back: 0, flip: 0,
       pose: [P.closed, P.closed, 0], fill: ['closed', 'closed', 0],
       closed: 1, leg: -1
     };
-    var open = rewind || !SPREADS ? (SPREADS ? 'read' : 'flighty') : 'flighty';
     if (p <= 0 || p >= END) return S;
 
     if (p < 1) {                                   // opening (or closing) the cover
       var O = CONFIG.OPEN;
       a = ease(span(p, 0, O.flipEnd));
-      b = ease(span(p, O.turnStart, 1));
+      b = ease(span(p, O.settleStart, 1));
       S.flap = CONFIG.OPEN_ANGLE * a;
-      S.turn = rewind ? 0 : 90 * b;
-      S.pose = [lerpPose(P.closed, P.mid, a), P[open], b];
-      S.fill = ['closed', open, b];
+      S.pose = [lerpPose(P.closed, P.mid, a), P.read, b];
+      S.fill = ['closed', 'read', b];
       S.closed = 1 - a;
       S.leg = 0;
-    } else if (p === 1) {                          // resting on the Flighty pages
+    } else if (p === 1) {                          // resting on the front spread
       S.flap = CONFIG.OPEN_ANGLE;
-      S.turn = 90;
-      S.pose = [P.flighty, P.flighty, 0];
-      S.fill = ['flighty', 'flighty', 0];
+      S.pose = [P.read, P.read, 0];
+      S.fill = ['read', 'read', 0];
       S.closed = 0;
-    } else if (p < 2 && SPREADS) {                 // Flighty → first visa spread
-      var V = CONFIG.TO_VISAS;
-      f = p - 1;
-      a = ease(span(f, 0, V.turnEnd));
-      b = (rewind ? easeSine : ease)(span(f, V.leafStart, 1));
+    } else if (p < 2 && SPREADS) {                 // front spread → first visa spread
+      b = (rewind ? easeSine : ease)(p - 1);
       // The cover rests a touch lifted (178°) on its own, but flat once pages
       // pile onto it — otherwise its rising surface pokes through them.
       S.flap = lerp(CONFIG.OPEN_ANGLE, 180, b);
-      S.turn = rewind ? 0 : 90 * (1 - a);
       S.leaf = 0;
       S.leafA = 180 * b;
       S.nL = b;
-      S.pose = [P[open], P.read, a];
-      S.fill = [open, 'read', a];
+      S.pose = [P.read, P.read, 0];
+      S.fill = ['read', 'read', 0];
       S.closed = 0;
       S.leg = 1;
     } else if (p < END - 1) {                      // on, or turning, a visa page
@@ -554,9 +941,8 @@
       S.nL = LEAVES - 1;
       S.back = 180 * a;
       S.flip = 180 * b;
-      S.turn = SPREADS ? 0 : 90 * (1 - a);
       S.pose = [lerpPose(P.read, P.turning, a), P.closed, b];
-      S.fill = [SPREADS ? 'read' : 'flighty', 'closed', b];
+      S.fill = ['read', 'closed', b];
       S.closed = b;
       S.leg = END - 1;
     }
@@ -569,17 +955,16 @@
   function legMs(leg, forward) {
     if (leg <= 0) return forward ? CONFIG.OPEN.ms : CONFIG.OPEN.back;
     if (leg >= END - 1) return CONFIG.CLOSE_BACK.ms;
-    if (leg === 1) return CONFIG.TO_VISAS.ms;
     return CONFIG.PAGE.ms;
   }
 
   // ------------------------------------------------------------- framing ---
   var view = { w: 0, h: 0, left: 0, top: 0 };
-  var PREF = { closed: 1, flighty: 1, read: 1 };
+  var PREF = { closed: 1, read: 1 };
   var Dcss = 1000;            // perspective, in CSS px
 
   function flapHinge(S) {
-    // Closed or showing the Flighty pages, the cover hinges at the top of the
+    // Closed or showing the front spread, the cover hinges at the top of the
     // block; as leaves pile onto it, it sinks so they lie level with the
     // right-hand page.
     return G.zTop + G.tb / 2 - Math.min(S.nL, 1) * G.tb - S.nL * G.leaf;
@@ -617,11 +1002,11 @@
   // Returns the screen box, in scene coordinates.
   function project(pts, piv, S, pose, scale, dx, dy) {
     var box = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 };
-    var fl = S.flip * DEG, tr = S.turn * DEG, ty = pose.ty * DEG, tx = pose.tx * DEG;
+    var fl = S.flip * DEG, ty = pose.ty * DEG, tx = pose.tx * DEG;
     var ox = view.w / 2, oy = view.h / 2;
     for (var i = 0; i < pts.length; i++) {
       var q = [pts[i][0] - piv[0], pts[i][1] - piv[1], pts[i][2] - piv[2]];
-      q = rotZ(rotY(q, fl), tr);
+      q = rotY(q, fl);
       q = rotX(rotY([q[0] * scale, q[1] * scale, q[2] * scale], ty), tx);
       var k = Dcss / Math.max(1, Dcss - q[2]);
       var X = ox + (dx + q[0]) * k, Y = oy + (dy + q[1]) * k;
@@ -670,8 +1055,7 @@
     build(100);
     Dcss = 1e7;   // measure flat; the per-frame fit handles perspective, shrink-only
     var hcss = {};
-    [['closed', 0], ['flighty', 1], ['read', 2]].forEach(function (r) {
-      if (r[0] === 'read' && !SPREADS) { hcss.read = hcss.flighty; return; }
+    [['closed', 0], ['read', SPREADS ? 2 : 1]].forEach(function (r) {
       var S = evaluate(r[1]), pts = outline(S), piv = pivotOf(pts);
       // Start well oversize (about four stages tall) and let the fit shrink it.
       var F = fit(pts, piv, S, S.pose[1], 4 * Math.max(view.w, view.h) / 100, 1);
@@ -682,12 +1066,11 @@
     // rasterises 3D layers at device resolution. Only DevTools/Playwright
     // device emulation draws them at one texel per CSS px and looks soft —
     // laying out at the DPR to "fix" that triples tile memory for nothing.)
-    var U = Math.ceil(Math.max(hcss.closed, hcss.flighty, hcss.read));
+    var U = Math.ceil(Math.max(hcss.closed, hcss.read));
     build(U);
     Dcss = CONFIG.PERSPECTIVE * U;
     scene.style.perspective = px(Dcss);
     PREF.closed = hcss.closed / U;
-    PREF.flighty = hcss.flighty / U;
     PREF.read = hcss.read / U;
     return true;
   }
@@ -726,7 +1109,7 @@
     if (group === 'flap') n = rotY(n, -S.flap * DEG);
     else if (group === 'leaf') n = rotY(n, -S.leafA * DEG);
     else if (group === 'back') n = rotY(n, -S.back * DEG);
-    n = rotZ(rotY(n, S.flip * DEG), S.turn * DEG);
+    n = rotY(n, S.flip * DEG);
     return rotX(rotY(n, S._ty), S._tx);
   }
 
@@ -734,6 +1117,8 @@
     if (!G.U) return;
     var p = state.pos;
     var S = evaluate(p, state.rewind);
+    // Half-way open, the countries page is in view: stamp the flags in.
+    if (stampPending && p >= 0.5) stampIn();
     var peek = p < 1 ? peekAngle(now) * S.closed : 0;
     S.flap += peek;
 
@@ -766,7 +1151,7 @@
       'translate3d(' + px(cx) + ',' + px(cy) + ',0)' +
       ' rotateX(' + pose.tx.toFixed(3) + 'deg) rotateY(' + pose.ty.toFixed(3) + 'deg)' +
       ' scale3d(' + sc + ',' + sc + ',' + sc + ')' +
-      ' rotateZ(' + S.turn.toFixed(3) + 'deg) rotateY(' + S.flip.toFixed(3) + 'deg)' +
+      ' rotateY(' + S.flip.toFixed(3) + 'deg)' +
       ' translate3d(' + px(-piv[0]) + ',' + px(-piv[1]) + ',0)';
 
     // The parts.
@@ -852,12 +1237,11 @@
 
     // Shadow on a table just beneath the book; it fades while the book turns
     // over, since it would tip up with it.
-    var off = rotZ([G.U * 0.03, G.U * 0.045, 0], -S.turn * DEG);
-    floor.style.transform = t3(piv[3] + off[0], off[1], -G.T / 2 - G.T * 2.2) + ' scale(' + ((piv[4] - piv[3]) / G.W).toFixed(4) + ',1)';
+    floor.style.transform = t3(piv[3] + G.U * 0.03, G.U * 0.045, -G.T / 2 - G.T * 2.2) + ' scale(' + ((piv[4] - piv[3]) / G.W).toFixed(4) + ',1)';
     floor.style.opacity = (0.85 * (1 - Math.sin(S.flip * DEG))).toFixed(3);
 
     // Hit areas: the open button over the closed book; once open, a tap on
-    // either page turns toward it (left/top = back, right/bottom = forward).
+    // either page turns toward it (left = back, right = forward).
     var dyHit = F.dy + liftPx;
     if (state.target === 0 || state.rewind || S.leg === END - 1) {
       placeHit('hit', hit, state.target === 0 && !state.rewind ? F.box : null);
@@ -963,7 +1347,7 @@
 
   function labelFor(p) {
     if (p <= 0 || p >= END) return (mqFine.matches ? 'Click' : 'Tap') + ' to open';
-    if (p === 1) return 'Flighty';
+    if (p === 1) return 'Data page';
     var a = (p - 2) * 2 + 1;
     return 'Visa pages ' + a + '–' + (a + 1) + ' of ' + (SPREADS * 2);
   }
@@ -981,7 +1365,7 @@
   function announce() {
     var p = state.pos, msg = '';
     if (p === 0) msg = 'Passport closed.';
-    else if (p === 1) msg = 'Open on the Flighty passport. ' + ((document.getElementById('pp-desc') || {}).textContent || '').trim();
+    else if (p === 1) msg = ((document.getElementById('pp-desc') || {}).textContent || '').replace(/\s+/g, ' ').trim();
     else if (p >= 2 && p < END) msg = labelFor(p) + '.' + stampsOn(p);
     if (live) live.textContent = msg;
   }
@@ -1065,8 +1449,8 @@
     var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     drag.moved = Math.max(drag.moved, Math.sqrt(dx * dx + dy * dy));
     if (!drag.on) {
-      // Only a sideways pull on a closed, unturned book becomes a drag.
-      if (!motionOK() || state.target !== 0 || state.pos > CONFIG.OPEN.turnStart || state.rewind ||
+      // Only a sideways pull on a closed book becomes a drag.
+      if (!motionOK() || state.target !== 0 || state.pos > CONFIG.OPEN.settleStart || state.rewind ||
           Math.abs(dx) < CONFIG.TAP_SLOP || Math.abs(dx) < Math.abs(dy) * 1.2) return;
       drag.on = true;
       drag.x = e.clientX;
@@ -1085,7 +1469,7 @@
       wake();
       dx = 0;
     }
-    state.pos = clamp(drag.p0 - dx / drag.span * CONFIG.OPEN.flipEnd, 0, CONFIG.OPEN.turnStart);
+    state.pos = clamp(drag.p0 - dx / drag.span * CONFIG.OPEN.flipEnd, 0, CONFIG.OPEN.settleStart);
     var dtm = e.timeStamp - drag.lastT;
     if (dtm > 0) {
       drag.v = (e.clientX - drag.lastX) / dtm;
@@ -1150,8 +1534,8 @@
       if (k === 'ArrowRight' && !state.rewind) { e.preventDefault(); next(); }
       return;
     }
-    if (k === 'ArrowRight' || k === 'PageDown' || (k === 'ArrowDown' && state.target === 1)) { e.preventDefault(); next(); }
-    else if (k === 'ArrowLeft' || k === 'PageUp' || (k === 'ArrowUp' && state.target === 1)) { e.preventDefault(); prev(); }
+    if (k === 'ArrowRight' || k === 'PageDown') { e.preventDefault(); next(); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); prev(); }
     else if (k === 'Escape') { e.preventDefault(); closeAll(); }
   });
 
@@ -1200,10 +1584,10 @@
     root.classList.add('is-ready');
     settled(true);
     wake();
-    // Now the cover is up, fetch the inside: the Flighty pages first, then
+    // Now the cover is up, fetch the inside: the front spread first, then
     // the visa pages nearest the front, then the rest while idle.
-    sheetImgs('data').forEach(loadImg);
-    loadImg(mapPage.querySelector('img'));
+    sheetImgs('visited').forEach(loadImg);
+    Array.prototype.forEach.call(bioPage.querySelectorAll('img'), loadImg);
     preloadAround(1);
     Object.keys(sheets).forEach(function (id) {
       sheetImgs(id).forEach(function (im) { if (!im.getAttribute('src')) queue.push(im); });
@@ -1228,6 +1612,7 @@
   }
 
   try {
+    buildFront();
     buildVisaSheets();
     register(coverFace, [0, 0, 1], 'flap');
     register(insideFace, [0, 0, -1], 'flap');

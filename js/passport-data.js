@@ -59,3 +59,37 @@ window.PASSPORT_STAMPS = [
   { stamp: 'malta-2026', name: 'Malta', year: 2026, page: 3, at: [69, 25], tilt: 2.8 },
   { stamp: 'czech-republic-2026', name: 'Czech Republic', year: 2026, page: 3, at: [29, 70], tilt: -2.7 },
 ];
+
+/* --------------------------------------------------------------------------
+   PASSPORT_COUNTRIES — every country Joe has been to, for the "Countries
+   visited" page the passport opens on. Each is stamped on the globes in
+   violet, and its flag is stamped under the globe where it sits nearest the
+   centre. A country can be here without an Amex stamp in the list above.
+
+     code    ISO 3166 two-letter code, upper case ('GB' for the UK). It's how
+             the globes (tools/build-globes.py) find the outline, and names
+             the flag: assets/passport/flags/<code in lower case>.svg, the
+             1x1 flag from flag-icons (github.com/lipis/flag-icons, MIT).
+     name    The country, as it's read out and printed under the flag (in
+             capitals, without a leading "the"; two words break onto two
+             lines).
+     globe   Optional: 'west' or 'east', to put the flag under that globe
+             instead of the nearer one.
+
+   In the order Joe went, like the stamps. Adding one is a line here and its
+   flag file; the globes never need rebuilding.
+   -------------------------------------------------------------------------- */
+
+window.PASSPORT_COUNTRIES = [
+  { code: 'US', name: 'the United States' },
+  { code: 'MX', name: 'Mexico' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'IS', name: 'Iceland' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'GB', name: 'the United Kingdom' },
+  { code: 'BE', name: 'Belgium' },
+  { code: 'NL', name: 'the Netherlands' },
+  { code: 'PT', name: 'Portugal' },
+  { code: 'MT', name: 'Malta' },
+  { code: 'CZ', name: 'the Czech Republic' },
+];

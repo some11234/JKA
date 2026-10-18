@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Passport — Joseph Kerby Anderson</title>
-<meta name="description" content="Joe's passport — the Flighty pages, and the visa pages his travel stamps are stuck in.">
+<meta name="description" content="Joe's passport — the data page, the countries visited, and the visa pages his travel stamps are stuck in.">
 <meta name="theme-color" content="#0B0B0B">
 <meta name="color-scheme" content="dark">
 
@@ -18,11 +18,11 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://josephkerby.com/passport/">
 <meta property="og:title" content="Passport — Joseph Kerby Anderson">
-<meta property="og:description" content="Joe's passport — the Flighty pages, and the visa pages his travel stamps are stuck in.">
+<meta property="og:description" content="Joe's passport — the data page, the countries visited, and the visa pages his travel stamps are stuck in.">
 <meta property="og:image" content="https://josephkerby.com/assets/core/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Passport — Joseph Kerby Anderson">
-<meta name="twitter:description" content="Joe's passport — the Flighty pages, and the visa pages his travel stamps are stuck in.">
+<meta name="twitter:description" content="Joe's passport — the data page, the countries visited, and the visa pages his travel stamps are stuck in.">
 <meta name="twitter:image" content="https://josephkerby.com/assets/core/og.jpg">
 
 <link rel="icon" href="/assets/core/favicon.png" type="image/png" sizes="500x500">
@@ -63,8 +63,9 @@
      leaves turn — the visa sheets are built from js/passport-data.js.
 
      Every image lives in assets/passport/web/, made by tools/build-passport.py
-     (cover, Flighty pages, stamps) from the masters in assets/passport/, and
-     by tools/build-visa-paper.py (the visa pages' paper). -->
+     (cover, the data page's photo and eagle, stamps) from the masters in
+     assets/passport/, by tools/build-visa-paper.py (the paper, front spread
+     and visa pages) and by tools/build-globes.py (the two globes). -->
 <main class="pp" data-passport>
   <h1 class="pp-sr">Passport</h1>
 
@@ -97,7 +98,7 @@
         </span>
 
         <!-- Front cover: hinged on the spine. Outside is the cover art; inside
-             carries the top half of the Flighty passport. -->
+             carries the data page, glued down. -->
         <span class="pp-flap" data-pp-flap>
           <span class="pp-face pp-cover" data-pp-cover>
             <img src="/assets/passport/web/cover.webp" width="1320" height="2000"
@@ -110,10 +111,74 @@
           </span>
           <span class="pp-face pp-inside" data-pp-inside>
             <span class="pp-grain"></span>
-            <span class="pp-page pp-page--map" data-pp-map>
-              <img data-src="/assets/passport/web/flighty-blacklight-map.webp" data-variant-src
-                   width="761" height="1179" alt="" decoding="async" draggable="false">
+            <!-- The data page. Its print is laid out in page units (css/passport.css,
+                 "front spread"); the guilloche and the stars are drawn by the script. -->
+            <span class="pp-page pp-page--bio pp-front pp-bio" data-pp-bio>
+              <img data-src="/assets/passport/web/front-bio.webp"
+                   width="898" height="1391" alt="" decoding="async" draggable="false">
               <span class="pp-gutter"></span>
+              <span class="pp-front__print">
+                <span class="pp-front__wash"></span>
+                <svg class="pp-front__guilloche" data-pp-guilloche="bio" viewBox="0 0 626 1090" preserveAspectRatio="xMidYMin meet"></svg>
+                <span class="pp-bio__eagle"></span>
+                <svg class="pp-bio__stars" data-pp-stars viewBox="0 0 564 26"></svg>
+                <span class="pp-bio__mrz-rule"></span>
+                <span class="pp-front__micro" data-pp-micro></span>
+              </span>
+              <span class="pp-front__type">
+                <!-- Glyph tops face the page; line 1 nearer the content, line 2 on the outer edge. -->
+                <svg class="pp-bio__mrz" viewBox="0 0 78 1090" preserveAspectRatio="none">
+                  <text x="48" y="-46" transform="rotate(90)" textLength="994" lengthAdjust="spacing">&lt;P&lt;&lt;&lt;USA&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;ANDERSON&lt;JOSEPH&lt;KERBY&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</text>
+                  <text x="48" y="-16" transform="rotate(90)" textLength="994" lengthAdjust="spacing">8675309&lt;&lt;USA&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;JOSEPHKERBY.COM&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</text>
+                </svg>
+                <span class="pp-front__country">United States of America</span>
+                <span class="pp-front__title">Passport</span>
+                <span class="pp-front__sub">Passeport · Pasaporte</span>
+                <span class="pp-bio__photo">
+                  <img data-src="/assets/passport/web/bio-photo.webp"
+                       width="392" height="492" alt="" decoding="async" draggable="false">
+                </span>
+                <span class="pp-bio__ghost"></span>
+                <span class="pp-bio__seal pp-front__stamp">
+                  <svg viewBox="-80 -80 160 160">
+                    <defs><path id="pp-seal-arc" d="M0,0 m-58,0 a58,58 0 1,1 116,0 a58,58 0 1,1 -116,0"/></defs>
+                    <g fill="none" stroke="currentColor">
+                      <circle r="74" stroke-width="3"/>
+                      <circle r="68" stroke-width="1.2"/>
+                      <circle r="47" stroke-width="1.2"/>
+                    </g>
+                    <text font-family="Archivo, sans-serif" font-size="10" font-weight="700" letter-spacing="1.9" fill="currentColor">
+                      <textPath href="#pp-seal-arc">UNITED STATES OF AMERICA ★ PASSPORT ★ PASSEPORT ★</textPath>
+                    </text>
+                  </svg>
+                  <span class="pp-bio__seal-eagle"></span>
+                </span>
+                <span class="pp-bio__sign">
+                  <svg class="pp-bio__waves" data-pp-waves viewBox="0 0 626 104" preserveAspectRatio="none"></svg>
+                  <img class="pp-bio__pen" data-src="/assets/passport/web/signature.svg"
+                       width="290" height="94" alt="" decoding="async" draggable="false">
+                  <span class="pp-bio__line"></span>
+                  <span class="pp-bio__caption">Signature of bearer <span>/ Signature du titulaire / Firma del titular</span></span>
+                </span>
+                <!-- The bearer. The passport number is the one in the MRZ, not a real
+                     passport's; the perforation on the facing page reads it from here. -->
+                <span class="pp-bio__fields">
+                  <span class="pp-bio__field pp-bio__field--2"><span class="pp-bio__label"><span>Type</span> <span>/ Type</span> <span>/ Tipo</span></span><span class="pp-bio__value">P</span></span>
+                  <span class="pp-bio__field pp-bio__field--4 pp-bio__field--next"><span class="pp-bio__label"><span>Code</span> <span>/ Code</span> <span>/ Código</span></span><span class="pp-bio__value">USA</span></span>
+                  <span class="pp-bio__field pp-bio__field--6 pp-bio__field--next"><span class="pp-bio__label"><span>Passport No.</span> <span>/ No. du passeport</span> <span>/ No. de pasaporte</span></span><span class="pp-bio__value" data-pp-number>8675309</span></span>
+                  <span class="pp-bio__field pp-bio__field--12"><span class="pp-bio__label"><span>Surname</span> <span>/ Nom</span> <span>/ Apellidos</span></span><span class="pp-bio__value">ANDERSON</span></span>
+                  <span class="pp-bio__field pp-bio__field--12"><span class="pp-bio__label"><span>Given names</span> <span>/ Prénoms</span> <span>/ Nombres</span></span><span class="pp-bio__value">JOSEPH KERBY</span></span>
+                  <span class="pp-bio__field pp-bio__field--12"><span class="pp-bio__label"><span>Nationality</span> <span>/ Nationalité</span> <span>/ Nacionalidad</span></span><span class="pp-bio__value">UNITED STATES OF AMERICA</span></span>
+                  <!-- TODO(JOE): the year of birth. -->
+                  <span class="pp-bio__field pp-bio__field--7"><span class="pp-bio__label"><span>Date of birth</span> <span>/ Date de naissance</span> <span>/ Fecha de nacimiento</span></span><span class="pp-bio__value">03 MAR/MARS XXXX</span></span>
+                  <span class="pp-bio__field pp-bio__field--5 pp-bio__field--next"><span class="pp-bio__label"><span>Sex</span> <span>/ Sexe</span> <span>/ Sexo</span></span><span class="pp-bio__value">M</span></span>
+                  <span class="pp-bio__field pp-bio__field--12"><span class="pp-bio__label"><span>Place of birth</span> <span>/ Lieu de naissance</span> <span>/ Lugar de nacimiento</span></span><span class="pp-bio__value">PORTLAND, OREGON, U.S.A.</span></span>
+                  <span class="pp-bio__field pp-bio__field--6"><span class="pp-bio__label"><span>Date of issue</span> <span>/ Date de délivrance</span> <span>/ Fecha de expedición</span></span><span class="pp-bio__value">18 OCT/OCT 2026</span></span>
+                  <span class="pp-bio__field pp-bio__field--6 pp-bio__field--next"><span class="pp-bio__label"><span>Date of expiration</span> <span>/ Date d’expiration</span> <span>/ Fecha de caducidad</span></span><span class="pp-bio__value">17 OCT/OCT 2036</span></span>
+                  <span class="pp-bio__field pp-bio__field--7"><span class="pp-bio__label"><span>Authority</span> <span>/ Autorité</span> <span>/ Autoridad</span></span><span class="pp-bio__value">JOSEPHKERBY.COM</span></span>
+                  <span class="pp-bio__field pp-bio__field--5 pp-bio__field--next"><span class="pp-bio__label"><span>Endorsements</span> <span>/ Mentions spéciales</span> <span>/ Anotaciones</span></span><span class="pp-bio__value">SEE PAGE 27</span></span>
+                </span>
+              </span>
             </span>
           </span>
         </span>
@@ -141,38 +206,55 @@
     <p class="pp-sr" aria-live="polite" data-pp-live></p>
   </div>
 
-  <!-- Page contents not on show right now. The Flighty page is here; the
-       visa pages are added by the script. -->
+  <!-- Page contents not on show right now. Countries visited is here; the
+       visa pages are added by the script, which also draws the globes and
+       stamps the flags from PASSPORT_COUNTRIES (js/passport-data.js). -->
   <div class="pp-sheets" data-pp-sheets hidden>
-    <span class="pp-sheet pp-sheet--recto" data-sheet="data">
-      <img data-src="/assets/passport/web/flighty-blacklight-data.webp" data-variant-src
-           width="780" height="1179" alt="" decoding="async" draggable="false">
+    <span class="pp-sheet pp-sheet--recto pp-front pp-visited" data-sheet="visited">
+      <img data-src="/assets/passport/web/front-visited.webp"
+           width="920" height="1391" alt="" decoding="async" draggable="false">
       <span class="pp-gutter"></span>
       <span class="pp-stitch"></span>
+      <span class="pp-front__print">
+        <span class="pp-front__wash"></span>
+        <svg class="pp-front__guilloche" data-pp-guilloche="visited" viewBox="0 0 704 1064" preserveAspectRatio="xMidYMin meet"></svg>
+        <span class="pp-front__micro" data-pp-micro></span>
+      </span>
+      <span class="pp-front__type">
+        <span class="pp-front__title pp-front__title--long">Countries visited</span>
+        <span class="pp-front__sub">Pays visités · Países visitados</span>
+        <span class="pp-visited__hemi pp-visited__hemi--west">
+          <span class="pp-visited__label">Western<br>hemisphere<span>Hémisphère occidental</span><span>Hemisferio occidental</span></span>
+          <span class="pp-visited__globe" data-pp-globe="west" data-src="/assets/passport/web/globe-west.svg"></span>
+        </span>
+        <span class="pp-visited__hemi pp-visited__hemi--east">
+          <span class="pp-visited__label">Eastern<br>hemisphere<span>Hémisphère oriental</span><span>Hemisferio oriental</span></span>
+          <span class="pp-visited__globe" data-pp-globe="east" data-src="/assets/passport/web/globe-east.svg"></span>
+        </span>
+      </span>
+      <svg class="pp-visited__perf" data-pp-perf></svg>
     </span>
   </div>
 
-  <!-- What the Flighty passport says, for screen readers. Update this (and
-       the two alt texts below) when the screenshot is replaced. Hidden, but
-       still read out as the open button's description. -->
+  <!-- What the first spread says, for screen readers. The countries are
+       added from PASSPORT_COUNTRIES by the script. Hidden, but still read out
+       as the open button's description. -->
   <div class="pp-sr" id="pp-desc" hidden>
-    Joe's Flighty passport, issued 3 October 2026 at Portland (PDX); a Flighty
-    member since 4 October 2023. 155 flights, 162,497 miles, 17 days 16 hours
-    in the air, 45 airports and 12 airlines. A world map traces the routes —
-    across North America, out to Hawaii, and over the Atlantic to Europe —
-    above the flags of the ten countries visited: the United States, Mexico,
-    Germany, Portugal, Belgium, the Netherlands, Iceland, the United Kingdom,
-    Malta and Canada.
+    Joe's passport, open on its data page: a United States passport for
+    Joseph Kerby Anderson, born in Portland, Oregon, with Joe's photo and
+    signature. Facing it, Countries visited: two globes with
+    <span data-pp-desc-countries>the countries Joe has been to</span>
+    stamped in violet, each with its flag.
   </div>
 
   <noscript>
-    <img class="pp-flat" src="/assets/passport/web/flighty-blacklight.webp"
-         width="1179" height="1572"
-         alt="Joe's Flighty passport: 155 flights, 162,497 miles, 17 days 16 hours in the air, 45 airports, 12 airlines.">
+    <img class="pp-flat" src="/assets/passport/web/spread.webp"
+         width="1600" height="1201"
+         alt="Joe's passport, open on its data page and, facing it, the countries Joe has been to, stamped on two globes with their flags.">
   </noscript>
   <img class="pp-flat" data-pp-fallback hidden
-       width="1179" height="1572" data-src="/assets/passport/web/flighty-blacklight.webp"
-       alt="Joe's Flighty passport: 155 flights, 162,497 miles, 17 days 16 hours in the air, 45 airports, 12 airlines.">
+       width="1600" height="1201" data-src="/assets/passport/web/spread.webp"
+       alt="Joe's passport, open on its data page and, facing it, the countries Joe has been to, stamped on two globes with their flags.">
 </main>
 
 <footer class="site-footer">

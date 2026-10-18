@@ -4,7 +4,8 @@
 
    The book is CSS 3D. js/passport.js sizes and places every face (it knows
    the measurements); this file only says what each surface is made of —
-   leather-grain navy boards, cream page edges, the Flighty and visa pages —
+   leather-grain navy boards, cream page edges, the front spread and the visa
+   pages —
    and carries the overlays the script dims and brightens to light it.
 
    Two rules keep the 3D intact, in every browser:
@@ -319,7 +320,7 @@
 
 .pp-page {
   overflow: hidden;
-  background: #B4C7EC;
+  background: #EEE3CA;
 }
 
 /* A page on the right of the spine is rounded on its right; on the left, its
@@ -327,7 +328,7 @@
 .pp-page--recto { border-radius: 0 var(--rp) var(--rp) 0; }
 .pp-page--verso { border-radius: var(--rp) 0 0 var(--rp); }
 
-.pp-page--map {
+.pp-page--bio {
   position: absolute;
   display: block;
   border-radius: var(--rp) 0 0 var(--rp);
@@ -342,9 +343,7 @@
 
 .pp-sheets { display: none; }
 
-/* Where each page curls down into the spine. On the Flighty pages, the band
-   the build script added at the fold sits under this, which is what turns it
-   into a gutter. */
+/* Where each page curls down into the spine. */
 .pp-gutter {
   position: absolute;
   top: 0; right: 0; bottom: 0; left: 0;
@@ -360,11 +359,12 @@
       rgba(255, 255, 255, 0) 6%);
 }
 
-.pp-page--map .pp-gutter,
+.pp-page--bio .pp-gutter,
 .pp-sheet--verso .pp-gutter { transform: scaleX(-1); }
 
-/* Flighty's dashed fold line, redrawn as the passport's stitching, exactly on
-   the fold. 12 on, 6 off, 3 thick — its own rhythm, in art pixels, scaled. */
+/* The thread the book is sewn with, down the fold of the front spread — the
+   one spread a passport shows its stitching on. 12 on, 6 off, 3 thick, in
+   the units CONFIG.BOOK.ART_W measures the page in. */
 .pp-stitch {
   position: absolute;
   top: 0;
@@ -390,6 +390,602 @@
 .pp-cast--verso {
   background: linear-gradient(to left, rgba(6, 8, 24, 0.9), rgba(6, 8, 24, 0.4) 40%, rgba(6, 8, 24, 0) 100%);
   transform-origin: 100% 50%;
+}
+
+/* --------------------------------------------------------- front spread --- */
+
+/* The two pages the passport opens on: the data page, glued inside the front
+   cover, and "Countries visited" facing it. The same paper as the visa pages
+   (tools/build-visa-paper.py), printed the way a US passport is: guilloche
+   in the passport's blue and a flag red, an engraved eagle, captions in
+   English, French and Spanish, the bearer's details in OCR-B. js/passport.js
+   draws what's generated (the guilloche, the stars, the globes, the flags).
+
+   Everything inside a page is in page units, 1u = 1/704 of the page's width
+   (--u, set by the script), so each page scales as one printed sheet. The
+   only exceptions are hairlines, which stay in device pixels so they stay
+   crisp. */
+
+@font-face {
+  font-family: 'Archivo';
+  src: url('/assets/passport/fonts/archivo-latin.woff2') format('woff2');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  src: url('/assets/passport/fonts/bodoni-moda-latin.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'OCR-B';
+  src: url('/assets/passport/fonts/ocrb-ascii.woff2') format('woff2');
+  font-display: block;
+}
+
+.pp-front {
+  --u: 1px;
+  --label: 'Archivo', 'Avenir Next Condensed', sans-serif;
+  --display: 'Bodoni Moda', 'Bodoni 72', Didot, serif;
+  --ocr: 'OCR-B', 'Andale Mono', monospace;
+  /* The bearer's details are blue-black; everything the authority printed
+     is the visa pages' blue, ruled at half strength, with a faded flag red
+     in the guilloche. Violet is the stamp pad's, kept for visits. */
+  --data-ink: #1C2631;
+  --print-ink: #34498A;
+  --print-line: rgba(52, 73, 138, 0.5);
+  --print-red: #A8423D;
+  --visit-ink: #563889;
+  isolation: isolate;
+  background: #EEE3CA;
+  color: var(--data-ink);
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Everything printed sits in the paper, multiplied, and is worn the way the
+   visa pages' print is: through the same mask of what's left after years in
+   a pocket (print-wear.webp, at the visa print's scale), at a spot of its
+   own on each page. The security print behind takes it at full strength;
+   the type, the photo and the globes over it at about half (a flat 55% laid
+   under the tile), so they age with the page and still read. No `filter`
+   anywhere in here — see .pp-print. */
+.pp-front__print,
+.pp-front__type {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: block;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.pp-front__print {
+  opacity: 0.88;
+  -webkit-mask: url('/assets/passport/web/print-wear.webp') var(--wear-at, 0 0) / calc(var(--ph, 600px) * 0.732) calc(var(--ph, 600px) * 0.732) repeat;
+  mask: url('/assets/passport/web/print-wear.webp') var(--wear-at, 0 0) / calc(var(--ph, 600px) * 0.732) calc(var(--ph, 600px) * 0.732) repeat;
+}
+.pp-front__type {
+  opacity: 0.94;
+  -webkit-mask:
+    linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
+    url('/assets/passport/web/print-wear.webp') var(--wear-at, 0 0) / calc(var(--ph, 600px) * 0.732) calc(var(--ph, 600px) * 0.732) repeat;
+  -webkit-mask-composite: source-over;
+  mask:
+    linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
+    url('/assets/passport/web/print-wear.webp') var(--wear-at, 0 0) / calc(var(--ph, 600px) * 0.732) calc(var(--ph, 600px) * 0.732) repeat;
+  mask-composite: add;
+}
+
+/* Rubber-stamp ink on top of the print: the visa marks' uneven coverage
+   (ink.webp), at a spot of its own for each mark. */
+.pp-front__stamp {
+  -webkit-mask: url('/assets/passport/web/ink.webp') var(--ink-at, 0 0) / calc(var(--ph, 600px) * 0.28) calc(var(--ph, 600px) * 0.28) repeat;
+  mask: url('/assets/passport/web/ink.webp') var(--ink-at, 0 0) / calc(var(--ph, 600px) * 0.28) calc(var(--ph, 600px) * 0.28) repeat;
+}
+
+.pp-front svg { display: block; overflow: visible; }
+
+/* The split-fountain wash every security page is printed on: flag red
+   fading through bare paper into the passport's blue. */
+.pp-front__wash {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: block;
+}
+
+.pp-front__guilloche {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* UNITED STATES OF AMERICA over the title, as on the real data page. */
+.pp-front__country,
+.pp-front__title,
+.pp-front__sub,
+.pp-front__micro {
+  position: absolute;
+  display: block;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.pp-front__country {
+  font-family: var(--label);
+  font-variation-settings: 'wdth' 84;
+  font-weight: 600;
+  font-size: calc(var(--u) * 11.5);
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-transform: uppercase;
+  color: var(--print-ink);
+}
+
+.pp-front__title {
+  font-family: var(--display);
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-size: calc(var(--u) * 33);
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  text-transform: uppercase;
+  color: var(--data-ink);
+}
+.pp-front__title--long { letter-spacing: 0.26em; text-indent: 0.26em; }
+
+.pp-front__sub {
+  font-family: var(--label);
+  font-variation-settings: 'wdth' 88;
+  font-weight: 500;
+  font-size: calc(var(--u) * 12.5);
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  text-transform: uppercase;
+  color: var(--print-ink);
+}
+
+/* One line of microprint under each title, so small it reads as a rule. */
+.pp-front__micro {
+  overflow: hidden;
+  font-family: var(--label);
+  font-variation-settings: 'wdth' 70;
+  font-weight: 600;
+  font-size: calc(var(--u) * 4.4);
+  letter-spacing: 0.06em;
+  color: var(--print-ink);
+  opacity: 0.75;
+}
+
+/* ------------------------------------------------------------ data page --- */
+
+.pp-bio .pp-front__wash {
+  background: linear-gradient(172deg,
+    rgba(168, 66, 61, 0.15) 0%,
+    rgba(190, 128, 116, 0.08) 30%,
+    rgba(238, 227, 202, 0) 52%,
+    rgba(96, 118, 178, 0.09) 74%,
+    rgba(52, 73, 138, 0.16) 100%);
+  /* Lighter over the machine-readable zone, as the real one is. */
+  -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.38) 0 9%, #000 16%);
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.38) 0 9%, #000 16%);
+}
+.pp-bio .pp-front__guilloche { left: calc(var(--u) * 78); width: calc(100% - var(--u) * 78); }
+
+.pp-bio .pp-front__country,
+.pp-bio .pp-front__title,
+.pp-bio .pp-front__sub,
+.pp-bio .pp-front__micro { left: calc(var(--u) * 100); right: calc(var(--u) * 40); }
+.pp-bio .pp-front__country { top: calc(var(--u) * 46); }
+.pp-bio .pp-front__title { top: calc(var(--u) * 66); }
+.pp-bio .pp-front__sub { top: calc(var(--u) * 108); }
+.pp-bio .pp-front__micro { top: calc(var(--u) * 130); }
+
+/* Thirteen stars in an arc over the title block. */
+.pp-bio__stars {
+  position: absolute;
+  left: calc(var(--u) * 100);
+  top: calc(var(--u) * 16);
+  width: calc(var(--u) * 564);
+  height: calc(var(--u) * 26);
+  fill: var(--print-ink);
+}
+
+/* The engraved eagle on its shield, large and faint behind the photo and
+   the top of the data, the way the real page has one. */
+.pp-bio__eagle {
+  position: absolute;
+  left: calc(var(--u) * 150);
+  top: calc(var(--u) * 318);
+  width: calc(var(--u) * 470);
+  height: calc(var(--u) * 460);
+  display: block;
+  background: var(--print-ink);
+  opacity: 0.1;
+  -webkit-mask: url('/assets/passport/web/eagle.webp') center / contain no-repeat;
+  mask: url('/assets/passport/web/eagle.webp') center / contain no-repeat;
+}
+
+/* The machine-readable zone runs down the outer edge, glyph tops toward the
+   page, behind a rule. */
+.pp-bio__mrz-rule {
+  position: absolute;
+  left: calc(var(--u) * 78);
+  top: calc(var(--u) * 34);
+  bottom: calc(var(--u) * 34);
+  display: block;
+  border-left: 1px solid var(--print-line);
+}
+.pp-bio__mrz {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--u) * 78);
+  height: 100%;
+}
+.pp-bio__mrz text {
+  font-family: var(--ocr);
+  font-size: 22px;
+  fill: var(--data-ink);
+  fill-opacity: 0.9;
+}
+
+/* The photo, printed: a keyline round it, the paper through its whites. */
+.pp-bio__photo {
+  position: absolute;
+  left: calc(var(--u) * 285);
+  top: calc(var(--u) * 152);
+  width: calc(var(--u) * 196);
+  height: calc(var(--u) * 246);
+  display: block;
+  overflow: hidden;
+  border-radius: calc(var(--u) * 3);
+  box-shadow: 0 0 0 calc(var(--u) * 2) var(--print-line);
+}
+
+/* The ghost image: the face again, small, as a screen of lines. */
+.pp-bio__ghost {
+  position: absolute;
+  left: calc(var(--u) * 528);
+  top: calc(var(--u) * 272);
+  width: calc(var(--u) * 82);
+  height: calc(var(--u) * 103);
+  display: block;
+  background: var(--print-ink);
+  opacity: 0.5;
+  -webkit-mask: url('/assets/passport/web/bio-ghost.webp') 0 0 / 100% 100% no-repeat;
+  mask: url('/assets/passport/web/bio-ghost.webp') 0 0 / 100% 100% no-repeat;
+}
+
+/* The seal stamped over the photo's corner: the eagle in a double ring,
+   lettered UNITED STATES OF AMERICA ★ PASSPORT ★. */
+.pp-bio__seal {
+  position: absolute;
+  left: calc(var(--u) * 192);
+  top: calc(var(--u) * 300);
+  width: calc(var(--u) * 150);
+  height: calc(var(--u) * 150);
+  display: block;
+  color: var(--print-ink);
+  opacity: 0.62;
+  transform: rotate(-9deg);
+}
+.pp-bio__seal svg { width: 100%; height: 100%; }
+.pp-bio__seal-eagle {
+  position: absolute;
+  left: 22%;
+  top: 22%;
+  width: 56%;
+  height: 56%;
+  display: block;
+  background: currentColor;
+  -webkit-mask: url('/assets/passport/web/eagle.webp') center / contain no-repeat;
+  mask: url('/assets/passport/web/eagle.webp') center / contain no-repeat;
+}
+
+/* The bearer's signature, in its own ballpoint, over flag-stripe waves. */
+.pp-bio__sign {
+  position: absolute;
+  left: calc(var(--u) * 78);
+  right: 0;
+  top: calc(var(--u) * 420);
+  height: calc(var(--u) * 104);
+  display: block;
+}
+.pp-bio__waves { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.pp-bio__sign .pp-bio__pen {
+  left: calc(var(--u) * 155);
+  top: calc(var(--u) * -10);
+  width: calc(var(--u) * 290);
+  height: auto;
+  object-fit: contain;
+}
+.pp-bio__line {
+  position: absolute;
+  left: calc(var(--u) * 50);
+  right: calc(var(--u) * 40);
+  top: calc(var(--u) * 80);
+  display: block;
+  border-top: 1px solid rgba(28, 38, 49, 0.55);
+}
+.pp-bio__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--u) * 89);
+  display: block;
+  text-align: center;
+  font-family: var(--label);
+  font-variation-settings: 'wdth' 84;
+  font-weight: 600;
+  font-size: calc(var(--u) * 10.5);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--print-ink);
+}
+.pp-bio__caption span { font-weight: 400; opacity: 0.72; }
+
+/* The data grid: twelve columns, ruled, the first cell of a row flush left. */
+.pp-bio__fields {
+  position: absolute;
+  left: calc(var(--u) * 100);
+  right: calc(var(--u) * 40);
+  top: calc(var(--u) * 544);
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  border-top: 1.5px solid var(--print-line);
+}
+/* A row is as tall as its tallest caption; every value sits on the row's
+   foot, so values side by side line up. */
+.pp-bio__field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(var(--u) * 52);
+  padding: calc(var(--u) * 4) calc(var(--u) * 12) calc(var(--u) * 10);
+  border-bottom: 1px solid var(--print-line);
+}
+.pp-bio__field--next { border-left: 1px solid var(--print-line); }
+.pp-bio__field:not(.pp-bio__field--next) { padding-left: 0; }
+.pp-bio__field--2 { grid-column: span 2; }
+.pp-bio__field--4 { grid-column: span 4; }
+.pp-bio__field--5 { grid-column: span 5; }
+.pp-bio__field--6 { grid-column: span 6; }
+.pp-bio__field--7 { grid-column: span 7; }
+.pp-bio__field--12 { grid-column: span 12; }
+
+/* Captions in the three languages a US passport prints them in. The French
+   and Spanish are quieter, and a caption too long for its cell breaks only
+   between languages. */
+.pp-bio__label {
+  display: block;
+  font-family: var(--label);
+  font-variation-settings: 'wdth' 80;
+  font-weight: 500;
+  font-size: calc(var(--u) * 11.5);
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  color: var(--print-ink);
+}
+.pp-bio__label span { white-space: nowrap; }
+.pp-bio__label span + span { font-weight: 400; opacity: 0.72; }
+.pp-bio__value {
+  display: block;
+  margin-top: auto;
+  padding-top: calc(var(--u) * 4);
+  font-family: var(--ocr);
+  font-size: calc(var(--u) * 20.5);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  color: var(--data-ink);
+  text-shadow: 0 0 0.5px rgba(28, 38, 49, 0.45);
+}
+
+/* ---------------------------------------------------- countries visited --- */
+
+.pp-visited .pp-front__wash {
+  background: linear-gradient(188deg,
+    rgba(52, 73, 138, 0.15) 0%,
+    rgba(96, 118, 178, 0.07) 28%,
+    rgba(238, 227, 202, 0) 50%,
+    rgba(190, 128, 116, 0.07) 76%,
+    rgba(168, 66, 61, 0.13) 100%);
+}
+
+.pp-visited .pp-front__title,
+.pp-visited .pp-front__sub { left: 0; right: 0; }
+.pp-visited .pp-front__title { top: calc(var(--u) * 44); }
+.pp-visited .pp-front__sub { top: calc(var(--u) * 86); }
+.pp-visited .pp-front__micro { left: calc(var(--u) * 64); right: calc(var(--u) * 64); top: calc(var(--u) * 108); }
+
+/* The passport number, punched through the top of the page. */
+.pp-visited__perf {
+  position: absolute;
+  right: calc(var(--u) * 40);
+  top: calc(var(--u) * 11);
+}
+
+.pp-visited__hemi {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: block;
+}
+.pp-visited__hemi--west { top: calc(var(--u) * 134); }
+.pp-visited__hemi--east { top: calc(var(--u) * 548); }
+
+.pp-visited__label {
+  position: absolute;
+  left: calc(var(--u) * 52);
+  top: 0;
+  display: block;
+  font-family: var(--label);
+  font-variation-settings: 'wdth' 84;
+  font-weight: 600;
+  font-size: calc(var(--u) * 11);
+  line-height: 1.25;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--print-ink);
+}
+.pp-visited__label span {
+  display: block;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* A globe: the printed one, and over it the visits in stamp ink. Both are
+   the same drawing stretched the same way, a tad flatter than the art. */
+.pp-visited__globe,
+.pp-visited__marks {
+  position: absolute;
+  left: calc(var(--u) * 135);
+  top: 0;
+  width: calc(var(--u) * 434);
+  height: calc(var(--u) * 300);
+  display: block;
+}
+.pp-visited__globe svg,
+.pp-visited__marks svg { width: 100%; height: 100%; }
+.pp-visited__globe path,
+.pp-visited__marks path,
+.pp-visited__marks ellipse { vector-effect: non-scaling-stroke; }
+.pp-visited__land {
+  fill: rgba(250, 245, 233, 0.92);
+  stroke: rgba(28, 38, 49, 0.62);
+  stroke-width: 0.55px;
+  stroke-linejoin: round;
+}
+.pp-visited__frame { fill: none; stroke: rgba(28, 38, 49, 0.8); stroke-width: 1.1px; }
+.pp-visited__frame-in { fill: none; stroke: rgba(28, 38, 49, 0.45); stroke-width: 0.5px; }
+
+/* The visits: hatched in violet, edged in it; the smallest get a ring so
+   they can be found at all. */
+.pp-visited__marks { opacity: 0.92; }
+.pp-visited__mark {
+  stroke: var(--visit-ink);
+  stroke-width: 0.9px;
+  transition: opacity 250ms ease, stroke-width 250ms ease;
+}
+.pp-visited__ring-mark {
+  fill: none;
+  stroke: var(--visit-ink);
+  stroke-width: 1.1px;
+  opacity: 0.8;
+  transition: opacity 250ms ease, stroke-width 250ms ease;
+}
+
+/* Under each globe, the flags of the visits it's nearest to, each in a
+   rubber-stamp ring. */
+.pp-visited__flags {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--u) * 314);
+  width: calc(var(--per-row, 4) * var(--u) * 112);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: calc(var(--u) * 10);
+  transform: translateX(-50%);
+}
+.pp-visited__flag {
+  width: calc(var(--u) * 112);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 8);
+  transition: opacity 250ms ease;
+}
+.pp-visited__disc {
+  position: relative;
+  width: calc(var(--u) * 44);
+  height: calc(var(--u) * 44);
+  display: block;
+}
+/* Printed, not stuck on: multiplied into the paper, a little thin. */
+.pp-visited__art {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: 50%;
+  opacity: 0.86;
+  mix-blend-mode: multiply;
+}
+.pp-visited__ring {
+  position: absolute;
+  top: calc(var(--u) * -9);
+  left: calc(var(--u) * -9);
+  width: calc(100% + var(--u) * 18);
+  height: calc(100% + var(--u) * 18);
+  display: block;
+  color: var(--visit-ink);
+  opacity: var(--ink-load, 0.85);
+  transform: rotate(var(--rot, 0deg));
+  transition: opacity 250ms ease;
+}
+.pp-visited__ring svg { width: 100%; height: 100%; }
+.pp-visited__ring circle { fill: none; transition: stroke-width 250ms ease; }
+.pp-visited__name {
+  display: block;
+  max-width: 100%;
+  font-family: var(--label);
+  font-variation-settings: 'wdth' 84;
+  font-weight: 600;
+  font-size: calc(var(--u) * 10.5);
+  line-height: 1.2;
+  letter-spacing: 0.16em;
+  text-indent: 0.16em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--print-ink);
+  transition: color 250ms ease;
+}
+
+/* One visit at a time: a flag lights its country on both globes and dims
+   the rest, and a country lights its flag (js/passport.js). With a mouse
+   only, and only while the book is at rest, as the stamps lift; a click
+   still turns the page. */
+@media (hover: hover) and (pointer: fine) {
+  .pp.is-settled .pp-visited__flag,
+  .pp.is-settled .pp-visited__mark { pointer-events: auto; cursor: pointer; }
+}
+.pp-visited[data-active] .pp-visited__mark:not(.is-on),
+.pp-visited[data-active] .pp-visited__ring-mark:not(.is-on) { opacity: 0.28; }
+.pp-visited[data-active] .pp-visited__flag:not(.is-on) { opacity: 0.55; }
+.pp-visited__mark.is-on { stroke-width: 1.8px; }
+.pp-visited__ring-mark.is-on { stroke-width: 1.6px; opacity: 1; }
+.pp-visited__flag.is-on .pp-visited__ring { opacity: 1; }
+.pp-visited__flag.is-on .pp-visited__ring .outer { stroke-width: 6; }
+.pp-visited__flag.is-on .pp-visited__name { color: var(--visit-ink); }
+
+/* The first time the book opens, the flags press in one by one, each
+   country inking in just ahead of its flag. */
+.pp-visited.is-unstamped .pp-visited__flag,
+.pp-visited.is-unstamped .pp-visited__mark,
+.pp-visited.is-unstamped .pp-visited__ring-mark { opacity: 0; }
+.pp-visited.is-stamping .pp-visited__flag {
+  animation: pp-stamp 600ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: var(--d, 0ms);
+}
+.pp-visited.is-stamping .pp-visited__mark,
+.pp-visited.is-stamping .pp-visited__ring-mark {
+  animation: pp-ink-in 900ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes pp-stamp {
+  0% { opacity: 0; transform: scale(1.35) rotate(-4deg); }
+  55% { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes pp-ink-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* ----------------------------------------------------------- visa pages --- */
@@ -712,22 +1308,16 @@ frame's fourth star would be. */
   opacity: 0.85;
 }
 
-/* ------------------------------------------------------------- variants --- */
+/* --------------------------------------------------------------- paper --- */
 
+/* Every page is the same cream stock, so the fold shades sepia on all of
+   them, and the thread is a little darker than the paper. */
 .pp {
   --page-edge: #ECE7DA;
-  --gutter-deep: rgba(30, 18, 84, 0.34);
-  --gutter-mid: rgba(30, 18, 84, 0.14);
-  --stitch: rgba(255, 255, 255, 0.52);
+  --gutter-deep: rgba(84, 58, 26, 0.30);
+  --gutter-mid: rgba(84, 58, 26, 0.11);
+  --stitch: rgba(92, 76, 52, 0.42);
 }
-
-.pp[data-variant='light'] {
-  --gutter-deep: rgba(70, 60, 40, 0.22);
-  --gutter-mid: rgba(70, 60, 40, 0.08);
-  --stitch: rgba(60, 60, 45, 0.16);
-}
-
-.pp[data-variant='light'] .pp-page { background: #F2F3EC; }
 
 /* ------------------------------------------------- hit areas, controls --- */
 
@@ -830,10 +1420,9 @@ frame's fourth star would be. */
 
 .pp-flat {
   display: block;
-  width: min(86vw, 520px);
+  width: min(92vw, 1100px);
   height: auto;
   margin: calc(var(--header-h) + 24px) auto 64px;
-  border-radius: 22px;
 }
 
 /* The fallback image is in the page all along, waiting — `hidden` alone
@@ -849,4 +1438,8 @@ frame's fourth star would be. */
   .js .pp-controls { transition: none; }
   /* A hovered stamp's shadow still deepens; the stamp itself stays put. */
   .pp.is-settled .pp-stamp:hover .pp-stamp__art { transform: none; }
+  /* The flags are simply there. */
+  .pp-visited.is-stamping .pp-visited__flag,
+  .pp-visited.is-stamping .pp-visited__mark,
+  .pp-visited.is-stamping .pp-visited__ring-mark { animation: none; }
 }

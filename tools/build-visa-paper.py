@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """
-build-visa-paper.py — the passport's visa pages: plain, weathered paper.
+build-visa-paper.py — the passport's paper: the visa pages, and the two
+pages of the front spread, plain and weathered.
 
     pip install pillow numpy
     python3 tools/build-visa-paper.py            # as many pages as the stamps fill
     python3 tools/build-visa-paper.py --pages 6  # or a set number (rounded up to spreads)
+    python3 tools/build-visa-paper.py front      # only the front spread's two pages
 
 Writes assets/passport/web/visa-01.webp … visa-NN.webp (920 × 1391, a page's
 proportions), and deletes any higher-numbered visa pages left from before, so
-the folder only ever holds the pages the book shows.
+the folder only ever holds the pages the book shows. It also writes the front
+spread's paper (FRONT below): the same stock, aged its own way.
 
 How many: the book has exactly as many visa pages as Joe's stamps fill. The
 script reads the highest `page:` in PASSPORT_STAMPS (js/passport-data.js) and
@@ -84,6 +87,17 @@ SPECKS = (6, 14)           # ... and loose specks
 MARKS = {
     2: ['tide'],
     3: ['dogear'],
+}
+
+# The front spread, ahead of the visa pages: the data page glued inside the
+# front cover, and "Countries visited" facing it. The same stock, each seeded
+# on its own, no extra marks. The data page is narrower — its cover shows a
+# wider navy rim past its outer edge — so it's cut down from the spine side
+# (the side the binding keeps clean): (1 − 2·0.006) tall by 0.66 − 0.022 wide,
+# as CONFIG.BOOK in js/passport.js has it.
+FRONT = {
+    'front-bio.webp': (7441, False, round(H * (0.66 - 0.022) / (1 - 2 * 0.006))),
+    'front-visited.webp': (7442, True, W),
 }
 
 
@@ -320,9 +334,10 @@ def wear_tile(size=512):
     return tile
 
 
-def make_page(page):
-    rng = np.random.default_rng(7340 + page)
-    recto = page % 2 == 0
+def make_page(page, seed=None, recto=None, marks=None):
+    """A visa page by its number — or, given the rest, any page of the stock."""
+    rng = np.random.default_rng(7340 + page if seed is None else seed)
+    recto = page % 2 == 0 if recto is None else recto
 
     stock = np.array(STOCK, np.float32) / 255
     brown = np.array(BROWN, np.float32) / 255
@@ -348,7 +363,7 @@ def make_page(page):
     img *= (1 + GRAIN * (fine / fine.std() + 0.6 * coarse / coarse.std()))[..., None]
     img *= (1 + FIBRES * fibres(rng))[..., None]
 
-    for mark in MARKS.get(page, []):
+    for mark in (MARKS.get(page, []) if marks is None else marks):
         if mark == 'tide':
             rim, inside = tide_line(rng)
             a = (0.11 * rim + 0.035 * inside)[..., None]
@@ -364,16 +379,30 @@ def make_page(page):
     return Image.fromarray(img, 'RGB')
 
 
+def build_front():
+    for name, (seed, recto, width) in FRONT.items():
+        page = make_page(0, seed=seed, recto=recto, marks=[]).crop((0, 0, width, H))
+        path = os.path.join(OUT, name)
+        page.save(path, 'WEBP', quality=QUALITY, method=6)
+        print('  %-18s %d×%d %4d KB  (front, %s page)' % (name, width, H, os.path.getsize(path) // 1024,
+                                                         'right' if recto else 'left'))
+
+
 def main():
     args = sys.argv[1:]
+    if args == ['front']:
+        os.makedirs(OUT, exist_ok=True)
+        build_front()
+        return
     if args[:1] == ['--pages'] and len(args) == 2 and args[1].isdigit() and int(args[1]) > 0:
         count = 2 * math.ceil(int(args[1]) / 2)
     elif not args:
         count = pages_needed()
     else:
-        sys.exit('usage: build-visa-paper.py [--pages N]')
+        sys.exit('usage: build-visa-paper.py [--pages N | front]')
 
     os.makedirs(OUT, exist_ok=True)
+    build_front()
     for page in range(1, count + 1):
         name = 'visa-%02d.webp' % page
         path = os.path.join(OUT, name)

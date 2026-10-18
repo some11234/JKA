@@ -5,7 +5,12 @@ assets/passport/ (the uploaded PNGs, which are never modified).
 
     pip install pillow numpy
     python3 tools/build-passport.py            # everything
-    python3 tools/build-passport.py stamps     # just one part: cover, flighty, stamps
+    python3 tools/build-passport.py stamps     # just one part: cover, front, stamps
+
+The front part also needs cairosvg, which needs cairo (Homebrew's `cairo`):
+
+    pip install cairosvg
+    DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib python3 tools/build-passport.py front
 
 What it makes, and why each one exists:
 
@@ -22,14 +27,11 @@ What it makes, and why each one exists:
                         the leather's grain and sheen off the foil.
   grain.webp            A seamless tile of lit leather pebbles, laid over the
                         boards.
-  flighty-<v>-map.webp  The Flighty passport, folded: the half ABOVE Flighty's
-  flighty-<v>-data.webp own dashed line becomes the page glued inside the front
-                        cover (map), the half below becomes the first page of
-                        the book (stats + MRZ). Each is rotated 90° CCW,
-                        because the book opens with its spine upright and then
-                        turns a quarter clockwise to be read — the same way you
-                        turn a real passport to read its data page.
-  flighty-<v>.webp      The whole screenshot, flat — the no-JS fallback.
+  eagle.webp            The eagle on its stars-and-stripes shield, from
+                        eagle-and-shield.svg (an engraving from the
+                        Yellowstone Monitor, 1911, traced by johnny_automatic
+                        for Openclipart; public domain). Alpha only: the page
+                        inks it into the seal on the data page.
   stamp-<slug>.webp     Each Amex travel stamp ("<Country> <Year>.png"),
                         trimmed to its perforated edge so the image's box is
                         the stamp's box, and kept transparent outside it — the
@@ -58,16 +60,11 @@ OUT = os.path.join(SRC, 'web')
 # ---------------------------------------------------------------- geometry --
 # All in units of the cover's height (H = 1). Mirrored in js/passport.js.
 #
-# A real passport cover is 88 × 125 mm (0.704). Flighty draws its pages wider
-# and shorter than that (1.60:1 against a real page's 1.42:1), so its art
-# cannot fill true-to-life pages. Rather than crop any of it, the difference is
-# split three ways:
-#   - the book is a touch taller than life (0.66);
-#   - the page glued inside the front cover sits in a Flighty-style navy rim
-#     that is wider along its outer edge (it's printed on the cover, so its
-#     margin is free to be whatever looks right);
-#   - what is left becomes a narrow band at the fold, which the page shading
-#     turns into a gutter.
+# A real passport cover is 88 × 125 mm (0.704). This book is a touch taller
+# than life (0.66) — it was first cut to fit a Flighty screenshot, and the
+# visa paper and the cover are cut to it now — and the page glued inside the
+# front cover sits in a navy rim that is wider along its outer edge (it's
+# printed on the cover, so its margin is free to be whatever looks right).
 # The page block itself sits almost flush with the boards, like a real
 # passport's — that's what lets its cream edges show when the book is closed.
 COVER_RATIO = 0.66       # cover width / height
@@ -78,24 +75,6 @@ MAP_INSET_FORE = 0.022   # navy showing past the inside-cover page's outer edge
 PAGE_H = 1 - 2 * PAGE_INSET_HT            # head → tail, both pages
 DATA_W = COVER_RATIO - DATA_INSET_FORE    # spine → fore-edge, the first page
 MAP_W = COVER_RATIO - MAP_INSET_FORE      # spine → fore-edge, the inside-cover page
-
-# ------------------------------------------------------ the Flighty masters --
-# Measured from the 1179 × 1572 screenshots (both variants share the layout):
-#   rows   0–20    navy cover rim
-#   rows  21–53    drawn "page stack" edges — dropped; the 3D book has real ones
-#   rows  54–790   top page (map)
-#   rows 791–793   the dashed fold line — dropped; it is redrawn as the
-#                  passport's stitching, exactly on the 3D fold
-#   rows 794–1532  bottom page (stats + MRZ)
-#   rows 1533+     navy cover rim
-MAP_ROWS = (54, 791)
-DATA_ROWS = (794, 1533)
-VARIANTS = {
-    'blacklight': 'Flighty Dark.PNG',   # the UV / "black light" version
-    'light': 'Flighty Light.PNG',
-}
-FADE_ROWS = 18   # how far into the art the gutter band feathers
-BAND_BLUR = 22   # horizontal blur that keeps the band free of streaks
 
 COVER_SRC = 'Passport Cover.png'
 COVER_H = 2000             # output height of cover.webp
@@ -299,75 +278,6 @@ def build_grain():
     webp(Image.fromarray((g * 255 + 0.5).astype(np.uint8), 'L'), 'grain.webp', quality=70)
 
 
-def gutter_fill(art, edge_y, height):
-    """A band the colour of the art's rows nearest the fold, blurred sideways."""
-    w = art.width
-    strip = art.crop((0, max(0, edge_y - 4), w, min(art.height, edge_y + 4)))
-    row = strip.resize((w, 1), Image.BOX)
-    # Blur the single row, THEN stretch it: blurring the stretched band would
-    # also pull its top and bottom rows toward the canvas edge.
-    row = row.resize((w, 1 + 2 * BAND_BLUR * 3), Image.NEAREST).filter(
-        ImageFilter.GaussianBlur(BAND_BLUR)).crop((0, BAND_BLUR * 3, w, BAND_BLUR * 3 + 1))
-    return row.resize((w, height), Image.NEAREST)
-
-
-def ramp(w, h, up):
-    """L-mode mask, 0 → 255 down the rows (or 255 → 0 if not `up`), smoothstep."""
-    m = Image.new('L', (w, h))
-    px = []
-    for y in range(h):
-        t = (y + 0.5) / h
-        t = t * t * (3 - 2 * t)
-        v = round(255 * (t if up else 1 - t))
-        px.extend([v] * w)
-    m.putdata(px)
-    return m
-
-
-def build_flighty(variant, filename):
-    src = Image.open(os.path.join(SRC, filename)).convert('RGB')
-    if src.size != (1179, 1572):
-        # MAP_ROWS / DATA_ROWS are pixel rows measured on a 1179×1572 export.
-        sys.exit('%s is %d×%d, not 1179×1572: re-measure MAP_ROWS and DATA_ROWS, '
-                 'then update ART_W in js/passport.js and the <img> sizes in '
-                 'passport/index.html' % (filename, src.width, src.height))
-    w = src.width
-    # Page heights in art pixels: the art's width spans the page head to tail.
-    map_px = round(w * MAP_W / PAGE_H)
-    data_px = round(w * DATA_W / PAGE_H)
-
-    # Map page: art on top, gutter band below it.
-    art = src.crop((0, MAP_ROWS[0], w, MAP_ROWS[1]))
-    band_h = map_px - art.height
-    if band_h < 0:
-        sys.exit('map art is taller than its page — lower MAP_INSET_FORE or raise COVER_RATIO')
-    page = Image.new('RGB', (w, map_px))
-    page.paste(art, (0, 0))
-    fill = gutter_fill(art, art.height - 1, FADE_ROWS + band_h)
-    mask = Image.new('L', fill.size, 255)
-    mask.paste(ramp(w, FADE_ROWS, up=True), (0, 0))
-    page.paste(fill, (0, art.height - FADE_ROWS), mask)
-    webp(page.transpose(Image.Transpose.ROTATE_90), 'flighty-%s-map.webp' % variant, quality=90)
-    map_band = band_h
-
-    # Data page: gutter band on top, art below it.
-    art = src.crop((0, DATA_ROWS[0], w, DATA_ROWS[1]))
-    band_h = data_px - art.height
-    if band_h < 0:
-        sys.exit('data art is taller than its page — raise COVER_RATIO')
-    page = Image.new('RGB', (w, data_px))
-    page.paste(art, (0, band_h))
-    fill = gutter_fill(art, 0, band_h + FADE_ROWS)
-    mask = Image.new('L', fill.size, 255)
-    mask.paste(ramp(w, FADE_ROWS, up=False), (0, band_h))
-    page.paste(fill, (0, 0), mask)
-    webp(page.transpose(Image.Transpose.ROTATE_90), 'flighty-%s-data.webp' % variant, quality=90)
-
-    webp(src, 'flighty-%s.webp' % variant, quality=86)
-    print('    gutter bands: map %dpx, data %dpx (pages %d and %d art px)'
-          % (map_band, band_h, map_px, data_px))
-
-
 def stamp_slug(name):
     """'United States of America 2006.png' → 'united-states-of-america-2006'."""
     return re.sub(r'[^a-z0-9]+', '-', os.path.splitext(name)[0].lower()).strip('-')
@@ -439,7 +349,29 @@ def build_stamps():
         webp(stamp, 'stamp-%s.webp' % slug, quality=90, alpha_quality=90)
 
 
-PARTS = ('cover', 'flighty', 'stamps')
+# ------------------------------------------------------------- the front --
+# The eagle in the data page's seal (see the list at the top).
+EAGLE_SRC = 'eagle-and-shield.svg'
+EAGLE_PX = 320                     # wide: sharp in the seal at its largest
+
+
+def build_eagle():
+    import io
+    import cairosvg  # only this part needs it (and cairo; see the top)
+    png = cairosvg.svg2png(url=os.path.join(SRC, EAGLE_SRC), output_width=EAGLE_PX)
+    img = Image.open(io.BytesIO(png)).convert('RGBA')
+    # The engraving is black on nothing: its ink is its alpha, darkened by
+    # how black each line is.
+    a = np.asarray(img, np.float32) / 255
+    ink = a[..., 3] * (1 - a[..., :3].mean(axis=2))
+    box = Image.fromarray((ink * 255 + 0.5).astype(np.uint8)).getbbox()
+    alpha = Image.fromarray((ink * 255 + 0.5).astype(np.uint8)).crop(box)
+    tile = Image.new('RGBA', alpha.size, (255, 255, 255, 0))
+    tile.putalpha(alpha)
+    webp(tile, 'eagle.webp', quality=80, alpha_quality=70)
+
+
+PARTS = ('cover', 'front', 'stamps')
 
 
 def main():
@@ -451,10 +383,8 @@ def main():
     if 'cover' in parts:
         build_cover()
         build_grain()
-    if 'flighty' in parts:
-        print('pages: map %.4f, data %.4f × %.4f of the cover height' % (MAP_W, DATA_W, PAGE_H))
-        for variant, filename in VARIANTS.items():
-            build_flighty(variant, filename)
+    if 'front' in parts:
+        build_eagle()
     if 'stamps' in parts:
         build_stamps()
 

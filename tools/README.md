@@ -50,7 +50,7 @@ on every page. Its content — countries, cities, photos, links — all lives in
 
 ## build-passport.py
 
-Regenerates the cover, the data page's photo and eagle, and the stamp images in
+Regenerates the cover, the data page's eagle, and the stamp images in
 `assets/passport/web/` from the masters in `assets/passport/` (the uploaded
 PNGs, never modified).
 
@@ -67,15 +67,13 @@ It re-prints and pads the cover, makes the foil mask that limits the cover's
 glint to the gold, and a leather-grain tile. Its geometry constants are
 mirrored in `CONFIG.BOOK` in `js/passport.js` — change one, change both.
 
-The `front` part makes two images for the data page (see "The front spread"
-below): `bio-photo.webp`, Joe's headshot (`assets/about/headshot.webp`)
-cropped to the photo window (`PHOTO_CROP`) and printed nearly grey and a
-little warm; and `eagle.webp`, the eagle on its stars-and-stripes shield. The
-eagle's master is `assets/passport/eagle-and-shield.svg`, an engraving from
-the *Yellowstone Monitor* of 1911 traced by johnny_automatic for
+The `front` part makes `eagle.webp`, the eagle on its stars-and-stripes
+shield in the data page's seal (see "The front spread" below). Its master is
+`assets/passport/eagle-and-shield.svg`, an engraving from the *Yellowstone
+Monitor* of 1911 traced by johnny_automatic for
 [Openclipart](https://openclipart.org/detail/188847/eagle-and-shield) (public
-domain). It is deliberately not the Great Seal. The eagle is alpha only; the
-page prints it in its blue.
+domain). It is deliberately not the Great Seal. It's alpha only; the page
+inks it in its blue.
 
 The cover is **re-coloured**, not just copied: the script reads how much of
 each pixel of `Passport Cover.png` is foil (by where its colour falls between
@@ -207,12 +205,17 @@ over.
 
 ### The front spread
 
-The book opens on two pages printed like a US passport's: the **data page**,
-glued inside the front cover, and **Countries visited** facing it. Both are
-the visa pages' paper with live type and SVG over it (`.pp-front` in
-`css/passport.css`, laid out in page units: 1u is 1/704 of the page's width),
-and both are worn the visa pages' way, with the same `print-wear.webp` and
-`ink.webp` tiles.
+The book opens on two pages printed the way the visa pages are: the **data
+page**, glued inside the front cover, and **Countries visited** facing it.
+Both are the visa pages' paper and carry the visa pages' own printing — the
+frame, the heading between rules and the microprint, from the same `.pp-print`
+classes (`frontPrint()` in `js/passport.js`) — worn with the same
+`print-wear.webp`. Over that sit live type and SVG (`.pp-front` in
+`css/passport.css`, laid out in page units: 1u is 1/704 of the page's width):
+on the data page the MRZ, the request every US passport opens with ("The
+Secretary of State of the United States of America hereby requests…"), one
+seal stamped in `ink.webp`'s uneven ink, the signature and the bearer's
+details; facing it, the globes and flags.
 
 - **The bearer's details** are written out in `passport/index.html`, inside
   `data-pp-bio`. The passport number there (8675309, the one in the MRZ; not
@@ -222,15 +225,13 @@ and both are worn the visa pages' way, with the same `print-wear.webp` and
   add one, add its line and its flag, `assets/passport/flags/<code>.svg`: the
   1x1 file from [flag-icons](https://github.com/lipis/flag-icons) (MIT,
   `LICENSE-flag-icons.txt` beside them). Its flag goes under the globe its
-  country sits nearest the centre of, unless `globe:` says otherwise; up to
-  six to a row, more in two even rows.
-- **Behind the photo** are two things taken from the 2007 US passport,
-  whose inside cover carries them: a flag flying, drawn by the script as an
-  engraving (`drawFlag()` in `js/passport.js`), and the anthem's first four
-  lines in Francis Scott Key's hand, with his 1814 spelling.
-- **The fonts** are self-hosted in `assets/passport/fonts/`: Archivo, Bodoni
-  Moda and Herr Von Muellerhoff (the anthem's hand; all SIL OFL) and OCR-B
-  (free; subset to ASCII as `ocrb-ascii.woff2`), with their licences.
+  country sits nearest the centre of, unless `globe:` says otherwise. Each
+  globe's flags sit in one row, overlapping a little; a flag shows its
+  country's name only when it's hovered.
+- **The fonts** are self-hosted in `assets/passport/fonts/`: Archivo (SIL
+  OFL) and OCR-B (free; subset to ASCII as `ocrb-ascii.woff2`), with their
+  licences. The headings and the request use the visa pages' Cormorant
+  Garamond, from Google Fonts.
 - **The flat fallback**, `assets/passport/web/spread.webp`, is a picture of
   the open spread for when the script can't run. It doesn't redraw itself:
   after changing the bearer or the countries, retake it — open the spread in

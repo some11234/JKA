@@ -33,8 +33,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=satoshi@1,2&display=swap">
 <!-- Cormorant Garamond sets the blue print on the visa pages: VISAS and the
-     page numbers. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=JetBrains+Mono:wght@400..700&display=swap">
+     page numbers; its italic sets the request on the data page. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,500&family=JetBrains+Mono:wght@400..700&display=swap">
 
 <link rel="stylesheet" href="/css/styles.css">
 <link rel="stylesheet" href="/css/passport.css">
@@ -111,41 +111,23 @@
           </span>
           <span class="pp-face pp-inside" data-pp-inside>
             <span class="pp-grain"></span>
-            <!-- The data page. Its print is laid out in page units (css/passport.css,
-                 "front spread"); the guilloche and the stars are drawn by the script. -->
+            <!-- The data page. The visa pages' printing goes under it (frame,
+                 heading, microprint: added by the script); over that, laid
+                 out in page units (css/passport.css, "front spread"), the
+                 type, the request and the seal. -->
             <span class="pp-page pp-page--bio pp-front pp-bio" data-pp-bio>
               <img data-src="/assets/passport/web/front-bio.webp"
                    width="898" height="1391" alt="" decoding="async" draggable="false">
               <span class="pp-gutter"></span>
-              <span class="pp-front__print">
-                <span class="pp-front__wash"></span>
-                <svg class="pp-front__guilloche" data-pp-guilloche="bio" viewBox="0 0 626 1090" preserveAspectRatio="xMidYMin meet"></svg>
-                <span class="pp-bio__eagle"></span>
-                <svg class="pp-bio__stars" data-pp-stars viewBox="0 0 564 26"></svg>
-                <span class="pp-bio__mrz-rule"></span>
-                <span class="pp-front__micro" data-pp-micro></span>
-                <!-- The opening of the anthem in Francis Scott Key's hand, as the
-                     inside cover of the 2007 passport has it, his 1814 spelling. -->
-                <span class="pp-bio__anthem">
-                  <span>O say can you see by the dawn’s early light,</span>
-                  <span>What so proudly we hail’d at the twilight’s last gleaming,</span>
-                  <span>Whose broad stripes &amp; bright stars through the perilous fight</span>
-                  <span>O’er the ramparts we watch’d were so gallantly streaming?</span>
-                </span>
-              </span>
               <span class="pp-front__type">
                 <!-- Glyph tops face the page; line 1 nearer the content, line 2 on the outer edge. -->
                 <svg class="pp-bio__mrz" viewBox="0 0 78 1090" preserveAspectRatio="none">
                   <text x="48" y="-46" transform="rotate(90)" textLength="994" lengthAdjust="spacing">&lt;P&lt;&lt;&lt;USA&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;ANDERSON&lt;JOSEPH&lt;KERBY&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</text>
                   <text x="48" y="-16" transform="rotate(90)" textLength="994" lengthAdjust="spacing">8675309&lt;&lt;USA&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;JOSEPHKERBY.COM&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</text>
                 </svg>
-                <span class="pp-front__country">United States of America</span>
-                <span class="pp-front__title">Passport</span>
-                <span class="pp-front__sub">Passeport · Pasaporte</span>
-                <span class="pp-bio__photo">
-                  <img data-src="/assets/passport/web/bio-photo.webp"
-                       width="392" height="492" alt="" decoding="async" draggable="false">
-                </span>
+                <span class="pp-front__sub">United States of America</span>
+                <!-- The request a US passport opens with. -->
+                <span class="pp-bio__request"><span>The Secretary of State</span> of the United States of America hereby requests all whom it may concern to permit the citizen/national of the United States named herein to pass without delay or hindrance and in case of need to give all lawful aid and protection.</span>
                 <span class="pp-bio__seal pp-front__stamp">
                   <svg viewBox="-80 -80 160 160">
                     <defs><path id="pp-seal-arc" d="M0,0 m-58,0 a58,58 0 1,1 116,0 a58,58 0 1,1 -116,0"/></defs>
@@ -161,7 +143,6 @@
                   <span class="pp-bio__seal-eagle"></span>
                 </span>
                 <span class="pp-bio__sign">
-                  <svg class="pp-bio__waves" data-pp-waves viewBox="0 0 626 104" preserveAspectRatio="none"></svg>
                   <img class="pp-bio__pen" data-src="/assets/passport/web/signature.svg"
                        width="290" height="94" alt="" decoding="async" draggable="false">
                   <span class="pp-bio__line"></span>
@@ -221,13 +202,7 @@
            width="920" height="1391" alt="" decoding="async" draggable="false">
       <span class="pp-gutter"></span>
       <span class="pp-stitch"></span>
-      <span class="pp-front__print">
-        <span class="pp-front__wash"></span>
-        <svg class="pp-front__guilloche" data-pp-guilloche="visited" viewBox="0 0 704 1064" preserveAspectRatio="xMidYMin meet"></svg>
-        <span class="pp-front__micro" data-pp-micro></span>
-      </span>
       <span class="pp-front__type">
-        <span class="pp-front__title pp-front__title--long">Countries visited</span>
         <span class="pp-front__sub">Pays visités · Países visitados</span>
         <span class="pp-visited__hemi pp-visited__hemi--west">
           <span class="pp-visited__label">Western<br>hemisphere<span>Hémisphère occidental</span><span>Hemisferio occidental</span></span>
@@ -247,8 +222,8 @@
        as the open button's description. -->
   <div class="pp-sr" id="pp-desc" hidden>
     Joe's passport, open on its data page: a United States passport for
-    Joseph Kerby Anderson, born in Portland, Oregon, with Joe's photo and
-    signature. Facing it, Countries visited: two globes with
+    Joseph Kerby Anderson, born in Portland, Oregon, under the Secretary of
+    State's request to let its bearer pass, with Joe's signature. Facing it, Countries visited: two globes with
     <span data-pp-desc-countries>the countries Joe has been to</span>
     stamped in violet, each with its flag.
   </div>

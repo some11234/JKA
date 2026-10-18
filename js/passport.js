@@ -319,22 +319,20 @@
 
   // -------------------------------------------------------- front spread ---
   // The data page (inside the front cover) and Countries visited (leaf 0's
-  // front). Their print is in the page; what's drawn from numbers is drawn
-  // here, once: the guilloche, the stars, the passport number punched
-  // through the paper, and the globes with the visits stamped on them and
-  // their flags beneath. Each layer of print or ink is worn at its own spot
-  // on the same tiles the visa pages use.
+  // front) are printed as the visa pages are: the same frame, heading and
+  // microprint, from the same classes, worn the same way. Over that print go
+  // the bearer's details, the request and the seal (in the page) and the
+  // globes. What's drawn from numbers is drawn here, once: the passport
+  // number punched through the paper, and the globes with the visits
+  // stamped on them and their flags beneath.
   var COUNTRIES = window.PASSPORT_COUNTRIES || [];
   var NS = 'http://www.w3.org/2000/svg';
-  var PRINT_INK = '#34498A', PRINT_RED = '#A8423D', VISIT_INK = '#563889';
+  var PRINT_INK = '#34498A', VISIT_INK = '#563889';
 
   function svgEl(tag, attrs) {
     var n = document.createElementNS(NS, tag);
     for (var k in attrs) if (Object.prototype.hasOwnProperty.call(attrs, k)) n.setAttribute(k, attrs[k]);
     return n;
-  }
-  function pathOf(pts, closed) {
-    return 'M' + pts.map(function (q) { return q[0].toFixed(2) + ',' + q[1].toFixed(2); }).join('L') + (closed ? 'Z' : '');
   }
   function spotOf(key) {
     var h = hash(key);
@@ -342,133 +340,28 @@
   }
   function bare(name) { return String(name || '').replace(/^the\s+/i, ''); }
 
-  // Security printing's woven ribbons: bands of waves across the page, each
-  // strand a little out of phase with the next. `shift` offsets every
-  // strand's phase, so two bands in two inks interleave like a flag's stripes.
-  function waveBand(g, o) {
-    var amp2 = o.amp2 || 0, wl2 = o.wl2 || 1, shift = o.shift || 0;
-    for (var s = 0; s < o.strands; s++) {
-      var ph = ((s + shift) / o.strands) * Math.PI * 2;
-      var pts = [];
-      for (var x = o.x0; x <= o.x1; x += 2) {
-        pts.push([x, o.y + o.amp * Math.sin((x / o.wl) * 2 * Math.PI + ph) + amp2 * Math.sin((x / wl2) * 2 * Math.PI - ph)]);
-      }
-      g.appendChild(svgEl('path', { d: pathOf(pts, false) }));
-    }
-  }
-  function inks(opacity) {
-    return [PRINT_INK, PRINT_RED].map(function (c) {
-      return svgEl('g', { fill: 'none', stroke: c, 'stroke-opacity': opacity, 'stroke-width': 0.45 });
+  // A visa page's printing (see printLayer()) for a front page: the
+  // double-rule frame with a star in each corner but `skip` — the one the
+  // perforated number takes, as a visa page's number takes one — the
+  // heading between rules, and the microprint along the foot. It goes under
+  // the page's type, at the page's own spot on the wear tile (--wear-at).
+  function frontPrint(page, title, skip) {
+    var p = el('span', 'pp-print');
+    var frame = el('span', 'pp-print__frame');
+    ['tl', 'tr', 'bl', 'br'].forEach(function (c) {
+      if (c === skip) return;
+      var star = el('span', 'pp-print__star pp-print__star--' + c);
+      star.innerHTML = STAR;
+      frame.appendChild(star);
     });
-  }
-
-  // The flag flying behind the photo, engraved the way security print draws
-  // a picture: each red stripe and the blue canton a ruling of fine lines,
-  // the fifty stars left as bare paper, the whole cloth rippling from the
-  // hoist with its folds shaded across it. In the data page's guilloche
-  // units (the page less its MRZ band); proportions are the flag's own
-  // (1.9 : 1, canton 0.76 × 7/13, stars at 0.054 and 0.063 of the hoist).
-  var FLAG = { x: 52, y: 150, h: 268, wave: 2.4, lift: 10 };
-  function drawFlag(svg) {
-    var F = FLAG, W = F.h * 1.9;
-    function at(t, v) {
-      // t across the fly, v down the hoist (0 → 1): the cloth's ripple grows
-      // away from the pole, and sags a little toward the fly.
-      var a = 4 + F.lift * t;
-      return [F.x + t * W, F.y + v * F.h + a * Math.sin(2 * Math.PI * F.wave * t - 0.9) + 10 * t * t];
-    }
-    function rule(v, t0, t1) {
-      var pts = [];
-      for (var t = t0; t <= t1 + 1e-9; t += 0.008) pts.push(at(t, v));
-      return pathOf(pts, false);
-    }
-    // Folds: light where the cloth faces up, dark where it turns away.
-    var defs = svgEl('defs', {});
-    [['red', PRINT_RED], ['blue', PRINT_INK]].forEach(function (c) {
-      var gr = svgEl('linearGradient', { id: 'pp-flag-' + c[0], gradientUnits: 'userSpaceOnUse', x1: F.x, y1: 0, x2: F.x + W, y2: 0 });
-      for (var i = 0; i <= 24; i++) {
-        var t = i / 24, shade = 0.5 + 0.5 * Math.cos(2 * Math.PI * F.wave * t - 0.9 + 0.8);
-        gr.appendChild(svgEl('stop', { offset: t, 'stop-color': c[1], 'stop-opacity': (0.15 + 0.12 * shade).toFixed(3) }));
-      }
-      defs.appendChild(gr);
-    });
-    svg.appendChild(defs);
-    var red = svgEl('g', { fill: 'none', stroke: 'url(#pp-flag-red)', 'stroke-width': 0.55 });
-    var blue = svgEl('g', { fill: 'none', stroke: 'url(#pp-flag-blue)', 'stroke-width': 0.55 });
-    var CANTON = 0.76 / 1.9;
-    for (var s = 0; s < 13; s += 2) {
-      for (var k = 0; k < 4; k++) {
-        var v = (s + (k + 0.5) / 4) / 13;
-        red.appendChild(svgEl('path', { d: rule(v, s < 7 ? CANTON : 0, 1) }));
-      }
-    }
-    for (var j = 0; j < 28; j++) blue.appendChild(svgEl('path', { d: rule((j + 0.5) / 28 * 7 / 13, 0, CANTON) }));
-    svg.appendChild(red);
-    svg.appendChild(blue);
-    // Fifty stars, nine rows of six and five, knocked out of the canton.
-    var stars = svgEl('g', { fill: '#fff' });
-    for (var r = 0; r < 9; r++) {
-      for (var c = 0; c < (r % 2 ? 5 : 6); c++) {
-        var tx = (r % 2 ? 2 * c + 2 : 2 * c + 1) * 0.063 / 1.9, vy = (r + 1) * 0.054;
-        var p = at(tx, vy);
-        stars.appendChild(svgEl('path', { d: starPath(p[0], p[1], 0.0308 * F.h * 1.15) }));
-      }
-    }
-    svg.appendChild(stars);
-  }
-
-  function drawGuilloche() {
-    // The data page: the flag behind the photo, ribbons through the data.
-    var svg = bioPage.querySelector('[data-pp-guilloche]');
-    drawFlag(svg);
-    var g = inks(0.13), blue = g[0], red = g[1];
-    waveBand(blue, { x0: 0, x1: 626, y: 776, amp: 60, wl: 420, strands: 26, amp2: 9, wl2: 90 });
-    waveBand(red, { x0: 0, x1: 626, y: 930, amp: 34, wl: 300, strands: 18, amp2: 6, wl2: 70 });
-    svg.appendChild(red);
-    svg.appendChild(blue);
-
-    // Countries visited: stripe-waves behind each globe, red and blue
-    // strands interleaved, and a band of stars along the foot.
-    svg = sheets.visited.querySelector('[data-pp-guilloche]');
-    g = inks(0.1);
-    [284, 698].forEach(function (y, i) {
-      waveBand(g[0], { x0: 0, x1: 704, y: y, amp: 46, wl: 390, strands: 13, amp2: 7, wl2: 84, shift: i * 0.25 });
-      waveBand(g[1], { x0: 0, x1: 704, y: y, amp: 46, wl: 390, strands: 13, amp2: 7, wl2: 84, shift: 0.5 + i * 0.25 });
-    });
-    svg.appendChild(g[1]);
-    svg.appendChild(g[0]);
-    var stars = svgEl('g', { fill: PRINT_INK, 'fill-opacity': 0.22 });
-    for (var i = 0; i < 25; i++) stars.appendChild(svgEl('path', { d: starPath(64 + i * 24, 1040, 3.2) }));
-    svg.appendChild(stars);
-  }
-
-  // A five-pointed star of outer radius r at (cx, cy), point up.
-  function starPath(cx, cy, r) {
-    var pts = [];
-    for (var i = 0; i < 10; i++) {
-      var a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.4 : r;
-      pts.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a)]);
-    }
-    return pathOf(pts, true);
-  }
-
-  function drawStars() {
-    // Thirteen in a shallow arc over the title, highest in the middle.
-    var svg = bioPage.querySelector('[data-pp-stars]');
-    for (var i = 0; i < 13; i++) {
-      var dx = (i - 6) * 26;
-      svg.appendChild(svgEl('path', { d: starPath(282 + dx, 7 + dx * dx * 0.00058 + 4.2, 4.6) }));
-    }
-  }
-
-  function drawWaves() {
-    // Under the signature: the flag's stripes, as guilloche.
-    var svg = bioPage.querySelector('[data-pp-waves]');
-    var g = inks(0.24);
-    waveBand(g[0], { x0: 0, x1: 626, y: 40, amp: 16, wl: 120, strands: 10, amp2: 4, wl2: 37 });
-    waveBand(g[1], { x0: 0, x1: 626, y: 40, amp: 16, wl: 120, strands: 10, amp2: 4, wl2: 37, shift: 0.5 });
-    svg.appendChild(g[1]);
-    svg.appendChild(g[0]);
+    p.appendChild(frame);
+    var head = el('span', 'pp-print__head');
+    head.appendChild(el('span', 'pp-print__rule'));
+    head.appendChild(el('span', 'pp-print__title', title));
+    head.appendChild(el('span', 'pp-print__rule'));
+    p.appendChild(head);
+    p.appendChild(el('span', 'pp-print__micro', MICRO));
+    page.insertBefore(p, page.querySelector('.pp-front__type'));
   }
 
   // The passport number, punched through the top of the page as a real one
@@ -618,12 +511,8 @@
     art.appendChild(img);
     disc.appendChild(art);
     f.appendChild(disc);
-    var name = el('span', 'pp-visited__name');
-    bare(c.name).split(/\s+/).forEach(function (word, k) {
-      if (k) name.appendChild(document.createElement('br'));
-      name.appendChild(document.createTextNode(word));
-    });
-    f.appendChild(name);
+    // Its name shows only when it's hovered (css/passport.css).
+    f.appendChild(el('span', 'pp-visited__name', bare(c.name)));
     return f;
   }
 
@@ -662,8 +551,6 @@
           .sort(function (a, b) { return home[a.code].x - home[b.code].x; });
         if (!mine.length) return;
         var list = el('span', 'pp-visited__flags pp-visited__flags--' + g.key);
-        // Up to six in a row; more go in two even rows.
-        list.style.setProperty('--per-row', mine.length <= 6 ? mine.length : Math.ceil(mine.length / 2));
         mine.forEach(function (c) {
           var d = order * 170;
           list.appendChild(flagItem(c, order));
@@ -693,15 +580,11 @@
   }
 
   function buildFront() {
-    Array.prototype.forEach.call(root.querySelectorAll('[data-pp-micro]'), function (n) {
-      n.textContent = new Array(40).join('UNITED STATES OF AMERICA ★ ');
-    });
     bioPage.style.setProperty('--wear-at', spotOf('front bio'));
     sheets.visited.style.setProperty('--wear-at', spotOf('front visited'));
+    frontPrint(bioPage, 'Passport', null);
+    frontPrint(sheets.visited, 'Countries visited', 'tr');
     bioPage.querySelector('.pp-bio__seal').style.setProperty('--ink-at', spotOf('seal'));
-    drawGuilloche();
-    drawStars();
-    drawWaves();
     perforate();
     // Read out with the open button: who's been where.
     var names = COUNTRIES.map(function (c) { return c.name; });

@@ -67,16 +67,15 @@ It re-prints and pads the cover, makes the foil mask that limits the cover's
 glint to the gold, and a leather-grain tile. Its geometry constants are
 mirrored in `CONFIG.BOOK` in `js/passport.js` — change one, change both.
 
-The `front` part makes three images for the data page (see "The front spread"
+The `front` part makes two images for the data page (see "The front spread"
 below): `bio-photo.webp`, Joe's headshot (`assets/about/headshot.webp`)
 cropped to the photo window (`PHOTO_CROP`) and printed nearly grey and a
-little warm; `bio-ghost.webp`, the same face as a screen of lines for the
-ghost image; and `eagle.webp`, the eagle on its stars-and-stripes shield. The
+little warm; and `eagle.webp`, the eagle on its stars-and-stripes shield. The
 eagle's master is `assets/passport/eagle-and-shield.svg`, an engraving from
 the *Yellowstone Monitor* of 1911 traced by johnny_automatic for
 [Openclipart](https://openclipart.org/detail/188847/eagle-and-shield) (public
-domain). It is deliberately not the Great Seal. The ghost and the eagle are
-alpha only; the page prints them in its blue.
+domain). It is deliberately not the Great Seal. The eagle is alpha only; the
+page prints it in its blue.
 
 The cover is **re-coloured**, not just copied: the script reads how much of
 each pixel of `Passport Cover.png` is foil (by where its colour falls between
@@ -225,9 +224,13 @@ and both are worn the visa pages' way, with the same `print-wear.webp` and
   `LICENSE-flag-icons.txt` beside them). Its flag goes under the globe its
   country sits nearest the centre of, unless `globe:` says otherwise; up to
   six to a row, more in two even rows.
-- **The fonts** are self-hosted in `assets/passport/fonts/`: Archivo and
-  Bodoni Moda (SIL OFL) and OCR-B (free; subset to ASCII as
-  `ocrb-ascii.woff2`), with their licences.
+- **Behind the photo** are two things taken from the 2007 US passport,
+  whose inside cover carries them: a flag flying, drawn by the script as an
+  engraving (`drawFlag()` in `js/passport.js`), and the anthem's first four
+  lines in Francis Scott Key's hand, with his 1814 spelling.
+- **The fonts** are self-hosted in `assets/passport/fonts/`: Archivo, Bodoni
+  Moda and Herr Von Muellerhoff (the anthem's hand; all SIL OFL) and OCR-B
+  (free; subset to ASCII as `ocrb-ascii.woff2`), with their licences.
 - **The flat fallback**, `assets/passport/web/spread.webp`, is a picture of
   the open spread for when the script can't run. It doesn't redraw itself:
   after changing the bearer or the countries, retake it — open the spread in

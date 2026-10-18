@@ -32,17 +32,13 @@ What it makes, and why each one exists:
                         to the photo window and printed the way a passport
                         prints one — nearly grey, a little warm, its blacks
                         lifted so the paper reads through them.
-  bio-ghost.webp        The same face again, small, as a passport's "ghost
-                        image": a laser screen of horizontal lines, thicker
-                        where the photo is darker. Alpha only — the page
-                        prints it in its blue.
   eagle.webp            The eagle on its stars-and-stripes shield, from
                         eagle-and-shield.svg (an engraving from the
                         Yellowstone Monitor, 1911, traced by johnny_automatic
-                        for Openclipart; public domain). Alpha only, like
-                        bio-ghost: the page prints it in its blue, once large
-                        and faint behind the data, once in stamp ink in the
-                        seal over the photo's corner.
+                        for Openclipart; public domain). Alpha only: the page
+                        prints it in its blue, once large and faint behind
+                        the data, once in stamp ink in the seal over the
+                        photo's corner.
   stamp-<slug>.webp     Each Amex travel stamp ("<Country> <Year>.png"),
                         trimmed to its perforated edge so the image's box is
                         the stamp's box, and kept transparent outside it — the
@@ -361,7 +357,7 @@ def build_stamps():
 
 
 # ------------------------------------------------------------- the front --
-# The data page's photo, ghost image and eagle (see the list at the top).
+# The data page's photo and eagle (see the list at the top).
 PHOTO_SRC = os.path.join(ROOT, 'assets', 'about', 'headshot.webp')
 PHOTO_CROP = (200, 80, 570, 544)   # left, top, right, bottom in the 1000² headshot:
                                    # the photo window's 196:246, head about two
@@ -371,8 +367,6 @@ PHOTO_SAT = 0.12                   # how much colour survives the printing
 PHOTO_WARM = (1.0, 0.975, 0.93)    # a warm cast over the grey
 PHOTO_FLOOR = 0.16                 # blacks lifted to this, so it reads as print
 PHOTO_GAMMA = 0.92                 # and a hair lighter in the mids
-GHOST_PX = (164, 206)              # the ghost image, 2× its window
-GHOST_PITCH = 4                    # px between its screen lines
 EAGLE_SRC = 'eagle-and-shield.svg'
 EAGLE_PX = 720                     # wide: sharp enough behind the data, at its largest
 
@@ -386,23 +380,6 @@ def build_photo():
     a = PHOTO_FLOOR + (1 - PHOTO_FLOOR) * np.clip(a, 0, 1) ** PHOTO_GAMMA
     a *= np.array(PHOTO_WARM, np.float32)
     webp(Image.fromarray((np.clip(a, 0, 1) * 255 + 0.5).astype(np.uint8)), 'bio-photo.webp', quality=84)
-
-    # The ghost: the same crop, small, as a screen of horizontal lines whose
-    # thickness follows how dark the photo is there.
-    g = np.asarray(src.convert('L').resize(GHOST_PX, Image.LANCZOS), np.float32) / 255
-    # Only the darker half of the photo prints, so the face and hair carry
-    # it and the wall behind fades out, and the screen thins toward its edges.
-    dark = np.clip((0.66 - g) / 0.56, 0, 1) ** 1.25
-    yy, xx = np.mgrid[0:GHOST_PX[1], 0:GHOST_PX[0]].astype(np.float32)
-    r = np.hypot((xx / GHOST_PX[0] - 0.5) / 0.5, (yy / GHOST_PX[1] - 0.45) / 0.55)
-    dark *= np.clip((1.12 - r) / 0.4, 0, 1)
-    y = (np.arange(GHOST_PX[1], dtype=np.float32) % GHOST_PITCH)[:, None]
-    centre = (GHOST_PITCH - 1) / 2
-    half = dark * GHOST_PITCH * 0.5
-    alpha = np.clip(half - np.abs(y - centre) + 0.5, 0, 1)
-    tile = Image.new('RGBA', GHOST_PX, (255, 255, 255, 0))
-    tile.putalpha(Image.fromarray((alpha * 255 + 0.5).astype(np.uint8)))
-    webp(tile, 'bio-ghost.webp', quality=80, alpha_quality=80)
 
 
 def build_eagle():

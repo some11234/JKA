@@ -342,24 +342,9 @@
   }
   function bare(name) { return String(name || '').replace(/^the\s+/i, ''); }
 
-  // Security printing's woven ribbons: a band of wavy rings, each strand a
-  // little out of phase with the next (and, crossed, running the other way).
-  function rosetteBand(g, o) {
-    var sx = o.sx || 1, sy = o.sy || 1, amp2 = o.amp2 || 0, lobes2 = o.lobes2 || 0;
-    for (var s = 0; s < o.strands * (o.cross ? 2 : 1); s++) {
-      var dir = s < o.strands ? 1 : -1;
-      var ph = dir * ((s % o.strands) / o.strands) * 2 * Math.PI;
-      var pts = [];
-      for (var i = 0; i <= 900; i++) {
-        var a = (i / 900) * 2 * Math.PI;
-        var r = o.r + o.amp * Math.sin(o.lobes * a + ph) + amp2 * Math.sin(lobes2 * a - ph * 2);
-        pts.push([o.cx + r * Math.cos(a) * sx, o.cy + r * Math.sin(a) * sy]);
-      }
-      g.appendChild(svgEl('path', { d: pathOf(pts, true) }));
-    }
-  }
-  // ... and the same across the page as waves. `shift` offsets every strand's
-  // phase, so two bands in two inks interleave like a flag's stripes.
+  // Security printing's woven ribbons: bands of waves across the page, each
+  // strand a little out of phase with the next. `shift` offsets every
+  // strand's phase, so two bands in two inks interleave like a flag's stripes.
   function waveBand(g, o) {
     var amp2 = o.amp2 || 0, wl2 = o.wl2 || 1, shift = o.shift || 0;
     for (var s = 0; s < o.strands; s++) {
@@ -377,14 +362,66 @@
     });
   }
 
+  // The flag flying behind the photo, engraved the way security print draws
+  // a picture: each red stripe and the blue canton a ruling of fine lines,
+  // the fifty stars left as bare paper, the whole cloth rippling from the
+  // hoist with its folds shaded across it. In the data page's guilloche
+  // units (the page less its MRZ band); proportions are the flag's own
+  // (1.9 : 1, canton 0.76 × 7/13, stars at 0.054 and 0.063 of the hoist).
+  var FLAG = { x: 52, y: 150, h: 268, wave: 3.4, lift: 22 };
+  function drawFlag(svg) {
+    var F = FLAG, W = F.h * 1.9;
+    function at(t, v) {
+      // t across the fly, v down the hoist (0 → 1): the cloth's ripple grows
+      // away from the pole, and sags a little toward the fly.
+      var a = 4 + F.lift * t;
+      return [F.x + t * W, F.y + v * F.h + a * Math.sin(2 * Math.PI * F.wave * t - 0.9) + 10 * t * t];
+    }
+    function rule(v, t0, t1) {
+      var pts = [];
+      for (var t = t0; t <= t1 + 1e-9; t += 0.008) pts.push(at(t, v));
+      return pathOf(pts, false);
+    }
+    // Folds: light where the cloth faces up, dark where it turns away.
+    var defs = svgEl('defs', {});
+    [['red', PRINT_RED], ['blue', PRINT_INK]].forEach(function (c) {
+      var gr = svgEl('linearGradient', { id: 'pp-flag-' + c[0], gradientUnits: 'userSpaceOnUse', x1: F.x, y1: 0, x2: F.x + W, y2: 0 });
+      for (var i = 0; i <= 24; i++) {
+        var t = i / 24, shade = 0.5 + 0.5 * Math.cos(2 * Math.PI * F.wave * t - 0.9 + 0.8);
+        gr.appendChild(svgEl('stop', { offset: t, 'stop-color': c[1], 'stop-opacity': (0.3 + 0.34 * shade).toFixed(3) }));
+      }
+      defs.appendChild(gr);
+    });
+    svg.appendChild(defs);
+    var red = svgEl('g', { fill: 'none', stroke: 'url(#pp-flag-red)', 'stroke-width': 0.8 });
+    var blue = svgEl('g', { fill: 'none', stroke: 'url(#pp-flag-blue)', 'stroke-width': 0.8 });
+    var CANTON = 0.76 / 1.9;
+    for (var s = 0; s < 13; s += 2) {
+      for (var k = 0; k < 6; k++) {
+        var v = (s + (k + 0.5) / 6) / 13;
+        red.appendChild(svgEl('path', { d: rule(v, s < 7 ? CANTON : 0, 1) }));
+      }
+    }
+    for (var j = 0; j < 42; j++) blue.appendChild(svgEl('path', { d: rule((j + 0.5) / 42 * 7 / 13, 0, CANTON) }));
+    svg.appendChild(red);
+    svg.appendChild(blue);
+    // Fifty stars, nine rows of six and five, knocked out of the canton.
+    var stars = svgEl('g', { fill: '#fff' });
+    for (var r = 0; r < 9; r++) {
+      for (var c = 0; c < (r % 2 ? 5 : 6); c++) {
+        var tx = (r % 2 ? 2 * c + 2 : 2 * c + 1) * 0.063 / 1.9, vy = (r + 1) * 0.054;
+        var p = at(tx, vy);
+        stars.appendChild(svgEl('path', { d: starPath(p[0], p[1], 0.0308 * F.h * 1.15) }));
+      }
+    }
+    svg.appendChild(stars);
+  }
+
   function drawGuilloche() {
-    // The data page: rosettes behind the photo, ribbons through the data.
+    // The data page: the flag behind the photo, ribbons through the data.
     var svg = bioPage.querySelector('[data-pp-guilloche]');
+    drawFlag(svg);
     var g = inks(0.13), blue = g[0], red = g[1];
-    rosetteBand(blue, { cx: 305, cy: 275, r: 252, amp: 7, lobes: 46, strands: 10, cross: true });
-    rosetteBand(red, { cx: 305, cy: 275, r: 206, amp: 14, lobes: 28, strands: 12, cross: true });
-    rosetteBand(blue, { cx: 305, cy: 275, r: 150, amp: 11, lobes: 20, strands: 12, amp2: 5, lobes2: 5, cross: true });
-    rosetteBand(red, { cx: 305, cy: 275, r: 86, amp: 9, lobes: 14, strands: 10, cross: true });
     waveBand(blue, { x0: 0, x1: 626, y: 776, amp: 60, wl: 420, strands: 26, amp2: 9, wl2: 90 });
     waveBand(red, { x0: 0, x1: 626, y: 930, amp: 34, wl: 300, strands: 18, amp2: 6, wl2: 70 });
     svg.appendChild(red);
@@ -573,11 +610,6 @@
     return { key: key, host: host, found: found };
   }
 
-  // Each flag's ring lands a little differently: its own ink load, and the
-  // side the hand leaned on turned to its own angle.
-  var STAMP_LEAN = [-35, 150, 70, 235, -110, 15];
-  var STAMP_INK = [0.9, 0.8, 0.94, 0.84, 0.92, 0.78];
-
   function flagItem(c, i) {
     var f = el('span', 'pp-visited__flag');
     f.setAttribute('data-code', c.code);
@@ -593,21 +625,6 @@
     img.src = '/assets/passport/flags/' + c.code.toLowerCase() + '.svg';
     art.appendChild(img);
     disc.appendChild(art);
-    var ring = el('span', 'pp-visited__ring pp-front__stamp');
-    ring.style.setProperty('--rot', STAMP_LEAN[i % 6] + 'deg');
-    ring.style.setProperty('--ink-load', STAMP_INK[i % 6]);
-    ring.style.setProperty('--ink-at', spotOf('flag ' + c.code));
-    var g = 'pp-press-' + c.code;
-    ring.innerHTML = '<svg viewBox="0 0 100 100">' +
-      '<linearGradient id="' + g + '" x1="0" y1="0" x2="1" y2="1">' +
-      '<stop offset="0" stop-color="currentColor"/><stop offset=".5" stop-color="currentColor" stop-opacity=".7"/>' +
-      '<stop offset="1" stop-color="currentColor" stop-opacity=".2"/></linearGradient>' +
-      '<g stroke="url(#' + g + ')">' +
-      '<circle class="outer" cx="50" cy="50" r="45" stroke-width="3.6" pathLength="100" stroke-dasharray="57 2.5 40.5 0" stroke-dashoffset="-9"/>' +
-      '<circle cx="50" cy="50" r="45.4" stroke-width="2.4" pathLength="100" stroke-dasharray="34 66" stroke-dashoffset="-56" stroke-linecap="round"/>' +
-      '<circle cx="50" cy="50" r="40.5" stroke-width="1.3" pathLength="100" stroke-dasharray="62 4 34 0" stroke-dashoffset="-14"/>' +
-      '</g></svg>';
-    disc.appendChild(ring);
     f.appendChild(disc);
     var name = el('span', 'pp-visited__name');
     bare(c.name).split(/\s+/).forEach(function (word, k) {
@@ -658,7 +675,7 @@
         var mine = COUNTRIES.filter(function (c) { return home[c.code] && home[c.code].key === g.key; })
           .sort(function (a, b) { return home[a.code].x - home[b.code].x; });
         if (!mine.length) return;
-        var list = el('span', 'pp-visited__flags');
+        var list = el('span', 'pp-visited__flags pp-visited__flags--' + g.key);
         // Up to six in a row; more go in two even rows.
         list.style.setProperty('--per-row', mine.length <= 6 ? mine.length : Math.ceil(mine.length / 2));
         mine.forEach(function (c) {
@@ -669,7 +686,7 @@
           });
           order++;
         });
-        g.host.parentNode.appendChild(list);
+        sheets.visited.appendChild(list);
       });
       Array.prototype.forEach.call(sheets.visited.querySelectorAll('.pp-visited__flag, .pp-visited__mark'), function (n) {
         n.addEventListener('mouseenter', function () { setActive(n.getAttribute('data-code')); });

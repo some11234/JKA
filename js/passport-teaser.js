@@ -66,12 +66,14 @@
 
     var img = document.createElement('img');
     img.alt = '';
-    img.width = 560;
-    img.height = 560;
+    img.width = 420;
+    img.height = 420;
     img.loading = 'lazy';
     img.decoding = 'async';
     img.draggable = false;
-    img.src = '/assets/passport/web/stamp-' + st.stamp + '.webp';
+    // The unaged set: the aged stamps are made for the passport's worn
+    // pages, and look dull on the dark page.
+    img.src = '/assets/passport/web/stamp-' + st.stamp + '-clean.webp';
     img.addEventListener('error', function () { el.style.display = 'none'; });
     el.appendChild(img);
     box.appendChild(el);

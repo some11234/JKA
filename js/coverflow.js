@@ -6,7 +6,9 @@
      aspect:       '1/1' | '2/3'
      coverHeight:  px (desktop)
      coverHeightSm:px (≤820px)
-     autoMs:       ms between autoplay steps
+     autoMs:       ms between autoplay steps, on average
+     autoJitter:   how far each step may stray from autoMs (0.15 = ±15%), so
+                   two cover flows on one page never fall into step
      resumeMs:     ms of quiet before autoplay resumes after interaction
      label:        accessible name
    })
@@ -25,6 +27,7 @@ function createCoverflow(root, options) {
 
   var aspect = opts.aspect === '2/3' ? '2/3' : '1/1';
   var autoMs = opts.autoMs || 4000;
+  var autoJitter = opts.autoJitter || 0;
   var resumeMs = opts.resumeMs || 6000;
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -172,8 +175,15 @@ function createCoverflow(root, options) {
     go(index + 1);
   }
 
+  // Each step waits a slightly different time, so the rhythm never settles
+  // into a metronome beat.
+  function schedule() {
+    var wait = autoMs * (1 + (Math.random() * 2 - 1) * autoJitter);
+    tickTimer = setTimeout(function () { tick(); schedule(); }, wait);
+  }
+
   if (!reduced) {
-    tickTimer = setInterval(tick, autoMs);
+    schedule();
     root.addEventListener('pointerenter', function () { hovered = true; });
     root.addEventListener('pointerleave', function () { hovered = false; });
     root.addEventListener('focusin', function () { focused = true; });
@@ -265,7 +275,7 @@ function createCoverflow(root, options) {
     goTo: function (i) { go(i, true); },
     refresh: refresh,
     destroy: function () {
-      clearInterval(tickTimer);
+      clearTimeout(tickTimer);
       clearTimeout(resumeTimer);
       clearTimeout(metaTimer);
       window.removeEventListener('resize', refresh);

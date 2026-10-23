@@ -2,11 +2,13 @@
    passport.js — /passport/: a passport you can open and leaf through.
 
    A closed US passport, built in CSS 3D: two cover boards and a page block
-   with real edges. Tap it (or drag the cover sideways) and it swings open on
-   its spine, onto the data page glued inside the front cover and, facing
-   it, the countries Joe has been to, stamped on two globes. Turn the page
-   for the visa pages; turn past the last one and the back cover closes and
-   the book turns over, ready again.
+   with real edges. It opens itself on arrival: it swings open on its spine
+   and turns straight on past the front spread — the data page glued inside
+   the front cover and, facing it, the countries Joe has been to, stamped on
+   two globes — to the first visa pages, where the stamps are. Turn back for
+   the front spread and the cover (tap the closed book, or drag its cover
+   sideways, to open it again); turn past the last visa page and the back
+   cover closes and the book turns over, ready again.
 
    Everything is driven by ONE number, `pos`, moving along a path:
 
@@ -60,6 +62,10 @@
     PAGE: { ms: 950 },                                               // k → k+1
     CLOSE_BACK: { ms: 2600, closeEnd: 0.46, flipStart: 0.4 },         // last → closed
     RIFFLE: 6,               // speed-up when riffling back to the cover (Esc)
+    // On arrival: a beat on the closed cover (longer, up to `wait`, if the
+    // pages it's about to show aren't in yet), then the same two legs as
+    // ever, quicker — open, and turn on past the front spread.
+    INTRO: { beat: 300, wait: 900, open: 650, page: 500 },
     OPEN_ANGLE: 178,         // degrees; an open cover never lies dead flat
 
     // Pose, in degrees. Closed shows off the page block and fore-edge; open is
@@ -84,9 +90,6 @@
 
     TILT: { x: 6, y: 8 },    // pointer parallax at the stage's edge, degrees
     FLOAT: { x: 1.1, y: 1.5, lift: 0.008 },
-    PEEK_AFTER: 1800,        // ms after it appears: the cover lifts a little, once
-    PEEK_ANGLE: 13,
-    PEEK_MS: 1150,
     DRAG_SPAN: 1.25,         // a full flip takes a pull this many cover-widths long
     DRAG_OPEN_AT: 0.14,      // let go past this much progress and it opens
     TAP_SLOP: 12,            // px a tap may drift and still count as a tap
@@ -102,6 +105,7 @@
   }, 0) / 2));
   var LEAVES = SPREADS + 1;   // leaf 0: countries visited / visa 1
   var END = SPREADS + 2;      // "closed from the back"
+  var FIRST = SPREADS ? 2 : 1; // where it comes to rest on arrival: the first visa spread, if any
 
   var $ = function (sel) { return root.querySelector(sel); };
   var stage = $('[data-pp-stage]');
@@ -148,11 +152,7 @@
   function lerp(a, b, t) { return a + (b - a) * t; }
   function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
   function easeSine(t) { return -(Math.cos(Math.PI * t) - 1) / 2; }
-  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
-  function easeIn(t) { return t * t * t; }
   function span(f, a, b) { return clamp((f - a) / (b - a), 0, 1); }
-  // Inverse of ease() — used to start the open exactly where the peek is.
-  function easeInv(y) { return y < 0.5 ? Math.cbrt(y / 4) : 1 - Math.cbrt(2 - 2 * y) / 2; }
 
   // The same rotations CSS applies (y points down, z toward the viewer).
   function rotX(v, a) { var c = Math.cos(a), s = Math.sin(a); return [v[0], v[1] * c - v[2] * s, v[1] * s + v[2] * c]; }
@@ -568,9 +568,11 @@
     });
   }
 
-  // The first time the book opens, the flags are stamped in (see render()).
-  // Once they're down, the animation comes off: the sheet moves between
-  // faces as leaves turn, and moving it would play the stamping again.
+  // The first time the book opens onto this page, the flags are stamped in
+  // (see render()) — not as it flies past on arrival, but when it's first
+  // turned back to. Once they're down, the animation comes off: the sheet
+  // moves between faces as leaves turn, and moving it would play the
+  // stamping again.
   var stampPending = false;
   function stampIn() {
     stampPending = false;
@@ -595,7 +597,8 @@
       sheets.visited.classList.add('is-unstamped');
       stampPending = true;
     }
-    drawGlobes().catch(function (err) {
+    // Settles once the globes are drawn (or have failed to be).
+    return drawGlobes().catch(function (err) {
       // No globes is a plainer page, not a broken book.
       if (window.console) console.error(err);
       stampIn();
@@ -837,8 +840,10 @@
 
   function lerpPose(a, b, t) { return { tx: lerp(a.tx, b.tx, t), ty: lerp(a.ty, b.ty, t) }; }
 
-  // Leg durations, for the speed pos moves at.
-  function legMs(leg, forward) {
+  // Leg durations, for the speed pos moves at. On the way in, the legs up to
+  // the first visa spread go at the arrival's pace.
+  function legMs(leg, forward, intro) {
+    if (intro && leg < FIRST) return leg <= 0 ? CONFIG.INTRO.open : CONFIG.INTRO.page;
     if (leg <= 0) return forward ? CONFIG.OPEN.ms : CONFIG.OPEN.back;
     if (leg >= END - 1) return CONFIG.CLOSE_BACK.ms;
     return CONFIG.PAGE.ms;
@@ -974,22 +979,13 @@
     pos: 0, target: 0, vel: 0,
     dragging: false, rewind: false,
     tiltX: 0, tiltY: 0, aimX: 0, aimY: 0,
-    peekStart: -1
+    // On the way in: about to open itself, or doing it, until it first
+    // comes to rest (see openItself()).
+    intro: motionOK()
   };
-  var interacted = false;
   var rects = {};
   var scaleNow = 1;
   var edgesHidden = false, edgeAlpha = 1, spineOn = null;
-
-  function peekAngle(now) {
-    if (state.peekStart < 0) return 0;
-    var t = (now - state.peekStart) / CONFIG.PEEK_MS;
-    if (t >= 1 || t < 0) return 0;
-    var A = CONFIG.PEEK_ANGLE;
-    if (t < 0.34) return A * easeOut(t / 0.34);
-    if (t < 0.76) return A * (1 - easeIn((t - 0.34) / 0.42));
-    return A * 0.1 * Math.sin(Math.PI * (t - 0.76) / 0.24);
-  }
 
   function world(n, group, S) {
     if (group === 'flap') n = rotY(n, -S.flap * DEG);
@@ -1003,10 +999,9 @@
     if (!G.U) return;
     var p = state.pos;
     var S = evaluate(p, state.rewind);
-    // Half-way open, the countries page is in view: stamp the flags in.
-    if (stampPending && p >= 0.5) stampIn();
-    var peek = p < 1 ? peekAngle(now) * S.closed : 0;
-    S.flap += peek;
+    // Half-way open, or half-way turned back to, on its way to the top, the
+    // countries page is in view: stamp the flags in.
+    if (stampPending && state.target === 1 && p >= 0.5 && p < 1.5) stampIn();
 
     // Pose: blend, then the idle drift while closed, then pointer parallax.
     var pose = lerpPose(S.pose[0], S.pose[1], S.pose[2]);
@@ -1070,7 +1065,7 @@
     show(lTop, !!lTop._sheet);
 
     // The spine only matters while the book is shut (and while it turns over).
-    var wantSpine = (p === 0 && peek < 1) || S.back > 178;
+    var wantSpine = p === 0 || S.back > 178;
     if (wantSpine !== spineOn) { spineOn = wantSpine; show(spine, wantSpine); }
     if (wantSpine) {
       var z0 = -G.T / 2, z1 = G.T / 2;
@@ -1114,8 +1109,8 @@
     lCast.style.transform = 'scaleX(' + Math.max(0.001, Math.pow(overL, 2)).toFixed(4) + ')';
 
     // Foil glint and leather sheen follow how squarely the cover faces the
-    // light; at rest the band waits just right of the foil, so the peek and
-    // the opening sweep it across the eagle and the lettering.
+    // light; at rest the band waits just right of the foil, so the opening
+    // sweeps it across the eagle and the lettering.
     var nc = world([0, 0, 1], 'flap', S);
     var g = (nc[0] + 0.33) * 4.2 + (nc[1] + 0.20) * 2.6 + 0.72;
     sweep.style.transform = 'translate3d(' + (clamp(g, -1.5, 1.5) * 33.333).toFixed(2) + '%,0,0)';
@@ -1184,14 +1179,14 @@
       broken(err);
       return;
     }
-    if (busy(now)) raf = requestAnimationFrame(tick);
+    if (busy()) raf = requestAnimationFrame(tick);
   }
 
   function step(dt) {
     if (!state.dragging && state.pos !== state.target) {
       var fwd = state.target > state.pos;
       var leg = fwd ? Math.floor(state.pos) : Math.ceil(state.pos) - 1;
-      var speed = (1000 / legMs(leg, fwd)) * (state.rewind ? CONFIG.RIFFLE : 1);
+      var speed = (1000 / legMs(leg, fwd, state.intro)) * (state.rewind ? CONFIG.RIFFLE : 1);
       var want = fwd ? speed : -speed;
       // Velocity eases toward the wanted speed, so a reversal swings round
       // instead of bouncing off an invisible wall...
@@ -1215,16 +1210,16 @@
     state.pos = p;
     state.target = p;
     if (p === 0) state.rewind = false;
+    state.intro = false;
     preloadAround(p);
     settled(true);
     labels();
     announce();
   }
 
-  function busy(now) {
+  function busy() {
     if (state.dragging || state.pos !== state.target) return true;
     if (Math.abs(state.tiltX - state.aimX) > 0.01 || Math.abs(state.tiltY - state.aimY) > 0.01) return true;
-    if (state.peekStart >= 0 && now - state.peekStart < CONFIG.PEEK_MS) return true;
     return motionOK() && state.pos === 0; // the idle drift
   }
 
@@ -1241,7 +1236,8 @@
   function labels() {
     var p = state.target;
     root.classList.toggle('is-open', p >= 1 && p < END);
-    count.textContent = labelFor(p);
+    // About to open itself, it already says where it's going.
+    count.textContent = labelFor(p === 0 && state.intro ? FIRST : p);
     navPrev.disabled = !(p >= 1 && p < END);
     navNext.disabled = !(p >= 1 && p < END);
     navPrev.setAttribute('aria-label', p === 1 ? 'Close the passport' : 'Previous pages');
@@ -1271,14 +1267,11 @@
     if (state.rewind && !opts.force) return;     // a riffle back runs to the end
     target = clamp(target, 0, END);
     if (target === state.target && !opts.force) return;
-    interacted = true;
     clearDrag();
-    // Opening during the peek: start from where the cover already is.
-    if (state.pos === 0 && target > 0 && state.peekStart >= 0) {
-      var pa = peekAngle(performance.now());
-      if (pa > 0.01) state.pos = CONFIG.OPEN.flipEnd * easeInv(pa / CONFIG.OPEN_ANGLE);
-    }
-    state.peekStart = -1;
+    // Steered on the way in, the book keeps the arrival's pace until it
+    // comes to rest. Opened by hand before it could open itself, or riffled
+    // back, it's an ordinary book from here on.
+    if (!opts.intro && ((state.pos === 0 && state.target === 0) || opts.rewind)) state.intro = false;
     state.target = target;
     state.rewind = !!opts.rewind;
     labels();
@@ -1341,14 +1334,11 @@
       drag.on = true;
       drag.x = e.clientX;
       drag.span = G.W * scaleNow * CONFIG.DRAG_SPAN;
-      // Start from where the cover is — mid-peek included.
-      var pa = peekAngle(performance.now());
-      if (state.pos === 0 && pa > 0.01) state.pos = CONFIG.OPEN.flipEnd * easeInv(pa / CONFIG.OPEN_ANGLE);
-      drag.p0 = state.pos;
-      state.peekStart = -1;
+      drag.p0 = state.pos;      // from where the cover is
       state.dragging = true;
       state.vel = 0;
-      interacted = true;
+      // Opened by hand before it could open itself: it won't now.
+      if (state.intro) { state.intro = false; labels(); }
       try { hit.setPointerCapture(e.pointerId); } catch (err) { /* already released */ }
       root.classList.add('is-dragging');
       settled(false);
@@ -1440,7 +1430,6 @@
   function onMotionPref() {
     if (!motionOK()) {
       state.aimX = state.aimY = state.tiltX = state.tiltY = 0;
-      state.peekStart = -1;
       clearDrag();
       if (state.pos !== state.target) arrive(state.target);
     }
@@ -1463,29 +1452,52 @@
   });
 
   // ------------------------------------------------------------- startup ---
-  var shown = false;
+  // The pages the arrival shows — the front spread, and the first visa
+  // spread with its stamps — fetched at once, alongside the cover, and
+  // decoded before the book opens, so none of them pops in mid-turn.
+  function arrivalReady(globes) {
+    var imgs = Array.prototype.slice.call(bioPage.querySelectorAll('img'));
+    (SPREADS ? ['visited', leafBackId(0), leafFrontId(1)] : ['visited']).forEach(function (id) {
+      imgs = imgs.concat(sheetImgs(id));
+    });
+    return Promise.all(imgs.map(function (img) {
+      loadImg(img);
+      if (img.decode) return img.decode().catch(function () {});
+      return img.complete ? null : new Promise(function (done) {
+        img.addEventListener('load', done);
+        img.addEventListener('error', done);
+      });
+    }).concat(globes));
+  }
+
+  function after(ms) { return new Promise(function (done) { setTimeout(done, ms); }); }
+
+  // The book opens itself, unless the visitor has opened it first.
+  function openItself() {
+    if (!state.intro || state.target !== 0 || state.dragging) return;
+    go(FIRST, { intro: true });
+    // Under way from the first frame: the swing's own ease is start enough.
+    if (motionOK()) state.vel = 1000 / CONFIG.INTRO.open;
+  }
+
+  var shown = false, arrival = null;
   function reveal() {
     if (shown) return;
     shown = true;
     root.classList.add('is-ready');
-    settled(true);
+    settled(!state.intro);
     wake();
-    // Now the cover is up, fetch the inside: the front spread first, then
-    // the visa pages nearest the front, then the rest while idle.
-    sheetImgs('visited').forEach(loadImg);
-    Array.prototype.forEach.call(bioPage.querySelectorAll('img'), loadImg);
-    preloadAround(1);
+    // Now the cover is up, fetch the rest of the inside: the visa pages
+    // nearest where the book is going, then everything else while idle.
+    preloadAround(FIRST);
     Object.keys(sheets).forEach(function (id) {
       sheetImgs(id).forEach(function (im) { if (!im.getAttribute('src')) queue.push(im); });
     });
     setTimeout(drainQueue, 1500);
-    if (motionOK()) {
-      setTimeout(function () {
-        if (!interacted && state.target === 0 && state.pos === 0 && motionOK()) {
-          state.peekStart = performance.now();
-          wake();
-        }
-      }, CONFIG.PEEK_AFTER);
+    // A beat on the closed cover, and the pages in (or no longer worth
+    // waiting for), and it opens itself.
+    if (state.intro) {
+      Promise.all([after(CONFIG.INTRO.beat), Promise.race([arrival, after(CONFIG.INTRO.wait)])]).then(openItself);
     }
   }
 
@@ -1498,7 +1510,7 @@
   }
 
   try {
-    buildFront();
+    var globes = buildFront();
     buildVisaSheets();
     register(coverFace, [0, 0, 1], 'flap');
     register(insideFace, [0, 0, -1], 'flap');
@@ -1511,9 +1523,16 @@
     register(spine, [-1, 0, 0], 'book');
     labels();
     if (!layout()) throw new Error('passport: the stage has no size');
+    arrival = arrivalReady(globes);
+    // Under reduced motion there's no swing and no turn: the book is simply
+    // open on the first visa spread when it appears.
+    if (!motionOK()) arrive(FIRST);
     render(performance.now());
 
-    if (coverImg.complete && coverImg.naturalWidth) reveal();
+    // It appears once what's on top is in: the cover, or the spread it's
+    // already open on.
+    if (!motionOK()) arrival.then(reveal);
+    else if (coverImg.complete && coverImg.naturalWidth) reveal();
     else if (coverImg.decode) coverImg.decode().then(reveal, reveal);
     else coverImg.addEventListener('load', reveal);
     setTimeout(reveal, 2500);

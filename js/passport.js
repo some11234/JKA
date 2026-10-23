@@ -62,10 +62,11 @@
     PAGE: { ms: 950 },                                               // k → k+1
     CLOSE_BACK: { ms: 2600, closeEnd: 0.46, flipStart: 0.4 },         // last → closed
     RIFFLE: 6,               // speed-up when riffling back to the cover (Esc)
-    // On arrival: a beat on the closed cover (longer, up to `wait`, if the
-    // pages it's about to show aren't in yet), then the same two legs as
-    // ever, quicker — open, and turn on past the front spread.
-    INTRO: { beat: 300, wait: 900, open: 650, page: 500 },
+    // On arrival: a beat on the closed cover — longer if the pages it's
+    // about to show aren't all in yet, but if they still aren't after
+    // `wait` it stays shut, for a tap — then the same two legs as ever: a
+    // gentle open, a rest on the front spread (`hold`), a quick turn.
+    INTRO: { beat: 600, wait: 8000, open: 1450, hold: 150, page: 700 },
     OPEN_ANGLE: 178,         // degrees; an open cover never lies dead flat
 
     // Pose, in degrees. Closed shows off the page block and fore-edge; open is
@@ -770,8 +771,9 @@
   }
 
   // ---------------------------------------------------------------- path ---
-  // Everything the book looks like at position p. Pure: no DOM.
-  function evaluate(p, rewind) {
+  // Everything the book looks like at position p. Pure: no DOM. `soft`
+  // eases the cover open more gently, as it opens itself on arrival.
+  function evaluate(p, rewind, soft) {
     var P = CONFIG.POSE, f, a, b;
     var S = {
       flap: 0, leaf: -1, leafA: 0, nL: 0, back: 0, flip: 0,
@@ -781,9 +783,9 @@
     if (p <= 0 || p >= END) return S;
 
     if (p < 1) {                                   // opening (or closing) the cover
-      var O = CONFIG.OPEN;
-      a = ease(span(p, 0, O.flipEnd));
-      b = ease(span(p, O.settleStart, 1));
+      var O = CONFIG.OPEN, e = soft ? easeSine : ease;
+      a = e(span(p, 0, O.flipEnd));
+      b = e(span(p, O.settleStart, 1));
       S.flap = CONFIG.OPEN_ANGLE * a;
       S.pose = [lerpPose(P.closed, P.mid, a), P.read, b];
       S.fill = ['closed', 'read', b];
@@ -980,8 +982,9 @@
     dragging: false, rewind: false,
     tiltX: 0, tiltY: 0, aimX: 0, aimY: 0,
     // On the way in: about to open itself, or doing it, until it first
-    // comes to rest (see openItself()).
-    intro: motionOK()
+    // comes to rest (see openItself()); `hold` is what's left of its rest
+    // on the front spread.
+    intro: motionOK(), hold: 0
   };
   var rects = {};
   var scaleNow = 1;
@@ -998,7 +1001,7 @@
   function render(now) {
     if (!G.U) return;
     var p = state.pos;
-    var S = evaluate(p, state.rewind);
+    var S = evaluate(p, state.rewind, state.intro);
     // Half-way open, or half-way turned back to, on its way to the top, the
     // countries page is in view: stamp the flags in.
     if (stampPending && state.target === 1 && p >= 0.5 && p < 1.5) stampIn();
@@ -1183,10 +1186,17 @@
   }
 
   function step(dt) {
-    if (!state.dragging && state.pos !== state.target) {
+    if (state.hold > 0 && state.pos >= 1) {
+      // On the way in, the book rests a moment on the front spread before
+      // it turns on: a hair past it, so the leaf it's about to turn is
+      // already up, and the pages coming into view are laid out and
+      // painted while nothing moves.
+      state.pos = Math.max(state.pos, 1 + 1e-4);
+      state.hold -= dt;
+    } else if (!state.dragging && state.pos !== state.target) {
       var fwd = state.target > state.pos;
       var leg = fwd ? Math.floor(state.pos) : Math.ceil(state.pos) - 1;
-      var speed = (1000 / legMs(leg, fwd, state.intro)) * (state.rewind ? CONFIG.RIFFLE : 1);
+      var speed = (1000 / legMs(leg, fwd, state.intro && !state.rewind)) * (state.rewind ? CONFIG.RIFFLE : 1);
       var want = fwd ? speed : -speed;
       // Velocity eases toward the wanted speed, so a reversal swings round
       // instead of bouncing off an invisible wall...
@@ -1211,6 +1221,7 @@
     state.target = p;
     if (p === 0) state.rewind = false;
     state.intro = false;
+    state.hold = 0;
     preloadAround(p);
     settled(true);
     labels();
@@ -1236,8 +1247,7 @@
   function labels() {
     var p = state.target;
     root.classList.toggle('is-open', p >= 1 && p < END);
-    // About to open itself, it already says where it's going.
-    count.textContent = labelFor(p === 0 && state.intro ? FIRST : p);
+    count.textContent = labelFor(p);
     navPrev.disabled = !(p >= 1 && p < END);
     navNext.disabled = !(p >= 1 && p < END);
     navPrev.setAttribute('aria-label', p === 1 ? 'Close the passport' : 'Previous pages');
@@ -1268,10 +1278,14 @@
     target = clamp(target, 0, END);
     if (target === state.target && !opts.force) return;
     clearDrag();
-    // Steered on the way in, the book keeps the arrival's pace until it
-    // comes to rest. Opened by hand before it could open itself, or riffled
-    // back, it's an ordinary book from here on.
-    if (!opts.intro && ((state.pos === 0 && state.target === 0) || opts.rewind)) state.intro = false;
+    // Steered on the way in, the book keeps the arrival's pace (and its
+    // gentler open) until it comes to rest, though it no longer stops on
+    // the front spread on its own. Opened by hand before it could open
+    // itself, it's an ordinary book from here on.
+    if (!opts.intro) {
+      state.hold = 0;
+      if (state.pos === 0 && state.target === 0) state.intro = false;
+    }
     state.target = target;
     state.rewind = !!opts.rewind;
     labels();
@@ -1289,7 +1303,10 @@
       }, 170);
       return;
     }
-    settled(state.pos === target);
+    // Already where it's asked to be (at the end of a leg, on its way on):
+    // it has arrived.
+    if (state.pos === target) { arrive(target); return; }
+    settled(false);
     wake();
   }
 
@@ -1338,7 +1355,7 @@
       state.dragging = true;
       state.vel = 0;
       // Opened by hand before it could open itself: it won't now.
-      if (state.intro) { state.intro = false; labels(); }
+      if (state.pos === 0) state.intro = false;
       try { hit.setPointerCapture(e.pointerId); } catch (err) { /* already released */ }
       root.classList.add('is-dragging');
       settled(false);
@@ -1452,22 +1469,42 @@
   });
 
   // ------------------------------------------------------------- startup ---
-  // The pages the arrival shows — the front spread, and the first visa
-  // spread with its stamps — fetched at once, alongside the cover, and
-  // decoded before the book opens, so none of them pops in mid-turn.
+  // Everything the arrival shows, in and ready to draw before the book
+  // moves, so no page is ever seen half there: the book as it stands (the
+  // cover, the data page inside it) and the sheets it turns past to the
+  // first visa spread — their images, the grain, print wear and ink the
+  // CSS lays over them, every face their type is set in, and the globes.
+  // It's asked for here, behind the cover and this script, not by preloads
+  // in the page's head: on a slow line those held up the script, and with
+  // it the cover, by seconds, for no earlier open.
   function arrivalReady(globes) {
-    var imgs = Array.prototype.slice.call(bioPage.querySelectorAll('img'));
-    (SPREADS ? ['visited', leafBackId(0), leafFrontId(1)] : ['visited']).forEach(function (id) {
-      imgs = imgs.concat(sheetImgs(id));
+    var ids = SPREADS ? ['visited', leafBackId(0), leafFrontId(1)] : ['visited'];
+    var imgs = [], urls = {}, fonts = {};
+    [book].concat(ids.map(function (id) { return sheets[id]; })).forEach(function (top) {
+      [top].concat(Array.prototype.slice.call(top.querySelectorAll('*'))).forEach(function (e) {
+        if (e.ownerSVGElement) return;          // inside a drawing: nothing to fetch
+        if (e.tagName === 'IMG') imgs.push(e);
+        var cs = getComputedStyle(e);
+        [cs.backgroundImage, cs.maskImage || cs.webkitMaskImage].forEach(function (v) {
+          (String(v || '').match(/url\(["']?[^"')]+/g) || []).forEach(function (u) { urls[u.replace(/^url\(["']?/, '')] = 1; });
+        });
+        fonts[cs.fontStyle + ' ' + cs.fontWeight + ' 16px ' + cs.fontFamily] = 1;
+      });
     });
-    return Promise.all(imgs.map(function (img) {
+    // A CSS image is in once the same URL is, loaded by hand.
+    Object.keys(urls).forEach(function (u) { var im = new Image(); im.src = u; imgs.push(im); });
+    var waits = imgs.map(function (img) {
       loadImg(img);
       if (img.decode) return img.decode().catch(function () {});
       return img.complete ? null : new Promise(function (done) {
         img.addEventListener('load', done);
         img.addEventListener('error', done);
       });
-    }).concat(globes));
+    });
+    if (document.fonts && document.fonts.load) {
+      Object.keys(fonts).forEach(function (f) { waits.push(document.fonts.load(f).catch(function () {})); });
+    }
+    return Promise.all(waits.concat(globes));
   }
 
   function after(ms) { return new Promise(function (done) { setTimeout(done, ms); }); }
@@ -1476,6 +1513,7 @@
   function openItself() {
     if (!state.intro || state.target !== 0 || state.dragging) return;
     go(FIRST, { intro: true });
+    state.hold = CONFIG.INTRO.hold;
     // Under way from the first frame: the swing's own ease is start enough.
     if (motionOK()) state.vel = 1000 / CONFIG.INTRO.open;
   }
@@ -1485,7 +1523,7 @@
     if (shown) return;
     shown = true;
     root.classList.add('is-ready');
-    settled(!state.intro);
+    settled(true);
     wake();
     // Now the cover is up, fetch the rest of the inside: the visa pages
     // nearest where the book is going, then everything else while idle.
@@ -1494,10 +1532,13 @@
       sheetImgs(id).forEach(function (im) { if (!im.getAttribute('src')) queue.push(im); });
     });
     setTimeout(drainQueue, 1500);
-    // A beat on the closed cover, and the pages in (or no longer worth
-    // waiting for), and it opens itself.
+    // A beat on the closed cover, and everything in, and it opens itself.
+    // If the pages still aren't in by `wait`, it stays shut, for a tap.
     if (state.intro) {
-      Promise.all([after(CONFIG.INTRO.beat), Promise.race([arrival, after(CONFIG.INTRO.wait)])]).then(openItself);
+      Promise.all([after(CONFIG.INTRO.beat), arrival]).then(openItself);
+      after(CONFIG.INTRO.wait).then(function () {
+        if (state.target === 0 && state.pos === 0) state.intro = false;
+      });
     }
   }
 

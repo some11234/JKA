@@ -58,6 +58,7 @@ window.PASSPORT_STAMPS = [
   { stamp: 'portugal-2026', name: 'Portugal', year: 2026, page: 3, at: [27, 29], tilt: -3.7 },
   { stamp: 'malta-2026', name: 'Malta', year: 2026, page: 3, at: [69, 25], tilt: 2.8 },
   { stamp: 'czech-republic-2026', name: 'Czech Republic', year: 2026, page: 3, at: [29, 70], tilt: -2.7 },
+  { stamp: 'north-macedonia-2026', name: 'North Macedonia', year: 2026, page: 3, at: [70, 69], tilt: 2.2 },
 ];
 
 /* --------------------------------------------------------------------------
@@ -92,4 +93,5 @@ window.PASSPORT_COUNTRIES = [
   { code: 'PT', name: 'Portugal' },
   { code: 'MT', name: 'Malta' },
   { code: 'CZ', name: 'the Czech Republic' },
+  { code: 'MK', name: 'North Macedonia' },
 ];

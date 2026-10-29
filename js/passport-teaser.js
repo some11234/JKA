@@ -38,6 +38,22 @@
   var cols = Math.ceil(n / 2);
   function across(c) { return cols > 1 ? Math.pow(c / (cols - 0.5), 1.15) : 0; }
 
+  // Each stamp waits under the cover until its image is in and decoded, so
+  // on a slow line none is ever seen blank or half drawn; see slideOut().
+  var tiles = [], left = n, inAt = 0, held = false, settleAt = 0;
+  var SMALL = 320;   // px: the phone copies' size (see below)
+  function whole(t) {
+    if (t.whole) return;
+    t.whole = true;
+    left--;
+    // Coming out late, it keeps its place in the order if it still can.
+    var d = Math.max(0, slot(t.i) - (Date.now() - inAt));
+    if (inAt) t.el.style.setProperty('--delay', d + 'ms');
+    t.el.classList.remove('is-waiting');
+    if (inAt) settleLater(d + 1100);
+    else if (held && !left) dealOut();
+  }
+
   STAMPS.forEach(function (st, i) {
     var h = hash(st.stamp || st.name || String(i));
     var el = document.createElement('span');
@@ -73,11 +89,54 @@
     img.draggable = false;
     // The unaged set: the aged stamps are made for the passport's worn
     // pages, and look dull on the dark page.
-    img.src = '/assets/passport/web/stamp-' + st.stamp + '-clean.webp';
-    img.addEventListener('error', function () { el.style.display = 'none'; });
+    var t = { el: el, img: img, i: i, full: '/assets/passport/web/stamp-' + st.stamp + '-clean.webp' };
+    t.small = t.full.replace(/\.webp$/, '-' + SMALL + '.webp');
+    img.addEventListener('load', function () {
+      var shown = function () { whole(t); };
+      if (img.decode) img.decode().then(shown, shown);
+      else shown();
+    });
+    img.addEventListener('error', function () {
+      // No phone copy (a stamp newer than the build): the full one, then nothing.
+      if (img.getAttribute('src') === t.small) { img.src = t.full; return; }
+      el.style.display = 'none';
+      whole(t);
+    });
+    el.classList.add('is-waiting');
     el.appendChild(img);
     box.appendChild(el);
+    tiles.push(t);
   });
+
+  // Phones get the 320 px copies (tools/build-passport.py) when that's all
+  // the screen can show of a stamp, at its size here, its hover lift, the
+  // pixel ratio and any pinch zoom; everything else gets the full 420s.
+  // Grow past that (a wider window, a zoom) and the full ones are swapped
+  // in, each once it's decoded, so nothing blinks.
+  var lift = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches ? 1.1 : 1;
+  function sharpEnough() {
+    var zoom = window.visualViewport ? window.visualViewport.scale : 1;
+    var w = tiles.reduce(function (m, t) { return Math.max(m, t.el.offsetWidth); }, 0);
+    return w * (window.devicePixelRatio || 1) * lift * Math.max(1, zoom) <= SMALL;
+  }
+  var small = sharpEnough();
+  tiles.forEach(function (t) { t.img.src = small ? t.small : t.full; });
+  function sharpen() {
+    if (!small || sharpEnough()) return;
+    small = false;
+    tiles.forEach(function (t) {
+      if (t.img.getAttribute('src') !== t.small) return;
+      var full = new Image();
+      full.onload = function () {
+        var swap = function () { t.img.src = t.full; };
+        if (full.decode) full.decode().then(swap, swap);
+        else swap();
+      };
+      full.src = t.full;
+    });
+  }
+  window.addEventListener('resize', sharpen);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', sharpen);
 
   // The caption and the words a screen reader gets in place of the fan.
   var countries = (window.PASSPORT_COUNTRIES || []).length;
@@ -90,14 +149,35 @@
       STAMPS.map(function (st) { return bare(st.name) + ', ' + st.year; }).join('; ') + '.';
   }
 
-  // Out from under the cover, once; then the hover lift takes over.
+  // Out from under the cover, once; then the hover lift takes over. If the
+  // stamps aren't all in when the section comes into view, the fan waits
+  // for them, up to HOLD ms, then deals the ones that are; each of the rest
+  // comes out on its own once it's whole.
+  var HOLD = 2500;
   var settleAfter = 120 + n * 70 + 1100;
-  function slideOut() {
+  // After a wait they come out briskly: the visitor has waited enough.
+  function slot(i) { return held ? i * 40 : 120 + i * 70; }
+  function settleLater(ms) {
+    settleAt = Math.max(settleAt, Date.now() + ms);
+    setTimeout(function () {
+      if (!left && Date.now() >= settleAt - 20) box.classList.add('is-settled');
+    }, settleAt - Date.now());
+  }
+  function dealOut() {
+    if (inAt) return;
+    inAt = Date.now();
+    if (held) tiles.forEach(function (t) { t.el.style.setProperty('--delay', slot(t.i) + 'ms'); });
     box.classList.add('is-in');
-    setTimeout(function () { box.classList.add('is-settled'); }, settleAfter);
+    settleLater(held ? slot(n) + 1100 : settleAfter);
+  }
+  function slideOut() {
+    if (!left) return dealOut();
+    held = true;
+    setTimeout(dealOut, HOLD);
   }
   var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (still || !('IntersectionObserver' in window)) {
+    inAt = Date.now();
     box.classList.add('is-in', 'is-settled');
     return;
   }

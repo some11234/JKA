@@ -58,8 +58,9 @@
     FACETS_BOARD: 3,         // ... of a cover board
 
     // The legs of the path. ms is the time for the whole leg at normal speed.
+    // A page turn waits for the pages it shows, PAGE.wait ms at most (held()).
     OPEN: { ms: 2700, back: 2100, flipEnd: 0.62, settleStart: 0.34 }, // 0 → 1
-    PAGE: { ms: 950 },                                               // k → k+1
+    PAGE: { ms: 950, wait: 3000 },                                   // k → k+1
     CLOSE_BACK: { ms: 2600, closeEnd: 0.46, flipStart: 0.4 },         // last → closed
     RIFFLE: 6,               // speed-up when riffling back to the cover (Esc)
     // On arrival: a beat on the closed cover — longer if the pages it's
@@ -701,6 +702,28 @@
     var nL = clamp(Math.round(p) - 1, 0, LEAVES - 1);
     for (var j = Math.max(0, nL - 1); j <= Math.min(LEAVES - 1, nL + 2); j++) ids.push(leafFrontId(j), leafBackId(j));
     ids.forEach(function (id) { sheetImgs(id).forEach(loadImg); });
+  }
+  // Whether the pages a turn of leaf m shows, either way (its two sides and
+  // the pages under it on both sides), are in and on show. If not, they're
+  // asked for and waited on, PAGE.wait at most, and the book woken when
+  // they're in: turned to before they've arrived on a slow line, they'd be
+  // bare paper until they faded in, the peel's copies of them too.
+  var turnIn = {};
+  function turnReady(m) {
+    if (turnIn[m] === true) return true;
+    if (turnIn[m]) return false;                    // on their way
+    var ids = [leafFrontId(m), leafBackId(m)];
+    if (m + 1 < LEAVES) ids.push(leafFrontId(m + 1));
+    if (m >= 1) ids.push(leafBackId(m - 1));
+    var imgs = [].concat.apply([], ids.map(sheetImgs));
+    imgs.forEach(loadImg);
+    if (imgs.every(function (img) { return img.complete && img.style.visibility !== 'hidden'; })) return (turnIn[m] = true);
+    // loadImg asked for each decode first, so each is on show by the time this one settles.
+    turnIn[m] = Promise.race([
+      Promise.all(imgs.map(function (img) { return img.decode ? img.decode().catch(function () {}) : null; })),
+      after(CONFIG.PAGE.wait)
+    ]).then(function () { turnIn[m] = true; wake(); });
+    return false;
   }
   function drainQueue() {
     // Then everything else, one at a time, while idle.
@@ -1644,7 +1667,7 @@
       // painted while nothing moves.
       state.pos = Math.max(state.pos, 1 + 1e-4);
       state.hold -= dt;
-    } else if (!state.dragging && state.pos !== state.target) {
+    } else if (!state.dragging && state.pos !== state.target && !held()) {
       var fwd = state.target > state.pos;
       var leg = fwd ? Math.floor(state.pos) : Math.ceil(state.pos) - 1;
       var speed = (1000 / legMs(leg, fwd, state.intro && !state.rewind)) * (state.rewind ? CONFIG.RIFFLE : 1);
@@ -1679,8 +1702,16 @@
     announce();
   }
 
+  // A leaf about to lift stays down until the pages its turn shows are in
+  // (turnReady()). Not once it's under way, and not for a riffle.
+  function held() {
+    if (state.pos % 1 || state.rewind) return false;
+    var leg = state.target > state.pos ? state.pos : state.pos - 1;
+    return leg >= 1 && leg < END - 1 && !turnReady(leg - 1);
+  }
+
   function busy() {
-    if (state.dragging || state.pos !== state.target) return true;
+    if (state.dragging || (state.pos !== state.target && !held())) return true;
     if (Math.abs(state.tiltX - state.aimX) > 0.01 || Math.abs(state.tiltY - state.aimY) > 0.01) return true;
     return motionOK() && state.pos === 0; // the idle drift
   }

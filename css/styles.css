@@ -791,6 +791,55 @@ a { color: inherit; }
 .ppt__book:hover .ppt__sheen { background-position: 45% 0; }
 .ppt__book:hover .ppt__foil { background-position: 30% 0; }
 
+/* Worn as gently as the passport's own cover (.pp-wear in css/passport.css,
+   which says how; change one, change both): the navy a shade faded, the
+   leather faintly mottled, its corners and edges rubbed paler, and the foil
+   a touch duller, most toward the foot on the fore-edge side. */
+.ppt__wear {
+  --scuff: 92, 104, 140;
+  --tarnish: 48, 34, 16;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: rgba(var(--scuff), 0.04);
+}
+.ppt__wear::before,
+.ppt__wear::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.ppt__wear::before {
+  background:
+    radial-gradient(ellipse 9% 5.9% at 100% 0, rgba(var(--scuff), 0.9), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 11% 7.3% at 100% 100%, rgba(var(--scuff), 1), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 5% 3.3% at 0 0, rgba(var(--scuff), 0.7), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 5% 3.3% at 0 100%, rgba(var(--scuff), 0.8), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 3.5% 18% at 100% 60%, rgba(var(--scuff), 0.5), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 22% 2.2% at 36% 100%, rgba(var(--scuff), 0.45), rgba(var(--scuff), 0)),
+    linear-gradient(to left, rgba(var(--scuff), 0.38), rgba(var(--scuff), 0) 1.8%),
+    linear-gradient(to bottom, rgba(var(--scuff), 0.3), rgba(var(--scuff), 0) 1.2%),
+    linear-gradient(to top, rgba(var(--scuff), 0.42), rgba(var(--scuff), 0) 1.5%),
+    linear-gradient(rgba(var(--scuff), 0.06), rgba(var(--scuff), 0.06));
+  -webkit-mask: url('/assets/passport/web/print-wear.webp') 0 0 / auto 12% repeat;
+  mask: url('/assets/passport/web/print-wear.webp') 0 0 / auto 12% repeat;
+}
+.ppt__wear::after {
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(var(--tarnish), 0.35), rgba(var(--tarnish), 0)),
+    linear-gradient(rgba(var(--tarnish), 0.2), rgba(var(--tarnish), 0.2));
+  -webkit-mask:
+    url('/assets/passport/web/print-wear.webp') 37% 61% / auto 30% repeat,
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  -webkit-mask-composite: source-in;
+  mask:
+    url('/assets/passport/web/print-wear.webp') 37% 61% / auto 30% repeat,
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  mask-composite: intersect;
+}
+
 /* The board's own shape: the hinge groove a passport cover folds along, a
    faint rounded edge, and the light falling off toward the far corner. */
 .ppt__face::after {

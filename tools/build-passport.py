@@ -44,6 +44,13 @@ What it makes, and why each one exists:
                         smaller: the home page's Passport section lays them
                         straight on the dark page, where the aged ones look
                         dull (js/passport-teaser.js).
+  stamp-<slug>-320.webp, stamp-<slug>-clean-320.webp
+                        Both again at 320 px, scaled down from the two above,
+                        for phones: a stamp there is ~105 CSS px on either
+                        page, so 320 is all a 3× screen can show, at about
+                        half the bytes. The pages ask for them only when
+                        that's so, and fall back to the full ones if they're
+                        missing (js/passport.js, js/passport-teaser.js).
 
 The geometry constants are mirrored in js/passport.js (CONFIG.BOOK). Change
 one, change both: the page images are cut to exactly the shape the 3D pages are
@@ -134,6 +141,9 @@ STAMP_PX = 560
 # The home page shows them at up to ~190 CSS px, lifted 1.1× on hover: 420
 # is sharp at 2×.
 CLEAN_STAMP_PX = 420
+# The phone copies of both: on a 440-wide phone at 3× a stamp is ~315 device
+# px on the passport's pages and ~305 on the home page.
+SMALL_STAMP_PX = 320
 
 # How the stamps are aged: only slightly — carried around for a while, not
 # found in an attic. Each is a share of the effect, 0 → none.
@@ -354,9 +364,15 @@ def build_stamps():
         slug = stamp_slug(name)
         clean = stamp.resize((CLEAN_STAMP_PX, CLEAN_STAMP_PX), Image.LANCZOS)
         webp(clean, 'stamp-%s-clean.webp' % slug, quality=90, alpha_quality=90)
+        small = (SMALL_STAMP_PX, SMALL_STAMP_PX)
+        webp(stamp.resize(small, Image.LANCZOS), 'stamp-%s-clean-%d.webp' % (slug, SMALL_STAMP_PX),
+             quality=90, alpha_quality=90)
         stamp = stamp.resize((STAMP_PX, STAMP_PX), Image.LANCZOS)
         stamp = age_stamp(stamp, zlib.crc32(slug.encode()))
         webp(stamp, 'stamp-%s.webp' % slug, quality=90, alpha_quality=90)
+        # Scaled from the aged one, so it's the same stamp, only smaller.
+        webp(stamp.resize(small, Image.LANCZOS), 'stamp-%s-%d.webp' % (slug, SMALL_STAMP_PX),
+             quality=90, alpha_quality=90)
 
 
 # ------------------------------------------------------------- the front --

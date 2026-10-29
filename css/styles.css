@@ -842,8 +842,10 @@ a { color: inherit; }
 }
 
 /* The first time the section comes into view they slide out from under the
-   cover, one after another, and settle at their tilt. */
-.js .ppt__stamps:not(.is-in) .ppt__stamp {
+   cover, one after another, and settle at their tilt. One whose image isn't
+   in and decoded yet waits under the cover until it is. */
+.js .ppt__stamps:not(.is-in) .ppt__stamp,
+.js .ppt__stamp.is-waiting {
   opacity: 0;
   transform: translate(calc(-50% - var(--fx-d, 0%)), -50%) rotate(calc(var(--rot, 0deg) - 14deg)) scale(0.92);
 }
@@ -937,7 +939,8 @@ a { color: inherit; }
     aspect-ratio: 1.55;
   }
   .ppt__stamp { left: var(--x-m); top: var(--y-m); width: 25%; }
-  .js .ppt__stamps:not(.is-in) .ppt__stamp {
+  .js .ppt__stamps:not(.is-in) .ppt__stamp,
+  .js .ppt__stamp.is-waiting {
     transform: translate(-50%, calc(-50% - var(--fy-m, 0%))) rotate(calc(var(--rot, 0deg) - 14deg)) scale(0.92);
   }
   .ppt__foot {
@@ -953,6 +956,8 @@ a { color: inherit; }
   .ppt__sheen,
   .ppt__foil,
   .ppt__stamps .ppt__stamp { transition: none; }
+  /* A late stamp simply appears where it rests. */
+  .js .ppt__stamp.is-waiting { transform: translate(-50%, -50%) rotate(var(--rot, 0deg)); }
 }
 
 /* ---------------------------------------------------------------- about --- */

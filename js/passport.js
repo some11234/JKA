@@ -280,7 +280,12 @@
       img.height = 560;
       img.draggable = false;
       img.setAttribute('data-src', '/assets/passport/web/stamp-' + st.stamp + '.webp');
-      img.addEventListener('error', function () { box.style.display = 'none'; });
+      img.setAttribute('data-src-small', '/assets/passport/web/stamp-' + st.stamp + '-' + SMALL_STAMP + '.webp');
+      img.addEventListener('error', function () {
+        // No phone copy (a stamp newer than the build): the full one, then nothing.
+        if (img.getAttribute('src') === img.getAttribute('data-src-small')) img.src = img.getAttribute('data-src');
+        else box.style.display = 'none';
+      });
       box.appendChild(img);
       s.appendChild(box);
     });
@@ -620,12 +625,67 @@
     if (id && sheets[id]) slot.appendChild(sheets[id]);
   }
 
-  // Images load lazily, nearest first, once the cover is up.
+  // Images load lazily, nearest first, once the cover is up. Each stays out
+  // of sight until it's in and decoded, then fades in: a page turned to
+  // before its paper or stamps have arrived shows them whole or not yet,
+  // never half drawn.
   var queue = [];
   function loadImg(img) {
     if (!img || img.getAttribute('src') || !img.getAttribute('data-src')) return;
-    img.src = img.getAttribute('data-src');
+    var small = img.getAttribute('data-src-small');
+    var shown = false;
+    var show = function () {
+      if (shown) return;
+      shown = true;
+      img.style.visibility = '';
+      if (motionOK() && img.animate) img.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' });
+    };
+    img.style.visibility = 'hidden';
+    img.src = small && smallStamps() ? small : img.getAttribute('data-src');
+    // Asked first, so it's shown before anything waiting on the same decode.
+    if (img.decode) {
+      img.decode().then(show, function () {
+        // In after all, or on its way in as the full stamp (see addStamps).
+        if (img.complete && img.naturalWidth) show();
+        else img.addEventListener('load', show);
+      });
+    } else {
+      img.addEventListener('load', show);
+    }
   }
+
+  // A stamp's 320 px copy (tools/build-passport.py) is all a screen can show
+  // of it while the stamp, --stamp-w of a page at the size the book is laid
+  // out at (its largest), comes to no more than that many device px with
+  // its hover lift and any pinch zoom: on phones. Bigger, and it's the full
+  // 560s. Grow past it later (a wider window, a zoom) and the full ones are
+  // swapped in, each once it's decoded, so nothing blinks.
+  var SMALL_STAMP = 320;
+  var stampShare = 0, sharpenTimer = 0;
+  function smallStamps() {
+    if (!G.pw) return false;
+    if (!stampShare) stampShare = parseFloat(getComputedStyle(sheets.v1 || root).getPropertyValue('--stamp-w')) / 100 || 0.36;
+    var zoom = window.visualViewport ? Math.max(1, window.visualViewport.scale) : 1;
+    var lift = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches ? 1.045 : 1;
+    return G.pw * stampShare * (window.devicePixelRatio || 1) * lift * zoom <= SMALL_STAMP;
+  }
+  function sharpenStamps() {
+    if (!G.pw || smallStamps()) return;
+    Array.prototype.forEach.call(root.querySelectorAll('.pp-stamp__art'), function (img) {
+      if (img._sharpening || img.getAttribute('src') !== img.getAttribute('data-src-small')) return;
+      img._sharpening = true;
+      var full = new Image();
+      full.onload = function () {
+        var swap = function () { img.src = full.src; };
+        if (full.decode) full.decode().then(swap, swap);
+        else swap();
+      };
+      full.src = img.getAttribute('data-src');
+    });
+  }
+  function sharpenSoon() { clearTimeout(sharpenTimer); sharpenTimer = setTimeout(sharpenStamps, 250); }
+  window.addEventListener('resize', sharpenSoon);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', sharpenSoon);
   // A sheet's images: the page, then any stamps stuck on it.
   function sheetImgs(id) { return sheets[id] ? Array.prototype.slice.call(sheets[id].querySelectorAll('img')) : []; }
   function preloadAround(p) {
@@ -1526,12 +1586,16 @@
     settled(true);
     wake();
     // Now the cover is up, fetch the rest of the inside: the visa pages
-    // nearest where the book is going, then everything else while idle.
-    preloadAround(FIRST);
-    Object.keys(sheets).forEach(function (id) {
-      sheetImgs(id).forEach(function (im) { if (!im.getAttribute('src')) queue.push(im); });
+    // nearest where the book is going, then everything else while idle —
+    // once what the opening shows is in, so on a slow line they don't
+    // share it and hold the opening up.
+    Promise.race([arrival, after(CONFIG.INTRO.wait)]).then(function () {
+      preloadAround(FIRST);
+      Object.keys(sheets).forEach(function (id) {
+        sheetImgs(id).forEach(function (im) { if (!im.getAttribute('src')) queue.push(im); });
+      });
+      setTimeout(drainQueue, 1500);
     });
-    setTimeout(drainQueue, 1500);
     // A beat on the closed cover, and everything in, and it opens itself.
     // If the pages still aren't in by `wait`, it stays shut, for a tap.
     if (state.intro) {

@@ -100,7 +100,10 @@ On the way it ages each one slightly, to sit on the weathered pages: inks a
 little faded, whites yellowed to cream, blacks worn to brown-black, a soft
 uneven toning, grime in the perforations and a speck or two of foxing. How
 much of each is `STAMP_AGE` at the top of the script; it's seeded per stamp,
-so rebuilds are byte-identical. The masters are never touched.
+so rebuilds are byte-identical. The masters are never touched. Each stamp
+also gets an unaged copy for the home page (`-clean`) and a 320 px copy of
+both for phones (`-320`, `-clean-320`), which the pages use only when that's
+all the screen can show; without them a stamp still shows, at full size.
 
 Where each one sits is `PASSPORT_STAMPS` in `js/passport-data.js`: the page
 (from 1; odd on the left, even on the right), the stamp's centre as a

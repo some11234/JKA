@@ -89,6 +89,13 @@
     // scene (see render()); they fade out over FADE degrees before HIDE[0].
     EDGES: { HIDE: [70, 172], FADE: [18, 6] },
 
+    // A turning leaf isn't a board: its outer corner — the one a thumb
+    // lifts — runs a little ahead of the rest and the paper bends to follow.
+    // CORNER 'bottom' or 'top'; CURL is how far, in degrees, the corner leads
+    // at mid-turn; the bend runs along lines SLANT degrees off the spine's
+    // and reaches REACH of the way in from the corner, in SLICES flat steps.
+    PEEL: { CORNER: 'bottom', CURL: 12, SLANT: 35, REACH: 0.42, SLICES: 3 },
+
     TILT: { x: 6, y: 8 },    // pointer parallax at the stage's edge, degrees
     FLOAT: { x: 1.1, y: 1.5, lift: 0.008 },
     DRAG_SPAN: 1.25,         // a full flip takes a pull this many cover-widths long
@@ -768,6 +775,382 @@
     strips(rStack, null, outlineRight(pw, py, py + ph, rp, CONFIG.FACETS), 0, blk, 'pages', 'back');
     strips(lStack, null, outlineLeft(pw, py, py + ph, rp, CONFIG.FACETS), 0, blk, 'pages', 'book');
     strips(flap, coverFace, outlineRight(W, 0, H, rc, CONFIG.FACETS_BOARD), tb / 2, tb, 'board', 'flap');
+    buildPeel();
+  }
+
+  // ---------------------------------------------------------------- peel ---
+  // The leaf in the air bends a little as it turns, its outer corner leading.
+  // Past a line across that corner the leaf is cut into slices, each hinged
+  // to the one before along a line parallel to the cut and swung a little
+  // further, so the corner curls ahead of the page by up to PEEL.CURL. The
+  // leaf's own faces keep the rest of the page. A slice shows a copy of the
+  // page cut to its band — one element lies in one plane — trimmed to what
+  // the band shows and made while the book rests (the globes make a copy of
+  // the front spread slow to lay out), then kept. CURL 0 turns it all off.
+  // The light along the bend is a gradient toward the corner that
+  // fades in and out, so it reads as one curve, not as steps.
+
+  var peel = { slices: [], leaf: -1, on: CONFIG.PEEL.CURL > 0, need: [], idle: 0, seq: 0 };
+
+  // The part of a convex polygon where a·x + b·y ≤ c.
+  function cutPoly(pts, a, b, c) {
+    var out = [];
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i], q = pts[(i + 1) % pts.length];
+      var fp = a * p[0] + b * p[1] - c, fq = a * q[0] + b * q[1] - c;
+      if (fp <= 0) out.push(p);
+      if ((fp < 0 && fq > 0) || (fp > 0 && fq < 0)) {
+        var t = fp / (fp - fq);
+        out.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t]);
+      }
+    }
+    return out;
+  }
+  function polyCss(pts, ox, oy) {
+    return 'polygon(' + pts.map(function (p) { return px(p[0] - ox) + ' ' + px(p[1] - oy); }).join(',') + ')';
+  }
+  function setClip(e, v) { e.style.webkitClipPath = v; e.style.clipPath = v; }
+
+  // A turn about a unit axis, the way CSS rotate3d() turns.
+  function rotAxis(v, u, a) {
+    var c = Math.cos(a), s = Math.sin(a), k = (u[0] * v[0] + u[1] * v[1] + u[2] * v[2]) * (1 - c);
+    return [
+      v[0] * c + (u[1] * v[2] - u[2] * v[1]) * s + u[0] * k,
+      v[1] * c + (u[2] * v[0] - u[0] * v[2]) * s + u[1] * k,
+      v[2] * c + (u[0] * v[1] - u[1] * v[0]) * s + u[2] * k
+    ];
+  }
+
+  // One side of a slice: a page-sized sheet holder, cut to the slice's band.
+  function peelPiece(group, side) {
+    var piece = el('span', 'pp-face pp-peel');
+    var page = el('span', 'pp-page pp-page--' + (side > 0 ? 'recto' : 'verso') + ' pp-peel__page');
+    var slot = el('span', 'pp-slot');
+    page.appendChild(slot);
+    piece.appendChild(page);
+    group.appendChild(piece);
+    register(page, [0, 0, side], 'leaf');   // lit as the leaf is; the bend adds its own light
+    var dark = el('span', 'pp-peel__dark'), lift = el('span', 'pp-peel__lift');
+    page.appendChild(dark);
+    page.appendChild(lift);
+    return { el: piece, page: page, slot: slot, dark: dark, lift: lift, copies: {}, cur: null, o: [-1, -1] };
+  }
+
+  function buildPeel() {
+    var P = CONFIG.PEEL, N = Math.max(1, P.SLICES | 0), i;
+    if (!peel.slices.length) {
+      for (i = 0; i < N; i++) {
+        var g = el('span', 'pp-group');
+        leafGroup.appendChild(g);
+        peel.slices.push({ el: g, front: peelPiece(g, 1), back: peelPiece(g, -1) });
+      }
+    }
+    // Resized: the copies were trimmed to the old bands, so they go.
+    peel.slices.forEach(function (sl) {
+      [sl.front, sl.back].forEach(function (pc) {
+        while (pc.slot.firstChild) pc.slot.removeChild(pc.slot.firstChild);
+        pc.copies = {};
+        pc.cur = null;
+      });
+    });
+    peel.leaf = -1;
+    var pw = G.pw, ph = G.ph, sg = P.SLANT * DEG, top = P.CORNER === 'top';
+    var d = [Math.cos(sg), top ? -Math.sin(sg) : Math.sin(sg)];  // across the bend, toward the corner
+    var C = [pw, top ? 0 : ph];
+    var eC = d[0] * C[0] + d[1] * C[1];
+    var L = pw * Math.cos(sg) + ph * Math.sin(sg);               // the page's extent along d
+    var wb = P.REACH * L;
+    var rect = [[0, 0], [pw, 0], [pw, ph], [0, ph]];
+    var flip = function (p) { return [pw - p[0], p[1]]; };     // front-face → back-face coordinates
+    var body = cutPoly(rect, d[0], d[1], eC - wb);
+    peel.clip = [polyCss(body, 0, 0), polyCss(body.map(flip), 0, 0)];
+    peel.u = [d[1], -d[0], 0];                                 // the hinges' direction, in the leaf
+    peel.C = [C[0], G.py + C[1], 0];
+    peel.hinges = [];
+    var ang = Math.atan2(d[0], -d[1]) / DEG;
+    for (i = 0; i < peel.slices.length; i++) {
+      var w = wb * (N - i) / N;                                  // this slice's hinge, in from the corner
+      peel.hinges.push([C[0] - w * d[0], G.py + C[1] - w * d[1], 0]);
+      // Its band, reaching 1px back under the slice before it so no seam shows.
+      var band = cutPoly(rect, -d[0], -d[1], -(eC - w - 1));
+      if (i < N - 1) band = cutPoly(band, d[0], d[1], eC - w + wb / N);
+      layPiece(peel.slices[i].front, band, d, false, ang, L, wb);
+      layPiece(peel.slices[i].back, band.map(flip), [-d[0], d[1]], true, -ang, L, wb);
+    }
+  }
+
+  // A slice is laid along its band — turned to it, not square to the page —
+  // so it's no bigger than the band: a slice is drawn afresh as the light
+  // on it changes, and a page-square box round a slanting band would be
+  // most of the page.
+  function layPiece(piece, band, d, back, ang, L, wb) {
+    var u = [-d[1], d[0]], s0 = Infinity, t0 = Infinity, s1 = -Infinity, t1 = -Infinity;
+    var st = band.map(function (p) {
+      var q = [d[0] * p[0] + d[1] * p[1], u[0] * p[0] + u[1] * p[1]];
+      s0 = Math.min(s0, q[0]); t0 = Math.min(t0, q[1]); s1 = Math.max(s1, q[0]); t1 = Math.max(t1, q[1]);
+      return q;
+    });
+    var turn = ' rotateZ(' + (Math.atan2(d[1], d[0]) / DEG).toFixed(4) + 'deg)';
+    piece.d = d;
+    piece.span = [s0, s1, t0, t1];
+    var o = [s0 * d[0] + t0 * u[0], s0 * d[1] + t0 * u[1]];   // the slice's corner, on the page
+    place(piece.el, s1 - s0, t1 - t0, back
+      ? t3(G.pw, G.py, -0.3) + ' rotateY(180deg) ' + t3(o[0], o[1], 0) + turn
+      : t3(o[0], G.py + o[1], 0.3) + turn);
+    setClip(piece.el, polyCss(st, s0, t0));
+    // The page inside, turned back square, so each point sits where it does on the leaf.
+    var s = piece.page.style;
+    s.width = px(G.pw);
+    s.height = px(G.ph);
+    s.transform = 'matrix(' + [d[0], u[0], d[1], u[1], -s0, -t0].map(function (v) { return +v.toFixed(5); }).join(',') + ')';
+    // Nothing where the bend starts, fullest at the corner, easing in.
+    var ramp = function (rgb) {
+      var c = 'rgba(' + rgb + ',';
+      return 'linear-gradient(' + ang.toFixed(2) + 'deg,' + c + '0) ' + px(L - wb) + ',' + c + '0.2) ' + px(L - wb * 0.6) +
+        ',' + c + '0.6) ' + px(L - wb * 0.25) + ',' + c + '1) ' + px(L) + ')';
+    };
+    piece.dark.style.background = ramp('0,0,0');
+    piece.lift.style.background = ramp('255,250,240');
+  }
+
+  // How far the corner leads right now, from -1 to 1: most at mid-turn, and
+  // with the turn — ahead of the page whichever way it's going, easing
+  // through nothing when a turn reverses. None for a riffle.
+  function peelAmount(S) {
+    if (S.leaf < 0 || state.rewind || !peel.on) return 0;
+    var speed = 1000 / legMs(S.leg, true, state.intro);
+    return Math.sin(Math.PI * S.leafA / 180) * clamp(state.vel / speed, -1, 1);
+  }
+
+  // The leading corner, for framing.
+  function peelCorner(S) {
+    var a = CONFIG.PEEL.CURL * S.peel * DEG / peel.slices.length, p = peel.C;
+    for (var i = peel.hinges.length - 1; i >= 0; i--) {
+      var q = peel.hinges[i];
+      var r = rotAxis([p[0] - q[0], p[1] - q[1], p[2] - q[2]], peel.u, a);
+      p = [q[0] + r[0], q[1] + r[1], q[2] + r[2]];
+    }
+    p = rotY(p, -S.leafA * DEG);
+    return [p[0], p[1], p[2] + G.zTop + G.eps];
+  }
+
+  // Each frame the leaf is up: copies in place, slices swung, the bend lit.
+  function renderPeel(S, moving) {
+    var want = moving >= 0 && !state.rewind && peel.on;
+    // While the leaf's hidden the cut can stay as it is, ready for the next turn.
+    var cut = moving >= 0 ? want : !!peel.cut;
+    if (cut !== !!peel.cut) {
+      peel.cut = cut;
+      setClip(leafFront, cut ? peel.clip[0] : '');
+      setClip(leafBack, cut ? peel.clip[1] : '');
+      peel.slices.forEach(function (sl) { show(sl.el, cut); });
+    }
+    if (want && peel.leaf !== moving) {
+      peel.leaf = moving;
+      peel.slices.forEach(function (sl) {
+        useCopy(sl.front, leafFrontId(moving));
+        useCopy(sl.back, leafBackId(moving));
+      });
+    }
+    if (!want) peel.leaf = -1;
+    peel.slices.forEach(function (sl) {
+      [sl.front, sl.back].forEach(function (pc) { if (pc.cur) park(pc.cur, !want); });
+    });
+    if (!want) return;
+    var a = CONFIG.PEEL.CURL * S.peel / peel.slices.length, u = peel.u, tr = '';
+    var rot = ' rotate3d(' + u[0].toFixed(5) + ',' + u[1].toFixed(5) + ',0,' + a.toFixed(3) + 'deg) ';
+    var nb = world([0, 0, 1], 'leaf', S);
+    var nc = world(rotAxis([0, 0, 1], u, a * peel.slices.length * DEG), 'leaf', S);
+    var lit = [bendLight(nb, nc), bendLight([-nb[0], -nb[1], -nb[2]], [-nc[0], -nc[1], -nc[2]])];
+    peel.slices.forEach(function (sl, i) {
+      var q = peel.hinges[i];
+      tr += t3(q[0], q[1], 0) + rot + t3(-q[0], -q[1], 0) + ' ';
+      sl.el.style.transform = tr;
+      [sl.front, sl.back].forEach(function (pc, side) {
+        if (pc.cur) syncCopy(pc.cur);
+        var o = lit[side];
+        if (o[0] !== pc.o[0]) { pc.dark.style.opacity = o[0]; pc.o[0] = o[0]; }
+        if (o[1] !== pc.o[1]) { pc.lift.style.opacity = o[1]; pc.o[1] = o[1]; }
+      });
+    });
+  }
+
+  // How much shadow, or highlight, the bend puts on its corner: the gap
+  // between the light on the page and the light on the corner.
+  function bendLight(nb, nc) {
+    var ob = shadeOf(nb), gap = shadeOf(nc) - ob;
+    var dark = gap > 0 ? gap / (1 - ob) : 0;
+    var lift = gap < 0 ? 0.88 * -gap / (1 - 0.88 * (1 - ob)) : 0;   // over paper about 0.88 bright
+    return [Math.round(dark * 200) / 200, Math.round(Math.min(1, lift) * 200) / 200];
+  }
+
+  function useCopy(piece, id) {
+    var c = copyFor(piece, id);
+    if (piece.cur !== c) {
+      if (piece.cur) park(piece.cur, true);
+      piece.cur = c;
+    }
+    if (c) syncCopy(c);
+  }
+
+  // A copy not on show waits outside its slice, where it isn't drawn, laid
+  // out and styled still. Moving it, not hiding it, keeps every frame that
+  // changes something inherited (the leaf shown or hidden, the edges'
+  // fade) from restyling every copy too (see .pp-peel__sheet).
+  function park(c, yes) {
+    if (c.parked === yes) return;
+    c.parked = yes;
+    c.box.style.transform = yes ? 'translateX(-400%)' : '';
+  }
+
+  // The piece's copy of a sheet, made now if it hasn't one, or if the sheet
+  // has grown since (the globes and flags are drawn after the page loads).
+  function copyFor(piece, id) {
+    var src = sheets[id];
+    if (!src) return null;
+    var c = piece.copies[id];
+    if (c && c.n !== src.getElementsByTagName('*').length) {
+      piece.slot.removeChild(c.box);
+      if (piece.cur === c) piece.cur = null;
+      c = null;
+    }
+    if (!c) c = piece.copies[id] = makeCopy(piece, src);
+    return c;
+  }
+
+  function makeCopy(piece, src) {
+    var k = src.cloneNode(true), n = ++peel.seq, ids = {}, any = false;
+    k.removeAttribute('data-sheet');
+    // Its own ids, so the drawings' patterns and clips stay unique.
+    Array.prototype.forEach.call(k.querySelectorAll('[id]'), function (e) {
+      ids[e.id] = e.id + '-peel' + n;
+      e.id = ids[e.id];
+      any = true;
+    });
+    if (any) {
+      Array.prototype.forEach.call(k.getElementsByTagName('*'), function (e) {
+        for (var i = 0; i < e.attributes.length; i++) {
+          var at = e.attributes[i];
+          if (at.value.indexOf('url(#') < 0) continue;
+          e.setAttribute(at.name, at.value.replace(/url\(#([^)]+)\)/g, function (m, ref) { return ids[ref] ? 'url(#' + ids[ref] + ')' : m; }));
+        }
+      });
+    }
+    var pairs = [], si = src.getElementsByTagName('img'), ki = k.getElementsByTagName('img');
+    for (var i = 0; i < si.length && i < ki.length; i++) pairs.push([si[i], ki[i]]);
+    trim(k, piece);
+    var box = el('span', 'pp-peel__sheet');
+    box.appendChild(k);
+    var c = {
+      box: box, sheet: k, src: src, n: src.getElementsByTagName('*').length,
+      imgs: pairs.filter(function (q) { return k.contains(q[1]); })
+    };
+    park(c, true);
+    piece.slot.appendChild(box);
+    return c;
+  }
+
+  // A copy draws only what falls in its slice. It's laid out flat, off the
+  // stage, and whatever lies wholly outside the band (give or take a margin,
+  // for shadows) goes: the fewer things a slice draws, the less there is to
+  // keep track of on every frame of a turn. What takes up room in the
+  // layout is only hidden, so nothing it leaves behind moves; what doesn't
+  // (a drawing's shapes, anything positioned) is taken out. A drawing's
+  // patterns, clips and gradients have no box of their own, but what's
+  // drawn with them needs them, so they stay.
+  var KEEP = /^(defs|clippath|mask|pattern|lineargradient|radialgradient|stop|filter|symbol|marker|style)$/;
+  function trim(k, piece) {
+    var m = peel.meas;
+    if (!m) {
+      m = peel.meas = el('span', 'pp-peel__measure');
+      m.setAttribute('aria-hidden', 'true');
+      root.appendChild(m);
+    }
+    for (var i = 0; i < book.style.length; i++) {
+      var name = book.style[i];
+      if (name.indexOf('--') === 0) m.style.setProperty(name, book.style.getPropertyValue(name));
+    }
+    m.style.width = px(G.pw);
+    m.style.height = px(G.ph);
+    m.appendChild(k);
+    var o = m.getBoundingClientRect(), d = piece.d, u = [-d[1], d[0]], b = piece.span, pad = 0.03 * G.ph;
+    var out = function (r) {        // r: [x0, y0, x1, y1] on the page
+      var s = [], t = [];
+      [[r[0], r[1]], [r[2], r[1]], [r[0], r[3]], [r[2], r[3]]].forEach(function (p) {
+        s.push(d[0] * p[0] + d[1] * p[1]);
+        t.push(u[0] * p[0] + u[1] * p[1]);
+      });
+      return Math.max.apply(null, s) < b[0] - pad || Math.min.apply(null, s) > b[1] + pad ||
+        Math.max.apply(null, t) < b[2] - pad || Math.min.apply(null, t) > b[3] + pad;
+    };
+    // How far each element reaches, its children included.
+    var reach = function (e) {
+      var r = e.getBoundingClientRect(), all = r.width || r.height ? [r.left - o.left, r.top - o.top, r.right - o.left, r.bottom - o.top] : null;
+      for (var c = e.firstElementChild; c; c = c.nextElementSibling) {
+        if (KEEP.test(c.tagName.toLowerCase())) continue;
+        var q = reach(c);
+        if (q) all = all ? [Math.min(all[0], q[0]), Math.min(all[1], q[1]), Math.max(all[2], q[2]), Math.max(all[3], q[3])] : q;
+      }
+      e._reach = all;
+      return all;
+    };
+    var drop = function (e) {
+      for (var c = e.firstElementChild, next; c; c = next) {
+        next = c.nextElementSibling;
+        if (KEEP.test(c.tagName.toLowerCase())) continue;
+        var r = c._reach;
+        c._reach = null;
+        if (!r || !out(r)) drop(c);
+        else if ((c.namespaceURI === NS && c.tagName.toLowerCase() !== 'svg') || /^(absolute|fixed)$/.test(getComputedStyle(c).position)) e.removeChild(c);
+        else c.style.visibility = 'hidden';
+      }
+    };
+    reach(k);
+    drop(k);
+    k._reach = null;
+    m.removeChild(k);
+  }
+
+  // Keep a copy as its sheet is, every frame it's on show: the sheet's
+  // classes and style (the flags stamping in, the print's size) and its
+  // images (one that comes in, or is shown, mid-turn).
+  function syncCopy(c) {
+    var s = c.src, k = c.sheet, st = s.getAttribute('style') || '';
+    if (k.className !== s.className) k.className = s.className;
+    if ((k.getAttribute('style') || '') !== st) k.setAttribute('style', st);
+    for (var i = 0; i < c.imgs.length; i++) {
+      var a = c.imgs[i][0], b = c.imgs[i][1], url = a.getAttribute('src');
+      if (url && b.getAttribute('src') !== url) b.setAttribute('src', url);
+      if (b.style.visibility !== a.style.visibility) b.style.visibility = a.style.visibility;
+    }
+  }
+
+  // While the book rests open, copy the pages of the leaves it could turn
+  // next, one per idle moment, so a turn never starts by laying out a page.
+  // Not while it's shut: the cover drifts then, and the front spread's
+  // globes may not be drawn yet. On arrival the copies are made in the
+  // rest on the front spread instead, while nothing moves.
+  function peelAhead() {
+    if (!peel.on || !motionOK() || state.pos < 1) return;
+    var nL = Math.round(state.pos) - 1, need = [];
+    [nL, nL - 1].forEach(function (j) {
+      if (j < 0 || j > LEAVES - 2) return;          // the last leaf never turns on its own
+      peel.slices.forEach(function (sl) { need.push([sl.front, leafFrontId(j)], [sl.back, leafBackId(j)]); });
+    });
+    peel.need = need.filter(function (q) {
+      var c = q[0].copies[q[1]], src = sheets[q[1]];
+      return src && (!c || c.n !== src.getElementsByTagName('*').length);
+    });
+    if (peel.need.length && !peel.idle) peel.idle = (window.requestIdleCallback || setTimeout)(peelIdle);
+  }
+  function peelIdle() {
+    peel.idle = 0;
+    if (state.pos !== state.target) return;          // under way: wait for the next rest
+    var q = peel.need.shift();
+    if (!q) return;
+    copyFor(q[0], q[1]);
+    void q[0].slot.offsetWidth;                     // laid out now, not in the next frame
+    if (peel.need.length) peel.idle = (window.requestIdleCallback || setTimeout)(peelIdle);
   }
 
   // ---------------------------------------------------------------- path ---
@@ -887,6 +1270,7 @@
     if (S.leaf >= 0) {
       var la = S.leafA * DEG;
       [G.py, G.py + G.ph].forEach(function (y) { pts.push([G.pw * Math.cos(la), y, zT + G.eps + G.pw * Math.sin(la)]); });
+      if (S.peel) pts.push(peelCorner(S));
     }
     return pts;
   }
@@ -1020,6 +1404,7 @@
     pose.ty += state.tiltY * par;
     S._tx = pose.tx * DEG;
     S._ty = pose.ty * DEG;
+    S.peel = peelAmount(S);
 
     // Framing: grow from one resting size to the next, never past what fits —
     // the real, projected outline, mid-swing covers and leaves included.
@@ -1066,6 +1451,8 @@
     show(leafGroup, moving >= 0);
     show(rTop, !!rTop._sheet);
     show(lTop, !!lTop._sheet);
+    renderPeel(S, moving);
+    if (moving < 0 && p === state.target) peelAhead();
 
     // The spine only matters while the book is shut (and while it turns over).
     var wantSpine = p === 0 || S.back > 178;
@@ -1156,12 +1543,16 @@
   function light(S) {
     for (var i = 0; i < faces.length; i++) {
       var f = faces[i];
-      var n = world(f.n, f.group, S);
-      var d = n[0] * LIGHT[0] + n[1] * LIGHT[1] + n[2] * LIGHT[2];
-      var o = 1 - (CONFIG.AMBIENT + CONFIG.DIFFUSE * (d > 0 ? d : 0));
-      o = o < 0 ? 0 : o > 0.88 ? 0.88 : Math.round(o * 200) / 200;
+      var o = shadeOf(world(f.n, f.group, S));
       if (o !== f.last) { f.shade.style.opacity = o; f.last = o; }
     }
+  }
+
+  // How dark a face pointing along n is.
+  function shadeOf(n) {
+    var d = n[0] * LIGHT[0] + n[1] * LIGHT[1] + n[2] * LIGHT[2];
+    var o = 1 - (CONFIG.AMBIENT + CONFIG.DIFFUSE * (d > 0 ? d : 0));
+    return o < 0 ? 0 : o > 0.88 ? 0.88 : Math.round(o * 200) / 200;
   }
 
   // ---------------------------------------------------------------- loop ---

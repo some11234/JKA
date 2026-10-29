@@ -392,6 +392,42 @@
   transform-origin: 100% 50%;
 }
 
+/* The turning leaf's outer corner, which bends a little ahead of the page
+   (the peel in js/passport.js): slices, each a copy of the page cut to its
+   band. Over them, the light along the bend — a shadow or a paper-white
+   highlight, nothing where the bend starts and most at the corner. The
+   script draws the ramps and sets how much. */
+.pp-peel { overflow: hidden; }
+.pp-peel__page {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  transform-origin: 0 0;
+}
+.pp-peel__sheet,
+.pp-peel__dark,
+.pp-peel__lift {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: block;
+}
+/* A copy of a page is shown and put away by moving it (the script), so
+   nothing the leaf inherits reaches into it: hiding the leaf, or fading
+   the edges, would otherwise restyle every copy, every time. */
+.pp-peel__sheet { visibility: visible; --edge-alpha: initial; }
+.pp-peel__dark,
+.pp-peel__lift { opacity: 0; pointer-events: none; }
+/* Where a copy is laid out flat to see what falls in its slice. */
+.pp-peel__measure {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  display: block;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 /* --------------------------------------------------------- front spread --- */
 
 /* The two pages the passport opens on: the data page, glued inside the front

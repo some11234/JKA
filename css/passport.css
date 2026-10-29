@@ -266,6 +266,77 @@
   will-change: transform;
 }
 
+/* Wear, so the cover is as old as the pages inside it, but only just: the
+   navy a shade faded, a faint mottle in the leather from handling, the
+   corners and edges rubbed paler (the fore-edge's foot most, where it's
+   held), and the foil a touch duller and uneven, most low down toward the
+   fore-edge, where a thumb rubs it. The unevenness is the pages' own
+   print-wear tile (print-wear.webp, from tools/build-visa-paper.py), small
+   on the leather and larger on the foil, which it's cut to — so the cover
+   costs no new image, and both masks are already in the arrival's decode
+   gate (js/passport.js), through the pages' print and the foil's glint.
+   Until the tile is in, the wear is masked out: on a slow line the cover
+   shows new rather than smoothly rubbed. Plain colour and normal blending,
+   and no filter (see .pp-print). The home page's book wears the same
+   (.ppt__wear in css/styles.css): change one, change both. */
+.pp-wear {
+  --scuff: 92, 104, 140;   /* rubbed navy: paler and greyer */
+  --tarnish: 48, 34, 16;   /* worn foil: dark bronze */
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: block;
+  border-radius: inherit;
+  background: rgba(var(--scuff), 0.04);   /* the fade, foil and all */
+}
+
+.pp-wear::before,
+.pp-wear::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  border-radius: inherit;
+}
+
+/* The leather: the corners (the fore-edge's bigger than the spine's), a
+   thumb's width on the fore-edge and the foot, a thin rim round the edges,
+   and the mottle all over. */
+.pp-wear::before {
+  background:
+    radial-gradient(ellipse 9% 5.9% at 100% 0, rgba(var(--scuff), 0.9), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 11% 7.3% at 100% 100%, rgba(var(--scuff), 1), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 5% 3.3% at 0 0, rgba(var(--scuff), 0.7), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 5% 3.3% at 0 100%, rgba(var(--scuff), 0.8), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 3.5% 18% at 100% 60%, rgba(var(--scuff), 0.5), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 22% 2.2% at 36% 100%, rgba(var(--scuff), 0.45), rgba(var(--scuff), 0)),
+    linear-gradient(to left, rgba(var(--scuff), 0.38), rgba(var(--scuff), 0) 1.8%),
+    linear-gradient(to bottom, rgba(var(--scuff), 0.3), rgba(var(--scuff), 0) 1.2%),
+    linear-gradient(to top, rgba(var(--scuff), 0.42), rgba(var(--scuff), 0) 1.5%),
+    linear-gradient(rgba(var(--scuff), 0.06), rgba(var(--scuff), 0.06));
+  -webkit-mask: url('/assets/passport/web/print-wear.webp') 0 0 / auto 12% repeat;
+  mask: url('/assets/passport/web/print-wear.webp') 0 0 / auto 12% repeat;
+}
+
+/* The foil: dulled a little all over, and more toward the foot on the
+   fore-edge side. */
+.pp-wear::after {
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(var(--tarnish), 0.35), rgba(var(--tarnish), 0)),
+    linear-gradient(rgba(var(--tarnish), 0.2), rgba(var(--tarnish), 0.2));
+  -webkit-mask:
+    url('/assets/passport/web/print-wear.webp') 37% 61% / auto 30% repeat,
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  -webkit-mask-composite: source-in;
+  mask:
+    url('/assets/passport/web/print-wear.webp') 37% 61% / auto 30% repeat,
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  mask-composite: intersect;
+}
+
+/* The back cover's outside: the same leather, mirrored (its fore-edge is on
+   the left), and no foil. */
+.pp-back--out .pp-wear { transform: scaleX(-1); }
+.pp-back--out .pp-wear::after { content: none; }
+
 /* The board's own shape: the hinge groove a passport cover folds along, the
    wrap into the spine, a faint rounded edge — and the light falling off
    across it, the far corner and the edges a little darker, like a cover

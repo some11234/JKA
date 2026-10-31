@@ -924,22 +924,12 @@
 }
 .pp-visited__flag.is-on .pp-visited__name { opacity: 1; }
 
-/* The first time the book opens, the flags press in one by one, each
-   country inking in just ahead of its flag. */
-.pp-visited.is-unstamped .pp-visited__flag,
+/* The first time the book opens, the countries ink in one by one. The
+   flags are simply there. */
 .pp-visited.is-unstamped .pp-visited__mark { opacity: 0; }
-.pp-visited.is-stamping .pp-visited__flag {
-  animation: pp-stamp 600ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
-  animation-delay: var(--d, 0ms);
-}
 .pp-visited.is-stamping .pp-visited__mark {
   animation: pp-ink-in 900ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   animation-delay: var(--d, 0ms);
-}
-@keyframes pp-stamp {
-  0% { opacity: 0; transform: scale(1.35) rotate(-4deg); }
-  55% { opacity: 1; }
-  100% { opacity: 1; transform: none; }
 }
 @keyframes pp-ink-in {
   from { opacity: 0; }
@@ -1396,8 +1386,7 @@ frame's fourth star would be. */
   .js .pp-controls { transition: none; }
   /* A hovered stamp's shadow still deepens; the stamp itself stays put. */
   .pp.is-settled .pp-stamp:hover .pp-stamp__art { transform: none; }
-  /* The flags are simply there, and a hovered one doesn't move. */
-  .pp-visited.is-stamping .pp-visited__flag,
+  /* The countries are simply there, and a hovered flag doesn't move. */
   .pp-visited.is-stamping .pp-visited__mark { animation: none; }
   .pp-visited__flag.is-on { transform: none; }
 }

@@ -140,8 +140,14 @@
 
   // The caption and the words a screen reader gets in place of the fan.
   var countries = (window.PASSPORT_COUNTRIES || []).length;
+  // The years run from the first stamp to this year (Joe, 2026-11-01: "2006-[current year]").
+  var first = STAMPS.reduce(function (m, st) { return st.year && st.year < m ? st.year : m; }, Infinity);
+  var now = new Date().getFullYear();
   var caption = document.querySelector('[data-ppt-caption]');
-  if (caption && countries) caption.textContent = countries + ' countries';
+  if (caption && countries) {
+    caption.textContent = countries + ' countries' +
+      (first < Infinity ? ' · ' + (first < now ? first + '–' + now : first) : '');
+  }
   var list = document.querySelector('[data-ppt-list]');
   if (list) {
     list.textContent = 'Travel stamps in the passport: ' +

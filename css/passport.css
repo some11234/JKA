@@ -46,10 +46,8 @@
   /* Its own stacking context, so the page halves (.pp-tap) can tuck under
      the book without dropping behind this background. */
   isolation: isolate;
-  /* A soft pool of light for the passport to sit in. */
-  background:
-    radial-gradient(ellipse 46% 52% at 50% 54%, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0) 70%),
-    var(--bg);
+  /* Plain ground: no pool of light behind the passport (Joe, 2026-11-01). */
+  background: var(--bg);
 }
 
 /* The box the book is framed in: under the header, above the controls. The

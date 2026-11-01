@@ -140,9 +140,8 @@
 
   // The caption and the words a screen reader gets in place of the fan.
   var countries = (window.PASSPORT_COUNTRIES || []).length;
-  var since = STAMPS.reduce(function (m, st) { return st.year && st.year < m ? st.year : m; }, Infinity);
   var caption = document.querySelector('[data-ppt-caption]');
-  if (caption && countries && since < Infinity) caption.textContent = countries + ' countries · since ' + since;
+  if (caption && countries) caption.textContent = countries + ' countries';
   var list = document.querySelector('[data-ppt-list]');
   if (list) {
     list.textContent = 'Travel stamps in the passport: ' +

@@ -120,7 +120,9 @@ var CONFIG = {
 
   /* -- coverflows -------------------------------------------------------- */
   COVERFLOW: {
-    autoMs: 4000,           // old site used 2800 — felt rushed
+    mixtapeAutoMs: 4000,    // old site used 2800 — felt rushed
+    moviesAutoMs: 5300,     // a different pace, so the two rows don't step together
+    autoJitter: 0.15,       // each step lands up to ±15% off the pace
     resumeMs: 6000,
     mixtapeCoverH: 220, mixtapeCoverHSm: 180,
     moviesCoverH: 300, moviesCoverHSm: 240
@@ -152,7 +154,7 @@ var CONFIG = {
       createCoverflow(mixEl, {
         items: MIXTAPE, aspect: '1/1', label: 'Mixtape',
         coverHeight: cf.mixtapeCoverH, coverHeightSm: cf.mixtapeCoverHSm,
-        autoMs: cf.autoMs, resumeMs: cf.resumeMs
+        autoMs: cf.mixtapeAutoMs, autoJitter: cf.autoJitter, resumeMs: cf.resumeMs
       });
     }
 
@@ -161,7 +163,7 @@ var CONFIG = {
       createCoverflow(movEl, {
         items: MOVIES, aspect: '2/3', label: 'Movies & TV',
         coverHeight: cf.moviesCoverH, coverHeightSm: cf.moviesCoverHSm,
-        autoMs: cf.autoMs, resumeMs: cf.resumeMs
+        autoMs: cf.moviesAutoMs, autoJitter: cf.autoJitter, resumeMs: cf.resumeMs
       });
     }
   }

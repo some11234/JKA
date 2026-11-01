@@ -599,6 +599,416 @@ a { color: inherit; }
 .js .strip-caption,
 .js .strip-cta { opacity: 0; }
 
+/* ------------------------------------------------------------- passport --- */
+
+/* A quiet interlude between the gallery and About: the closed passport, its
+   travel stamps fanned out from under its fore-edge as if spilling from the
+   pages, and a way in. No pinning, nothing scrubbed: the one moment is the
+   stamps sliding out from under the cover the first time it comes into
+   view (js/passport-teaser.js, which also places them). */
+
+.ppt {
+  position: relative;
+  padding-block: clamp(40px, 6vh, 72px) clamp(56px, 9vh, 110px);
+}
+
+.ppt__divider {
+  height: 1px;
+  width: 92%;
+  margin-inline: auto;
+  background: var(--line);
+}
+
+.ppt__heading {
+  margin-top: clamp(56px, 9vh, 110px);
+  margin-inline: auto;
+  width: min(92vw, 1180px);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3.5vw, 3rem);
+}
+
+.ppt__body {
+  position: relative;
+  width: min(92vw, 1180px);
+  margin: clamp(28px, 4vh, 48px) auto 0;
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) 1fr;
+  align-items: center;
+  isolation: isolate;
+}
+
+/* A soft pool of light for the passport to lie in, as on its own page. */
+.ppt__body::before {
+  content: '';
+  position: absolute;
+  top: -12%; right: -4%; bottom: -12%; left: -8%;
+  z-index: -1;
+  background: radial-gradient(ellipse 48% 62% at 32% 50%, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+
+/* The closed book, at a slant and turned a little toward the stamps so its
+   page edges show. It's lit the way the passport's own page lights its
+   cover (css/passport.css): the art, a key light, the leather's sheen, the
+   foil's glint, the grain and the board's relief — over a stack of slices
+   that make its thickness: the front board, the pages, the back board.
+   Its corners are the cover's own (COVER_RADIUS in js/passport.js). It's
+   7% of its width thick, a touch more than THICK there so the edge reads
+   at this size: --t, for the 240px it's laid out at. */
+.ppt__book {
+  --t: 16.8px;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  position: relative;
+  z-index: 2;
+  display: block;
+  border-radius: 5.7% / 3.78%;
+  transform-style: preserve-3d;
+  transform: perspective(1400px) translateY(0) rotateZ(-4deg) rotateY(-22deg) rotateX(7deg);
+  transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ppt__book:hover {
+  transform: perspective(1400px) translateY(-6px) rotateZ(-2deg) rotateY(-14deg) rotateX(5deg);
+}
+.ppt__book:focus-visible { outline: 2px solid var(--accent); outline-offset: 10px; }
+
+/* Each slice is the book's outline a little further back; together their
+   edges are the fore-edge and the foot. The pages sit just inside the
+   boards, cream, shading into the book and striped a page at a time. */
+.ppt__block {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.ppt__block i {
+  position: absolute;
+  inset: 0.6% 0.5% 0.6% 0;
+  border-radius: 5.7% / 3.78%;
+  background: #EAE2CC;
+  transform: translateZ(calc(var(--d) * var(--t) * -1));
+}
+.ppt__block i:nth-child(even) { background: #DCD3BB; }
+.ppt__block i.ppt__board { inset: 0; background: #080F2D; }
+.ppt__block i:nth-child(1) { --d: 0.06; }
+.ppt__block i:nth-child(2) { --d: 0.12; }
+.ppt__block i:nth-child(3) { --d: 0.18; }
+.ppt__block i:nth-child(4) { --d: 0.31; }
+.ppt__block i:nth-child(5) { --d: 0.44; }
+.ppt__block i:nth-child(6) { --d: 0.57; }
+.ppt__block i:nth-child(7) { --d: 0.7; }
+.ppt__block i:nth-child(8) { --d: 0.83; }
+.ppt__block i:nth-child(9) { --d: 0.89; }
+.ppt__block i:nth-child(10) { --d: 0.95; }
+.ppt__block i:nth-child(11) {
+  --d: 1;
+  box-shadow:
+    0 2px 2px rgba(0, 0, 0, 0.45),
+    0 22px 44px -14px rgba(0, 0, 0, 0.8),
+    0 54px 90px -34px rgba(0, 0, 0, 0.65);
+}
+
+.ppt__face {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 5.7% / 3.78%;
+  background: #0C173A;
+}
+.ppt__cover {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.ppt__face::before,
+.ppt__face::after,
+.ppt__sheen,
+.ppt__foil,
+.ppt__grain {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* The key light: a pool on the upper left, colour-dodged, so it brightens
+   the leather and the gold under it without greying either. */
+.ppt__face::before {
+  background: radial-gradient(ellipse 68% 60% at 30% 26%,
+    rgb(54, 54, 54),
+    rgb(26, 26, 26) 45%,
+    rgb(0, 0, 0) 100%);
+  mix-blend-mode: color-dodge;
+}
+
+/* The sheen and the grain belong to the leather, so they're kept off the
+   foil: the foil cut out of a solid mask. */
+.ppt__sheen,
+.ppt__grain {
+  -webkit-mask:
+    linear-gradient(#000, #000),
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000, #000),
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  mask-composite: exclude;
+}
+.ppt__sheen {
+  background: linear-gradient(112deg,
+    rgba(160, 185, 255, 0) 32%,
+    rgba(160, 185, 255, 0.04) 42%,
+    rgba(175, 198, 255, 0.1) 50%,
+    rgba(160, 185, 255, 0.04) 58%,
+    rgba(160, 185, 255, 0) 68%) 70% 0 / 300% 100% no-repeat;
+  mix-blend-mode: screen;
+  transition: background-position 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ppt__grain {
+  background: url('/assets/passport/web/grain.webp') 0 0 / auto 16% repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.38;
+}
+
+/* The gold, lifted toward pale champagne, and a glint that crosses it as
+   the book turns toward you. */
+.ppt__foil {
+  -webkit-mask: url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  mask: url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  background:
+    linear-gradient(105deg,
+      rgba(255, 206, 128, 0) 30%,
+      rgba(255, 206, 128, 0.1) 39%,
+      rgba(255, 220, 156, 0.32) 45.5%,
+      rgba(255, 236, 190, 0.8) 50%,
+      rgba(255, 220, 156, 0.32) 54.5%,
+      rgba(255, 206, 128, 0.1) 61%,
+      rgba(255, 206, 128, 0) 70%) 75% 0 / 300% 100% no-repeat,
+    rgba(255, 244, 222, 0.38);
+  mix-blend-mode: screen;
+  transition: background-position 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ppt__book:hover .ppt__sheen { background-position: 45% 0; }
+.ppt__book:hover .ppt__foil { background-position: 30% 0; }
+
+/* Worn as gently as the passport's own cover (.pp-wear in css/passport.css,
+   which says how; change one, change both): the navy a shade faded, the
+   leather faintly mottled, its corners and edges rubbed paler, and the foil
+   a touch duller, most toward the foot on the fore-edge side. */
+.ppt__wear {
+  --scuff: 92, 104, 140;
+  --tarnish: 48, 34, 16;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: rgba(var(--scuff), 0.04);
+}
+.ppt__wear::before,
+.ppt__wear::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.ppt__wear::before {
+  background:
+    radial-gradient(ellipse 9% 5.9% at 100% 0, rgba(var(--scuff), 0.9), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 11% 7.3% at 100% 100%, rgba(var(--scuff), 1), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 5% 3.3% at 0 0, rgba(var(--scuff), 0.7), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 5% 3.3% at 0 100%, rgba(var(--scuff), 0.8), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 3.5% 18% at 100% 60%, rgba(var(--scuff), 0.5), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 22% 2.2% at 36% 100%, rgba(var(--scuff), 0.45), rgba(var(--scuff), 0)),
+    linear-gradient(to left, rgba(var(--scuff), 0.38), rgba(var(--scuff), 0) 1.8%),
+    linear-gradient(to bottom, rgba(var(--scuff), 0.3), rgba(var(--scuff), 0) 1.2%),
+    linear-gradient(to top, rgba(var(--scuff), 0.42), rgba(var(--scuff), 0) 1.5%),
+    linear-gradient(rgba(var(--scuff), 0.06), rgba(var(--scuff), 0.06));
+  -webkit-mask: url('/assets/passport/web/print-wear.webp') 0 0 / auto 12% repeat;
+  mask: url('/assets/passport/web/print-wear.webp') 0 0 / auto 12% repeat;
+}
+.ppt__wear::after {
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(var(--tarnish), 0.35), rgba(var(--tarnish), 0)),
+    linear-gradient(rgba(var(--tarnish), 0.2), rgba(var(--tarnish), 0.2));
+  -webkit-mask:
+    url('/assets/passport/web/print-wear.webp') 37% 61% / auto 30% repeat,
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  -webkit-mask-composite: source-in;
+  mask:
+    url('/assets/passport/web/print-wear.webp') 37% 61% / auto 30% repeat,
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  mask-composite: intersect;
+}
+
+/* The board's own shape: the hinge groove a passport cover folds along, a
+   faint rounded edge, and the light falling off toward the far corner. */
+.ppt__face::after {
+  border-radius: inherit;
+  background:
+    linear-gradient(to right,
+      rgba(0, 0, 0, 0) 5.4%,
+      rgba(0, 0, 0, 0.42) 5.6%,
+      rgba(0, 0, 0, 0.42) 5.9%,
+      rgba(255, 255, 255, 0.07) 5.9%,
+      rgba(255, 255, 255, 0.07) 6.25%,
+      rgba(0, 0, 0, 0) 6.3%),
+    linear-gradient(to right, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0) 2.6%),
+    linear-gradient(to left, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 1.2%),
+    radial-gradient(ellipse 85% 70% at 42% 40%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.22) 100%),
+    linear-gradient(160deg, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.14) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* The stamps fan out to the right in two staggered rows, bunched near the
+   book and loosening away from it, the first column tucked under the
+   cover's fore-edge. Each is placed by the script at a share of this box
+   (--x-d, --y-d) and tilted by hand (--rot). */
+.ppt__stamps {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  z-index: 1;
+  margin-left: calc(-1 * clamp(36px, 4.5vw, 70px));
+  aspect-ratio: 2.4;
+}
+.ppt__stamp {
+  position: absolute;
+  left: var(--x-d);
+  top: var(--y-d);
+  width: 15.5%;
+  aspect-ratio: 1;
+  display: block;
+  transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+}
+.ppt__stamp img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5)) drop-shadow(0 14px 22px rgba(0, 0, 0, 0.35));
+  transition: filter 220ms ease;
+}
+
+/* The first time the section comes into view they slide out from under the
+   cover, one after another, and settle at their tilt. One whose image isn't
+   in and decoded yet waits under the cover until it is. */
+.js .ppt__stamps:not(.is-in) .ppt__stamp,
+.js .ppt__stamp.is-waiting {
+  opacity: 0;
+  transform: translate(calc(-50% - var(--fx-d, 0%)), -50%) rotate(calc(var(--rot, 0deg) - 14deg)) scale(0.92);
+}
+.ppt__stamps.is-in:not(.is-settled) .ppt__stamp {
+  transition:
+    transform 1100ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms),
+    opacity 360ms ease var(--delay, 0ms);
+}
+
+/* With a mouse, a stamp lifts toward you, straightens a little and says
+   where and when it's from. */
+.ppt__stamp::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  margin-top: 8px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(11, 11, 11, 0.86);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-70);
+  opacity: 0;
+  transform: translateX(-50%) rotate(calc(-1 * var(--rot, 0deg)));
+  transition: opacity 180ms ease;
+  pointer-events: none;
+}
+.ppt__stamps.is-settled .ppt__stamp {
+  transition: transform 260ms cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ppt__stamps.is-settled .ppt__stamp:hover {
+    z-index: 3;
+    transform: translate(-50%, -55%) rotate(calc(var(--rot, 0deg) * 0.35)) scale(1.1);
+  }
+  .ppt__stamps.is-settled .ppt__stamp:hover img {
+    filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.5)) drop-shadow(0 26px 34px rgba(0, 0, 0, 0.45));
+  }
+  .ppt__stamps.is-settled .ppt__stamp:hover::after { opacity: 1; }
+}
+
+.ppt__foot {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  padding-left: clamp(24px, 3vw, 44px);
+  margin-top: clamp(10px, 2vh, 22px);
+}
+.ppt__caption {
+  margin: 0;
+  color: var(--ink-45);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+}
+
+.ppt__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Phones: the book stands centred, and the stamps spill out below it in two
+   staggered rows, fanned like a hand of cards, the top row under its foot. */
+@media (max-width: 820px) {
+  .ppt__body { grid-template-columns: 1fr; }
+  .ppt__body::before {
+    background: radial-gradient(ellipse 70% 40% at 50% 30%, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 70%);
+  }
+  .ppt__book {
+    --t: min(2.66vw, 11.9px);
+    grid-row: 1;
+    justify-self: center;
+    width: min(38vw, 170px);
+  }
+  .ppt__stamps {
+    grid-column: 1;
+    grid-row: 2;
+    margin: calc(-1 * min(10vw, 48px)) 0 0;
+    aspect-ratio: 1.55;
+  }
+  .ppt__stamp { left: var(--x-m); top: var(--y-m); width: 25%; }
+  .js .ppt__stamps:not(.is-in) .ppt__stamp,
+  .js .ppt__stamp.is-waiting {
+    transform: translate(-50%, calc(-50% - var(--fy-m, 0%))) rotate(calc(var(--rot, 0deg) - 14deg)) scale(0.92);
+  }
+  .ppt__foot {
+    grid-column: 1;
+    grid-row: 3;
+    justify-content: center;
+    padding-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ppt__book,
+  .ppt__sheen,
+  .ppt__foil,
+  .ppt__stamps .ppt__stamp { transition: none; }
+  /* A late stamp simply appears where it rests. */
+  .js .ppt__stamp.is-waiting { transform: translate(-50%, -50%) rotate(var(--rot, 0deg)); }
+}
+
 /* ---------------------------------------------------------------- about --- */
 
 .about {

@@ -46,10 +46,8 @@
   /* Its own stacking context, so the page halves (.pp-tap) can tuck under
      the book without dropping behind this background. */
   isolation: isolate;
-  /* A soft pool of light for the passport to sit in. */
-  background:
-    radial-gradient(ellipse 46% 52% at 50% 54%, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0) 70%),
-    var(--bg);
+  /* Plain ground: no pool of light behind the passport (Joe, 2026-11-01). */
+  background: var(--bg);
 }
 
 /* The box the book is framed in: under the header, above the controls. The
@@ -266,6 +264,77 @@
   will-change: transform;
 }
 
+/* Wear, so the cover is as old as the pages inside it, but only just: the
+   navy a shade faded, a faint mottle in the leather from handling, the
+   corners and edges rubbed paler (the fore-edge's foot most, where it's
+   held), and the foil a touch duller and uneven, most low down toward the
+   fore-edge, where a thumb rubs it. The unevenness is the pages' own
+   print-wear tile (print-wear.webp, from tools/build-visa-paper.py), small
+   on the leather and larger on the foil, which it's cut to — so the cover
+   costs no new image, and both masks are already in the arrival's decode
+   gate (js/passport.js), through the pages' print and the foil's glint.
+   Until the tile is in, the wear is masked out: on a slow line the cover
+   shows new rather than smoothly rubbed. Plain colour and normal blending,
+   and no filter (see .pp-print). The home page's book wears the same
+   (.ppt__wear in css/styles.css): change one, change both. */
+.pp-wear {
+  --scuff: 92, 104, 140;   /* rubbed navy: paler and greyer */
+  --tarnish: 48, 34, 16;   /* worn foil: dark bronze */
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: block;
+  border-radius: inherit;
+  background: rgba(var(--scuff), 0.04);   /* the fade, foil and all */
+}
+
+.pp-wear::before,
+.pp-wear::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  border-radius: inherit;
+}
+
+/* The leather: the corners (the fore-edge's bigger than the spine's), a
+   thumb's width on the fore-edge and the foot, a thin rim round the edges,
+   and the mottle all over. */
+.pp-wear::before {
+  background:
+    radial-gradient(ellipse 9% 5.9% at 100% 0, rgba(var(--scuff), 0.9), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 11% 7.3% at 100% 100%, rgba(var(--scuff), 1), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 5% 3.3% at 0 0, rgba(var(--scuff), 0.7), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 5% 3.3% at 0 100%, rgba(var(--scuff), 0.8), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 3.5% 18% at 100% 60%, rgba(var(--scuff), 0.5), rgba(var(--scuff), 0)),
+    radial-gradient(ellipse 22% 2.2% at 36% 100%, rgba(var(--scuff), 0.45), rgba(var(--scuff), 0)),
+    linear-gradient(to left, rgba(var(--scuff), 0.38), rgba(var(--scuff), 0) 1.8%),
+    linear-gradient(to bottom, rgba(var(--scuff), 0.3), rgba(var(--scuff), 0) 1.2%),
+    linear-gradient(to top, rgba(var(--scuff), 0.42), rgba(var(--scuff), 0) 1.5%),
+    linear-gradient(rgba(var(--scuff), 0.06), rgba(var(--scuff), 0.06));
+  -webkit-mask: url('/assets/passport/web/print-wear.webp') 0 0 / auto 12% repeat;
+  mask: url('/assets/passport/web/print-wear.webp') 0 0 / auto 12% repeat;
+}
+
+/* The foil: dulled a little all over, and more toward the foot on the
+   fore-edge side. */
+.pp-wear::after {
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(var(--tarnish), 0.35), rgba(var(--tarnish), 0)),
+    linear-gradient(rgba(var(--tarnish), 0.2), rgba(var(--tarnish), 0.2));
+  -webkit-mask:
+    url('/assets/passport/web/print-wear.webp') 37% 61% / auto 30% repeat,
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  -webkit-mask-composite: source-in;
+  mask:
+    url('/assets/passport/web/print-wear.webp') 37% 61% / auto 30% repeat,
+    url('/assets/passport/web/cover-foil.webp') 0 0 / 100% 100% no-repeat;
+  mask-composite: intersect;
+}
+
+/* The back cover's outside: the same leather, mirrored (its fore-edge is on
+   the left), and no foil. */
+.pp-back--out .pp-wear { transform: scaleX(-1); }
+.pp-back--out .pp-wear::after { content: none; }
+
 /* The board's own shape: the hinge groove a passport cover folds along, the
    wrap into the spine, a faint rounded edge — and the light falling off
    across it, the far corner and the edges a little darker, like a cover
@@ -390,6 +459,42 @@
 .pp-cast--verso {
   background: linear-gradient(to left, rgba(6, 8, 24, 0.9), rgba(6, 8, 24, 0.4) 40%, rgba(6, 8, 24, 0) 100%);
   transform-origin: 100% 50%;
+}
+
+/* The turning leaf's outer corner, which bends a little ahead of the page
+   (the peel in js/passport.js): slices, each a copy of the page cut to its
+   band. Over them, the light along the bend — a shadow or a paper-white
+   highlight, nothing where the bend starts and most at the corner. The
+   script draws the ramps and sets how much. */
+.pp-peel { overflow: hidden; }
+.pp-peel__page {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  transform-origin: 0 0;
+}
+.pp-peel__sheet,
+.pp-peel__dark,
+.pp-peel__lift {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: block;
+}
+/* A copy of a page is shown and put away by moving it (the script), so
+   nothing the leaf inherits reaches into it: hiding the leaf, or fading
+   the edges, would otherwise restyle every copy, every time. */
+.pp-peel__sheet { visibility: visible; --edge-alpha: initial; }
+.pp-peel__dark,
+.pp-peel__lift { opacity: 0; pointer-events: none; }
+/* Where a copy is laid out flat to see what falls in its slice. */
+.pp-peel__measure {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  display: block;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* --------------------------------------------------------- front spread --- */
@@ -817,22 +922,12 @@
 }
 .pp-visited__flag.is-on .pp-visited__name { opacity: 1; }
 
-/* The first time the book opens, the flags press in one by one, each
-   country inking in just ahead of its flag. */
-.pp-visited.is-unstamped .pp-visited__flag,
+/* The first time the book opens, the countries ink in one by one. The
+   flags are simply there. */
 .pp-visited.is-unstamped .pp-visited__mark { opacity: 0; }
-.pp-visited.is-stamping .pp-visited__flag {
-  animation: pp-stamp 600ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
-  animation-delay: var(--d, 0ms);
-}
 .pp-visited.is-stamping .pp-visited__mark {
   animation: pp-ink-in 900ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   animation-delay: var(--d, 0ms);
-}
-@keyframes pp-stamp {
-  0% { opacity: 0; transform: scale(1.35) rotate(-4deg); }
-  55% { opacity: 1; }
-  100% { opacity: 1; transform: none; }
 }
 @keyframes pp-ink-in {
   from { opacity: 0; }
@@ -1289,8 +1384,7 @@ frame's fourth star would be. */
   .js .pp-controls { transition: none; }
   /* A hovered stamp's shadow still deepens; the stamp itself stays put. */
   .pp.is-settled .pp-stamp:hover .pp-stamp__art { transform: none; }
-  /* The flags are simply there, and a hovered one doesn't move. */
-  .pp-visited.is-stamping .pp-visited__flag,
+  /* The countries are simply there, and a hovered flag doesn't move. */
   .pp-visited.is-stamping .pp-visited__mark { animation: none; }
   .pp-visited__flag.is-on { transform: none; }
 }

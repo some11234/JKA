@@ -61,6 +61,7 @@ window.PASSPORT_STAMPS = [
   { stamp: 'north-macedonia-2026', name: 'North Macedonia', year: 2026, page: 3, at: [70, 69], tilt: 2.2 },
   { stamp: 'italy-2026', name: 'Italy', year: 2026, page: 4, at: [33, 28], tilt: -3.7 },
   { stamp: 'albania-2026', name: 'Albania', year: 2026, page: 4, at: [72, 31], tilt: 3.3 },
+  { stamp: 'turkey-2026', name: 'Turkey', year: 2026, page: 4, at: [33, 72], tilt: -3.5 },
 ];
 
 /* --------------------------------------------------------------------------
@@ -98,4 +99,5 @@ window.PASSPORT_COUNTRIES = [
   { code: 'MK', name: 'North Macedonia' },
   { code: 'IT', name: 'Italy' },
   { code: 'AL', name: 'Albania' },
+  { code: 'TR', name: 'Turkey' },
 ];

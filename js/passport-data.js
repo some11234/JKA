@@ -63,6 +63,7 @@ window.PASSPORT_STAMPS = [
   { stamp: 'albania-2026', name: 'Albania', year: 2026, page: 4, at: [72, 31], tilt: 3.3 },
   { stamp: 'turkey-2026', name: 'Turkey', year: 2026, page: 4, at: [33, 72], tilt: -3.5 },
   { stamp: 'bulgaria-2026', name: 'Bulgaria', year: 2026, page: 4, at: [71, 68], tilt: 3.9 },
+  { stamp: 'hungary-2026', name: 'Hungary', year: 2026, page: 5, at: [30, 28], tilt: -4.2 },
 ];
 
 /* --------------------------------------------------------------------------
@@ -102,4 +103,5 @@ window.PASSPORT_COUNTRIES = [
   { code: 'AL', name: 'Albania' },
   { code: 'TR', name: 'Turkey' },
   { code: 'BG', name: 'Bulgaria' },
+  { code: 'HU', name: 'Hungary' },
 ];

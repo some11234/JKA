@@ -956,6 +956,15 @@ a { color: inherit; }
   letter-spacing: 0.04em;
 }
 
+/* The stamp credit: its own full-width line under the caption and the pill. */
+.ppt__credit {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--ink-45);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
 .ppt__sr {
   position: absolute;
   width: 1px;
@@ -998,6 +1007,7 @@ a { color: inherit; }
     justify-content: center;
     padding-left: 0;
   }
+  .ppt__credit { text-align: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1214,6 +1224,8 @@ a { color: inherit; }
   font-size: 0.75rem;
   letter-spacing: 0.04em;
 }
+
+.site-footer p + p { margin-top: 8px; }
 
 /* ----------------------------------------------------------- stub pages --- */
 

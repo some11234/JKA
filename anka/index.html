@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Joseph Kerby Anderson</title>
+<meta name="theme-color" content="#0B0B0B">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/assets/core/favicon.png" type="image/png" sizes="500x500">
+
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=satoshi@1,2&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..700&display=swap">
+
+<link rel="stylesheet" href="/css/styles.css">
+<script>document.documentElement.classList.replace('no-js', 'js');</script>
+<style>
+  html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+  .site-header--short::before { height: calc(var(--header-h) + 24px); }
+
+  .ak { position: fixed; inset: 0; margin: 0; }
+  .ak__photo { width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 40% 50%; }
+  .ak::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(to top, rgba(11, 11, 11, 0.82) 0%, rgba(11, 11, 11, 0.35) 30%, rgba(11, 11, 11, 0) 55%);
+  }
+
+  .ak__count {
+    position: absolute; z-index: 1; left: 0; right: 0;
+    bottom: max(36px, calc(env(safe-area-inset-bottom) + 20px));
+    display: flex; justify-content: center; gap: clamp(10px, 3vw, 28px);
+    font-family: var(--font-mono); font-feature-settings: 'liga' 0, 'tnum' 1; color: var(--ink-100);
+  }
+  .ak__unit { display: flex; flex-direction: column; align-items: center; min-width: 2.2ch; }
+  .ak__num {
+    font-size: clamp(2.6rem, 11vw, 6.5rem); font-weight: 500; line-height: 1; letter-spacing: -0.02em;
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5);
+  }
+  .ak__label {
+    margin-top: 0.7em; font-size: clamp(0.62rem, 1.9vw, 0.75rem); letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--ink-70);
+  }
+  .ak__sep {
+    font-size: clamp(2.6rem, 11vw, 6.5rem); font-weight: 300; line-height: 1; color: var(--ink-45);
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header site-header--short">
+  <div class="site-header__row">
+    <a class="site-header__home" href="/">
+      <img class="site-header__logo" src="/assets/core/logo.svg" alt="Joseph Kerby — home">
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/#about">About</a>
+      <a href="/gallery/">Gallery</a>
+      <a href="/passport/">Passport</a>
+    </nav>
+    <a class="pill pill--accent" href="mailto:hello@josephkerby.com">Email</a>
+  </div>
+</header>
+
+<main class="ak">
+  <img class="ak__photo" src="photo.jpg" alt="">
+  <div class="ak__count" id="count" role="timer" aria-label="Time left until noon Eastern, Wednesday 25 November">
+    <div class="ak__unit"><span class="ak__num" data-u="h">--</span><span class="ak__label">hrs</span></div>
+    <span class="ak__sep" aria-hidden="true">:</span>
+    <div class="ak__unit"><span class="ak__num" data-u="m">--</span><span class="ak__label">min</span></div>
+    <span class="ak__sep" aria-hidden="true">:</span>
+    <div class="ak__unit"><span class="ak__num" data-u="s">--</span><span class="ak__label">sec</span></div>
+  </div>
+</main>
+
+<script>
+(function () {
+  // Noon Eastern Standard Time (UTC-5) on Wednesday 25 November 2026 = 17:00 UTC.
+  var TARGET = Date.UTC(2026, 10, 25, 17, 0, 0);
+  var el = {}, timer = 0;
+  ['h', 'm', 's'].forEach(function (u) { el[u] = document.querySelector('[data-u="' + u + '"]'); });
+  function two(n) { return n < 10 ? '0' + n : String(n); }
+  function tick() {
+    var left = Math.max(0, Math.floor((TARGET - Date.now()) / 1000));
+    el.h.textContent = two(Math.floor(left / 3600));       // all the hours, past 24 if it's that far off
+    el.m.textContent = two(Math.floor(left / 60) % 60);
+    el.s.textContent = two(left % 60);
+    if (!left) return;                                    // stops at 00:00:00
+    timer = setTimeout(tick, 1000 - (Date.now() % 1000) + 10);
+  }
+  tick();
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) { clearTimeout(timer); tick(); }
+  });
+})();
+</script>
+</body>
+</html>

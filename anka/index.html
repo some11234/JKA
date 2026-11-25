@@ -26,26 +26,29 @@
   .ak__photo { width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 40% 50%; }
   .ak::after {
     content: ''; position: absolute; inset: 0; pointer-events: none;
-    background: linear-gradient(to top, rgba(11, 11, 11, 0.82) 0%, rgba(11, 11, 11, 0.35) 30%, rgba(11, 11, 11, 0) 55%);
+    background: radial-gradient(ellipse 80% 55% at 50% 52%, rgba(11, 11, 11, 0.55) 0%, rgba(11, 11, 11, 0.25) 60%, rgba(11, 11, 11, 0.1) 100%);
   }
 
-  .ak__count {
-    position: absolute; z-index: 1; left: 0; right: 0;
-    bottom: max(36px, calc(env(safe-area-inset-bottom) + 20px));
-    display: flex; justify-content: center; gap: clamp(10px, 3vw, 28px);
-    font-family: var(--font-mono); font-feature-settings: 'liga' 0, 'tnum' 1; color: var(--ink-100);
+  .ak__center {
+    position: absolute; z-index: 1; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: clamp(24px, 5vh, 44px); padding: calc(var(--header-h) + 16px) 24px 24px;
+    text-align: center;
   }
-  .ak__unit { display: flex; flex-direction: column; align-items: center; min-width: 2.2ch; }
-  .ak__num {
-    font-size: clamp(2.6rem, 11vw, 6.5rem); font-weight: 500; line-height: 1; letter-spacing: -0.02em;
-    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5);
+  .ak__title {
+    margin: 0; font-family: var(--font-sans); font-weight: 700; color: var(--ink-100);
+    font-size: clamp(2.8rem, 10vw, 7.5rem); line-height: 1.02; letter-spacing: -0.03em;
+    text-wrap: balance; text-shadow: 0 2px 30px rgba(0, 0, 0, 0.55);
   }
-  .ak__label {
-    margin-top: 0.7em; font-size: clamp(0.62rem, 1.9vw, 0.75rem); letter-spacing: 0.22em;
-    text-transform: uppercase; color: var(--ink-70);
+  .ak__btn {
+    padding: 14px 30px; font-size: clamp(0.95rem, 2.4vw, 1.1rem); letter-spacing: 0.02em;
+    background: rgba(11, 11, 11, 0.35); border-color: var(--ink-70);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
   }
-  .ak__sep {
-    font-size: clamp(2.6rem, 11vw, 6.5rem); font-weight: 300; line-height: 1; color: var(--ink-45);
+  .ak__btn:hover { background: rgba(255, 255, 255, 0.14); border-color: var(--ink-100); }
+  .ak__hint {
+    margin: calc(-1 * clamp(10px, 2.5vh, 26px)) 0 0; font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+    color: rgba(255, 255, 255, 0.9); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 1px 14px rgba(0, 0, 0, 0.7);
   }
 </style>
 </head>
@@ -67,35 +70,12 @@
 
 <main class="ak">
   <img class="ak__photo" src="photo.jpg" alt="">
-  <div class="ak__count" id="count" role="timer" aria-label="Time left until noon Eastern, Wednesday 25 November">
-    <div class="ak__unit"><span class="ak__num" data-u="h">--</span><span class="ak__label">hrs</span></div>
-    <span class="ak__sep" aria-hidden="true">:</span>
-    <div class="ak__unit"><span class="ak__num" data-u="m">--</span><span class="ak__label">min</span></div>
-    <span class="ak__sep" aria-hidden="true">:</span>
-    <div class="ak__unit"><span class="ak__num" data-u="s">--</span><span class="ak__label">sec</span></div>
+  <div class="ak__center">
+    <h1 class="ak__title">Happy Birthday Anka!</h1>
+    <a class="pill pill--ghost ak__btn" href="https://ankaalarcon.com">ankaalarcon.com</a>
+    <p class="ak__hint">Hint: use ur personal email to login</p>
   </div>
 </main>
 
-<script>
-(function () {
-  // Noon Eastern Standard Time (UTC-5) on Wednesday 25 November 2026 = 17:00 UTC.
-  var TARGET = Date.UTC(2026, 10, 25, 17, 0, 0);
-  var el = {}, timer = 0;
-  ['h', 'm', 's'].forEach(function (u) { el[u] = document.querySelector('[data-u="' + u + '"]'); });
-  function two(n) { return n < 10 ? '0' + n : String(n); }
-  function tick() {
-    var left = Math.max(0, Math.floor((TARGET - Date.now()) / 1000));
-    el.h.textContent = two(Math.floor(left / 3600));       // all the hours, past 24 if it's that far off
-    el.m.textContent = two(Math.floor(left / 60) % 60);
-    el.s.textContent = two(left % 60);
-    if (!left) return;                                    // stops at 00:00:00
-    timer = setTimeout(tick, 1000 - (Date.now() % 1000) + 10);
-  }
-  tick();
-  document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) { clearTimeout(timer); tick(); }
-  });
-})();
-</script>
 </body>
 </html>
